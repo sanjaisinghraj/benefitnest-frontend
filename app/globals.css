@@ -2,16 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom globals */
+/* Optional global tweaks */
 html,
 body {
-  padding: 0;
-  margin: 0;
+  height: 100%;
 }
 
 body {
-  background-color: #ffffff;
-  color: #111827;
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont,
+  font-family: system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
