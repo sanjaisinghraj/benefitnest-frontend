@@ -4,20 +4,20 @@ const config: Config = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
+    "./pages/**/*.{js,ts,jsx,tsx}"
   ],
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-      },
-      fontFamily: {
-        sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
-        mono: ["var(--font-geist-mono)", "monospace"],
-      },
-    },
+        brand: {
+          DEFAULT: "#0F2A44",
+          light: "#1E3A5F",
+          accent: "#2563EB"
+        }
+      }
+    }
   },
-  plugins: [],
+  plugins: []
 };
 
 export default config;
