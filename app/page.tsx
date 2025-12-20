@@ -1,65 +1,88 @@
-import Image from "next/image";
-
-export default function Home() {
+export default function HomePage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="min-h-screen bg-white text-gray-900">
+      {/* HERO */}
+      <section className="max-w-7xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-12 items-center">
+        <div>
+          <h1 className="text-5xl font-bold leading-tight">
+            Enterprise Employee Benefits
+            <span className="text-blue-600"> Reimagined</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+
+          <p className="mt-6 text-lg text-gray-600">
+            BenefitNest is a secure, modern employee benefits platform designed
+            for enterprises to manage insurance, wellness, analytics and
+            compliance in one place.
           </p>
+
+          <div className="mt-8 flex gap-4">
+            <a
+              href="https://admin.benefitnest.space"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition"
+            >
+              Admin Login
+            </a>
+
+            <a
+              href="#features"
+              className="border border-gray-300 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition"
+            >
+              Explore Platform
+            </a>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* HERO IMAGE */}
+        <div>
+          <img
+            src="/images/marketing/hero-enterprise-benefits.jpg"
+            alt="Enterprise Benefits Platform"
+            className="rounded-xl shadow-lg"
+          />
         </div>
-      </main>
+      </section>
+
+      {/* FEATURES */}
+      <section
+        id="features"
+        className="bg-gray-50 py-20 px-6"
+      >
+        <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-10">
+          <Feature
+            title="Smart Enrollment"
+            desc="Simple, guided enrollment journeys that reduce HR workload."
+            img="/images/marketing/employee-enrollment-flow.jpg"
+          />
+          <Feature
+            title="Enterprise Analytics"
+            desc="Real-time dashboards for claims, utilization and costs."
+            img="/images/marketing/enterprise-analytics.jpg"
+          />
+          <Feature
+            title="Secure & Scalable"
+            desc="Multi-tenant architecture with enterprise-grade security."
+            img="/images/marketing/enterprise-security.jpg"
+          />
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function Feature({
+  title,
+  desc,
+  img,
+}: {
+  title: string;
+  desc: string;
+  img: string;
+}) {
+  return (
+    <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition">
+      <img src={img} alt={title} className="rounded-lg mb-4" />
+      <h3 className="text-xl font-semibold">{title}</h3>
+      <p className="mt-2 text-gray-600">{desc}</p>
     </div>
   );
 }
