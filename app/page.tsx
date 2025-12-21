@@ -9,7 +9,7 @@ export default function Page() {
       <header className="site-header">
         <div className="container nav">
           <a className="logo" href="/">
-            <img src="/images/marketinglogo.png" alt="Benifex" />
+            <img src="/images/marketinglogo.png" alt="BenefitNest" />
           </a>
 
           <nav className="menu">
@@ -287,7 +287,7 @@ export default function Page() {
       {/* FOOTER */}
       <footer className="site-footer">
         <div className="container">
-          <p>© {new Date().getFullYear()} Benifex. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} BenefitNest. All rights reserved.</p>
         </div>
       </footer>
 
