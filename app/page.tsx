@@ -40,7 +40,11 @@ export default function Page() {
               <a className="btn primary" href="#">Book a demo</a>
               <a className="btn ghost" href="#features">Explore BenefitNest</a>
             </div>
-                    <div className="hero-media">
+            <div className="hero-brands">
+              <img src="/images/marketing/brands-strip.png" alt="A global community of changemakers" />
+            </div>
+          </div>
+          <div className="hero-media">
             <img
               className="hero-illustration"
               src="/images/marketing/hero-illustration.jpg"
