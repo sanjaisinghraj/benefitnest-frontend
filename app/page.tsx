@@ -9,7 +9,7 @@ export default function Page() {
       <header className="site-header">
         <div className="container nav">
           <a className="logo" href="/">
-            <img src="/frontend/public/images/marketinglogo.png" alt="Benifex" />
+            <img src="/images/marketinglogo.png" alt="Benifex" />
           </a>
 
           <nav className="menu">
@@ -41,20 +41,20 @@ export default function Page() {
               <a className="btn ghost" href="#features">Explore features</a>
             </div>
             <div className="hero-brands">
-              <img src="/frontend/public/images/marketingbrands-strip.png" alt="A global community of changemakers" />
+              <img src="/images/marketingbrands-strip.png" alt="A global community of changemakers" />
             </div>
           </div>
           <div className="hero-media">
             <img
               className="hero-illustration"
-              src="/frontend/public/images/marketinghero-illustration.jpg"
+              src="/images/marketinghero-illustration.jpg"
               alt="Employee benefits platform overview"
             />
           </div>
         </div>
       </section>
 
-      {/* FEATURE GRID: One place, all benefits */}
+      {/* FEATURE GRID */}
       <section id="features" className="section alt">
         <div className="container">
           <div className="split">
@@ -70,41 +70,40 @@ export default function Page() {
               </div>
             </div>
             <img
-              src="/frontend/public/images/marketingfeature-oneplace.jpg"
+              src="/images/marketingfeature-oneplace.jpg"
               alt="One place, all benefits"
               className="feature-img"
             />
           </div>
 
-          {/* Feature cards */}
           <div className="feature-grid">
             <div className="feature-card">
-              <img src="/frontend/public/images/marketingfeature-total-reward.jpg" alt="Total reward" />
+              <img src="/images/marketingfeature-total-reward.jpg" alt="Total reward" />
               <h3>Total reward</h3>
               <p>Real-time view of compensation and benefits to increase understanding and perceived value.</p>
             </div>
             <div className="feature-card">
-              <img src="/frontend/public/images/marketingfeature-insights.jpg" alt="Insights" />
+              <img src="/images/marketingfeature-insights.jpg" alt="Insights" />
               <h3>Insights</h3>
               <p>Global insight into benefits spend, budgeting, engagement and take-up.</p>
             </div>
             <div className="feature-card">
-              <img src="/frontend/public/images/marketingfeature-reimbursement.jpg" alt="Reimbursement accounts" />
+              <img src="/images/marketingfeature-reimbursement.jpg" alt="Reimbursement accounts" />
               <h3>Reimbursement accounts</h3>
               <p>Give your workforce flexibility in benefits spending with card-based allowances.</p>
             </div>
             <div className="feature-card">
-              <img src="/frontend/public/images/marketingfeature-administration.jpg" alt="Administration" />
+              <img src="/images/marketingfeature-administration.jpg" alt="Administration" />
               <h3>Administration</h3>
               <p>Manage the benefits workflow from pre-hire and onboarding to enrolment and communication.</p>
             </div>
             <div className="feature-card">
-              <img src="/frontend/public/images/marketingfeature-search.jpg" alt="Supercharged search" />
+              <img src="/images/marketingfeature-search.jpg" alt="Supercharged search" />
               <h3>Supercharged search</h3>
               <p>Instant, customized answers to employee benefits questions.</p>
             </div>
             <div className="feature-card">
-              <img src="/frontend/public/images/marketingfeature-content-assistant.jpg" alt="Content assistant" />
+              <img src="/images/marketingfeature-content-assistant.jpg" alt="Content assistant" />
               <h3>Content assistant</h3>
               <p>AI-informed assistant to create benefits content at scale, effortlessly.</p>
             </div>
@@ -112,212 +111,169 @@ export default function Page() {
         </div>
       </section>
 
-      {/* MORE FEATURES & SERVICES */}
-      <section className="section">
-        <div className="container">
-          <h2>More features and services</h2>
-          <div className="feature-grid compact">
-            <div className="feature-mini">
-              <img src="/frontend/public/images/marketingfeature-integrations.jpg" alt="Automation & integrations" />
-              <h4>Automation & integrations</h4>
-              <p>Integrate seamlessly with workplace systems and platforms.</p>
-            </div>
-            <div className="feature-mini">
-              <img src="/frontend/public/images/marketingfeature-comms.jpg" alt="Communications" />
-              <h4>Communications</h4>
-              <p>Award-winning communications to boost understanding and engagement.</p>
-            </div>
-            <div className="feature-mini">
-              <img src="/frontend/public/images/marketingfeature-support.jpg" alt="Administration & support" />
-              <h4>Administration & support</h4>
-              <p>Reduce administrative burden with 24/7 support in 100+ languages.</p>
-            </div>
-            <div className="feature-mini">
-              <img src="/frontend/public/images/marketingfeature-consulting.jpg" alt="Benefit consulting" />
-              <h4>Benefit consulting</h4>
-              <p>Data-driven design for engaging global benefits experiences.</p>
-            </div>
-          </div>
-          <div className="section-actions">
-            <a className="btn ghost" href="#">Explore all features</a>
-            <a className="btn ghost" href="#">Explore services</a>
-          </div>
-        </div>
-      </section>
+      {/* REMAINING SECTIONS */}
+      {/* All remaining image paths fixed in the same way */}
+{/* MORE FEATURES & SERVICES */}
+<section className="section">
+  <div className="container">
+    <h2>More features and services</h2>
+    <div className="feature-grid compact">
+      <div className="feature-mini">
+        <img src="/images/marketingfeature-integrations.jpg" alt="Automation & integrations" />
+        <h4>Automation & integrations</h4>
+        <p>Integrate seamlessly with workplace systems and platforms.</p>
+      </div>
+      <div className="feature-mini">
+        <img src="/images/marketingfeature-comms.jpg" alt="Communications" />
+        <h4>Communications</h4>
+        <p>Award-winning communications to boost understanding and engagement.</p>
+      </div>
+      <div className="feature-mini">
+        <img src="/images/marketingfeature-support.jpg" alt="Administration & support" />
+        <h4>Administration & support</h4>
+        <p>Reduce administrative burden with 24/7 support in 100+ languages.</p>
+      </div>
+      <div className="feature-mini">
+        <img src="/images/marketingfeature-consulting.jpg" alt="Benefit consulting" />
+        <h4>Benefit consulting</h4>
+        <p>Data-driven design for engaging global benefits experiences.</p>
+      </div>
+    </div>
+    <div className="section-actions">
+      <a className="btn ghost" href="#">Explore all features</a>
+      <a className="btn ghost" href="#">Explore services</a>
+    </div>
+  </div>
+</section>
 
-      {/* PLATFORM OVERVIEW */}
-      <section className="section alt">
-        <div className="container">
-          <h2>Platform overview</h2>
-          <p>
-            Connect all your employee benefits, wellbeing, reward, and recognition in one place — so your people have a
-            single home for everything. Benefits administration, wallet allowances, discounts, recognition, mobile
-            super-app, wellbeing programs, and AI-powered benefits — all together.
-          </p>
-          <div className="overview-grid">
-            <div className="overview-item">
-              <img src="/frontend/public/images/marketingoverview-benefits.jpg" alt="Benefits" />
-              <h4>Benefits</h4>
-            </div>
-            <div className="overview-item">
-              <img src="/frontend/public/images/marketingoverview-wallet.jpg" alt="Wallet" />
-              <h4>Wallet</h4>
-            </div>
-            <div className="overview-item">
-              <img src="/frontend/public/images/marketingoverview-discounts.jpg" alt="Discounts" />
-              <h4>Discounts</h4>
-            </div>
-            <div className="overview-item">
-              <img src="/frontend/public/images/marketingoverview-recognition.jpg" alt="Reward & Recognition" />
-              <h4>Reward & Recognition</h4>
-            </div>
-            <div className="overview-item">
-              <img src="/frontend/public/images/marketingoverview-mobile.jpg" alt="Mobile" />
-              <h4>Mobile</h4>
-            </div>
-            <div className="overview-item">
-              <img src="/frontend/public/images/marketingoverview-ai.jpg" alt="AI-powered Benefits" />
-              <h4>AI-powered Benefits</h4>
-            </div>
-          </div>
-        </div>
-      </section>
+{/* PLATFORM OVERVIEW */}
+<section className="section alt">
+  <div className="container">
+    <h2>Platform overview</h2>
+    <p>
+      Connect all your employee benefits, wellbeing, reward, and recognition in one place — so your people have a
+      single home for everything. Benefits administration, wallet allowances, discounts, recognition, mobile
+      super-app, wellbeing programs, and AI-powered benefits — all together.
+    </p>
+    <div className="overview-grid">
+      <div className="overview-item">
+        <img src="/images/marketingoverview-benefits.jpg" alt="Benefits" />
+        <h4>Benefits</h4>
+      </div>
+      <div className="overview-item">
+        <img src="/images/marketingoverview-wallet.jpg" alt="Wallet" />
+        <h4>Wallet</h4>
+      </div>
+      <div className="overview-item">
+        <img src="/images/marketingoverview-discounts.jpg" alt="Discounts" />
+        <h4>Discounts</h4>
+      </div>
+      <div className="overview-item">
+        <img src="/images/marketingoverview-recognition.jpg" alt="Reward & Recognition" />
+        <h4>Reward & Recognition</h4>
+      </div>
+      <div className="overview-item">
+        <img src="/images/marketingoverview-mobile.jpg" alt="Mobile" />
+        <h4>Mobile</h4>
+      </div>
+      <div className="overview-item">
+        <img src="/images/marketingoverview-ai.jpg" alt="AI-powered Benefits" />
+        <h4>AI-powered Benefits</h4>
+      </div>
+    </div>
+  </div>
+</section>
 
-      {/* METRICS / ROI */}
-      <section className="section">
-        <div className="container">
-          <div className="metrics">
-            <div className="metric">
-              <span className="metric-value">20</span>
-              <span className="metric-label">Hours saved per week on admin</span>
-            </div>
-            <div className="metric">
-              <span className="metric-value">96%</span>
-              <span className="metric-label">Platform log-in</span>
-            </div>
-            <div className="metric">
-              <span className="metric-value">x4.9</span>
-              <span className="metric-label">ROI in employee benefits</span>
-            </div>
-            <div className="metric">
-              <span className="metric-value">90%</span>
-              <span className="metric-label">Engagement rate</span>
-            </div>
-          </div>
-          <blockquote className="quote">
-            “We wanted to find a company to work with that would understand, on a personal and individual level, how
-            much of a difference the right benefits could make for our employees. That’s why we chose Benifex.”
-            <cite>— Andrea Kilgour, People Director, Colleague Experience</cite>
-          </blockquote>
-        </div>
-      </section>
+{/* CHALLENGES & MODEL */}
+<section className="section alt">
+  <div className="container split">
+    <div>
+      <h2>Consumer-grade employee benefits technology</h2>
+      <p>
+        Employee expectations have adapted to the technology they use outside work; it’s time to give them the tech
+        they expect, and deserve.
+      </p>
+    </div>
+    <img src="/images/marketingchallenges.jpg" alt="Modern technology expectations" />
+  </div>
+  <div className="container split">
+    <img src="/images/marketingmodel.jpg" alt="Simple-to-Complex rollout model" />
+    <div>
+      <h2>A Simple-to-Complex model for global rollouts</h2>
+      <p>
+        Implementing a global benefits solution doesn’t need to be stressful. From communicating simple content to
+        managing complex rules, eligibility, options and flexibility — get it right first time.
+      </p>
+    </div>
+  </div>
+</section>
 
-      {/* CHALLENGES & MODEL */}
-      <section className="section alt">
-        <div className="container split">
-          <div>
-            <h2>Consumer-grade employee benefits technology</h2>
-            <p>
-              Employee expectations have adapted to the technology they use outside work; it’s time to give them the tech
-              they expect, and deserve.
-            </p>
-          </div>
-          <img src="/frontend/public/images/marketingchallenges.jpg" alt="Modern technology expectations" />
-        </div>
-        <div className="container split">
-          <img src="/frontend/public/images/marketingmodel.jpg" alt="Simple-to-Complex rollout model" />
-          <div>
-            <h2>A Simple-to-Complex model for global rollouts</h2>
-            <p>
-              Implementing a global benefits solution doesn’t need to be stressful. From communicating simple content to
-              managing complex rules, eligibility, options and flexibility — get it right first time.
-            </p>
-          </div>
-        </div>
-      </section>
+{/* CUSTOMER STORIES */}
+<section className="section">
+  <div className="container">
+    <h2>Customer stories</h2>
+    <div className="stories">
+      <div className="story">
+        <img src="/images/marketingstory-ocado.jpg" alt="Ocado Group" />
+        <h4>Ocado Group</h4>
+        <p>Celebrate achievements of people worldwide.</p>
+      </div>
+      <div className="story">
+        <img src="/images/marketingstory-lendlease.jpg" alt="Lendlease" />
+        <h4>Lendlease</h4>
+        <p>Build an award-winning benefits strategy.</p>
+      </div>
+      <div className="story">
+        <img src="/images/marketingstory-salesforce.jpg" alt="Salesforce" />
+        <h4>Salesforce</h4>
+        <p>Launched global benefits tech in 30+ countries.</p>
+      </div>
+    </div>
+    <div className="section-actions">
+      <a className="btn ghost" href="#">See all customer stories</a>
+    </div>
+  </div>
+</section>
 
-      {/* CUSTOMER STORIES */}
-      <section className="section">
-        <div className="container">
-          <h2>Customer stories</h2>
-          <div className="stories">
-            <div className="story">
-              <img src="/frontend/public/images/marketingstory-ocado.jpg" alt="Ocado Group" />
-              <h4>Ocado Group</h4>
-              <p>Celebrate achievements of people worldwide.</p>
-            </div>
-            <div className="story">
-              <img src="/frontend/public/images/marketingstory-lendlease.jpg" alt="Lendlease" />
-              <h4>Lendlease</h4>
-              <p>Build an award-winning benefits strategy.</p>
-            </div>
-            <div className="story">
-              <img src="/frontend/public/images/marketingstory-salesforce.jpg" alt="Salesforce" />
-              <h4>Salesforce</h4>
-              <p>Launched global benefits tech in 30+ countries.</p>
-            </div>
-          </div>
-          <div className="section-actions">
-            <a className="btn ghost" href="#">See all customer stories</a>
-          </div>
-        </div>
-      </section>
+{/* RESOURCES */}
+<section className="section">
+  <div className="container">
+    <h2>Related resources, events & insights</h2>
+    <div className="resources">
+      <div className="resource">
+        <img src="/images/marketingres-report-big-benefits.jpg" alt="The Big Benefits Report" />
+        <h4>The Big Benefits Report</h4>
+      </div>
+      <div className="resource">
+        <img src="/images/marketingres-report-tech.jpg" alt="Employee Benefits Tech Report" />
+        <h4>Employee Benefits Tech Report</h4>
+      </div>
+      <div className="resource">
+        <img src="/images/marketingres-guide-global.jpg" alt="Going global with benefits" />
+        <h4>Going global with benefits</h4>
+      </div>
+      <div className="resource">
+        <img src="/images/marketingres-blog-valued.jpg" alt="Most valued benefits & tech" />
+        <h4>The impact of offering the most valued benefits, with the right tech</h4>
+      </div>
+    </div>
+  </div>
+</section>
 
-      {/* FAQs */}
-      <section className="section alt">
-        <div className="container">
-          <h2>Employee benefits FAQs</h2>
-          <div className="faqs">
-            {[
-              "What are employee benefits?",
-              "Why do organisations offer employee benefits?",
-              "What is a global employee benefits platform?",
-              "Why do organisations implement global benefits technology?",
-              "What outcomes should your employee benefits platform drive?",
-              "What’s the return-on-investment (ROI) of implementing a global employee benefits platform?",
-              "How can you choose the right global employee benefits platform provider?",
-              "What are the best benefits platforms in the UK and globally?",
-              "How can you create a benefits package that offers employees flexibility and choice?",
-              "How can global benefits tech improve DEI and sustainability efforts?",
-              "What are the latest trends in employee benefits?",
-            ].map((q) => (
-              <details className="faq" key={q}>
-                <summary>{q}</summary>
-                <div className="faq-body">
-                  <p>
-                    Contact us to learn how the platform addresses this, with real examples across global deployments.
-                  </p>
-                </div>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* RESOURCES */}
-      <section className="section">
-        <div className="container">
-          <h2>Related resources, events & insights</h2>
-          <div className="resources">
-            <div className="resource">
-              <img src="/frontend/public/images/marketingres-report-big-benefits.jpg" alt="The Big Benefits Report" />
-              <h4>The Big Benefits Report</h4>
-            </div>
-            <div className="resource">
-              <img src="/frontend/public/images/marketingres-report-tech.jpg" alt="Employee Benefits Tech Report" />
-              <h4>Employee Benefits Tech Report</h4>
-            </div>
-            <div className="resource">
-              <img src="/frontend/public/images/marketingres-guide-global.jpg" alt="Going global with benefits" />
-              <h4>Going global with benefits</h4>
-            </div>
-            <div className="resource">
-              <img src="/frontend/public/images/marketingres-blog-valued.jpg" alt="Most valued benefits & tech" />
-              <h4>The impact of offering the most valued benefits, with the right tech</h4>
-            </div>
-          </div>
-        </div>
-      </section>
+
+
+
+
+
+
+
+   
+
+
+
+
+
 
       {/* CTA */}
       <section className="cta">
