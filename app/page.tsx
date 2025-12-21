@@ -31,14 +31,14 @@ export default function Page() {
       <section className="hero">
         <div className="container hero-grid">
           <div className="hero-copy">
-            <span className="badge">Global employee benefits</span>
+            <span className="badge">Badge: Enterprise employee benefits platform</span>
             <h1>Run, manage, and engage your employees in benefits — anywhere in the world.</h1>
             <p>
-              Create a consistent and connected global benefits experience with an online benefits platform.
+              BenefitNest helps organisations manage employee insurance, benefits enrolment, claims, and analytics through a single secure platform.
             </p>
             <div className="hero-actions">
               <a className="btn primary" href="#">Book a demo</a>
-              <a className="btn ghost" href="#features">Explore features</a>
+              <a className="btn ghost" href="#features">Explore BenefitNest</a>
             </div>
             <div className="hero-brands">
               <img src="/images/marketing/brands-strip.png" alt="A global community of changemakers" />
@@ -59,14 +59,12 @@ export default function Page() {
         <div className="container">
           <div className="split">
             <div>
-              <h2>One place, all benefits</h2>
+              <h2>All employee benefits. One secure platform.</h2>
               <p>
-                Choice, flexibility and every single benefit you offer in one place. Help employees understand how much
-                they’re valued with a real-time view of their total reward package and insights into spend, budgeting,
-                engagement and take-up.
+                Centralise insurance, benefits, reimbursements, and engagement tools so HR teams and employees operate from one system of record.
               </p>
               <div className="feature-cta">
-                <a className="btn primary" href="#">Learn more</a>
+                <a className="btn primary" href="#">Keep CTA</a>
               </div>
             </div>
             <img
@@ -78,34 +76,34 @@ export default function Page() {
 
           <div className="feature-grid">
             <div className="feature-card">
-              <img src="/images/marketing/feature-total-reward.jpg" alt="Total reward" />
+              <img src="/images/marketing/feature-total-reward.jpg" alt="Total compensation visibility" />
               <h3>Total reward</h3>
-              <p>Real-time view of compensation and benefits to increase understanding and perceived value.</p>
+              <p>Unified view of insurance, benefits, and employer contributions for employees.</p>
             </div>
             <div className="feature-card">
               <img src="/images/marketing/feature-insights.jpg" alt="Insights" />
-              <h3>Insights</h3>
-              <p>Global insight into benefits spend, budgeting, engagement and take-up.</p>
+              <h3>HR analytics & reporting</h3>
+              <p>Actionable insights on enrolment, claims, and benefit utilisation.</p>
             </div>
             <div className="feature-card">
               <img src="/images/marketing/feature-reimbursement.jpg" alt="Reimbursement accounts" />
-              <h3>Reimbursement accounts</h3>
-              <p>Give your workforce flexibility in benefits spending with card-based allowances.</p>
+              <h3>Claims & reimbursements</h3>
+              <p>Digitised, policy-based reimbursement and claims processing.</p>
             </div>
             <div className="feature-card">
               <img src="/images/marketing/feature-administration.jpg" alt="Administration" />
-              <h3>Administration</h3>
-              <p>Manage the benefits workflow from pre-hire and onboarding to enrolment and communication.</p>
+              <h3>Benefits administration</h3>
+              <p>Configure plans, eligibility, onboarding, and lifecycle events.</p>
             </div>
             <div className="feature-card">
               <img src="/images/marketing/feature-search.jpg" alt="Supercharged search" />
-              <h3>Supercharged search</h3>
-              <p>Instant, customized answers to employee benefits questions.</p>
+              <h3>Employee self-service</h3>
+              <p>Employees find answers, policies, and benefits without HR tickets.</p>
             </div>
             <div className="feature-card">
               <img src="/images/marketing/feature-content-assistant.jpg" alt="Content assistant" />
-              <h3>Content assistant</h3>
-              <p>AI-informed assistant to create benefits content at scale, effortlessly.</p>
+              <h3>Smart assistance</h3>
+              <p>AI-enabled help for FAQs, policies, and employee queries.</p>
             </div>
           </div>
         </div>
@@ -119,22 +117,22 @@ export default function Page() {
     <h2>More features and services</h2>
     <div className="feature-grid compact">
       <div className="feature-mini">
-        <img src="/images/marketing/feature-integrations.jpg" alt="Automation & integrations" />
+        <img src="/images/marketing/feature-integrations.jpg" alt="Payroll & insurer integrations" />
         <h4>Automation & integrations</h4>
         <p>Integrate seamlessly with workplace systems and platforms.</p>
       </div>
       <div className="feature-mini">
-        <img src="/images/marketing/feature-comms.jpg" alt="Communications" />
+        <img src="/images/marketing/feature-comms.jpg" alt="Employee Communications" />
         <h4>Communications</h4>
         <p>Award-winning communications to boost understanding and engagement.</p>
       </div>
       <div className="feature-mini">
-        <img src="/images/marketing/feature-support.jpg" alt="Administration & support" />
+        <img src="/images/marketing/feature-support.jpg" alt="HR operations support" />
         <h4>Administration & support</h4>
         <p>Reduce administrative burden with 24/7 support in 100+ languages.</p>
       </div>
       <div className="feature-mini">
-        <img src="/images/marketing/feature-consulting.jpg" alt="Benefit consulting" />
+        <img src="/images/marketing/feature-consulting.jpg" alt="Benefits advisory" />
         <h4>Benefit consulting</h4>
         <p>Data-driven design for engaging global benefits experiences.</p>
       </div>
@@ -149,36 +147,34 @@ export default function Page() {
 {/* PLATFORM OVERVIEW */}
 <section className="section alt">
   <div className="container">
-    <h2>Platform overview</h2>
+    <h2>How BenefitNest works</h2>
     <p>
-      Connect all your employee benefits, wellbeing, reward, and recognition in one place — so your people have a
-      single home for everything. Benefits administration, wallet allowances, discounts, recognition, mobile
-      super-app, wellbeing programs, and AI-powered benefits — all together.
+      BenefitNest connects insurance, benefits, reimbursements, engagement, and analytics into a single HR benefits hub.
     </p>
     <div className="overview-grid">
       <div className="overview-item">
         <img src="/images/marketing/overview-benefits.jpg" alt="Benefits" />
-        <h4>Benefits</h4>
+        <h4>Insurance & benefits</h4>
       </div>
       <div className="overview-item">
         <img src="/images/marketing/overview-wallet.jpg" alt="Wallet" />
-        <h4>Wallet</h4>
+        <h4>Claims & payouts</h4>
       </div>
       <div className="overview-item">
         <img src="/images/marketing/overview-discounts.jpg" alt="Discounts" />
-        <h4>Discounts</h4>
+        <h4>Partner benefits</h4>
       </div>
       <div className="overview-item">
         <img src="/images/marketing/overview-recognition.jpg" alt="Reward & Recognition" />
-        <h4>Reward & Recognition</h4>
+        <h4>Engagement & rewards</h4>
       </div>
       <div className="overview-item">
         <img src="/images/marketing/overview-mobile.jpg" alt="Mobile" />
-        <h4>Mobile</h4>
+        <h4>Employee portal</h4>
       </div>
       <div className="overview-item">
         <img src="/images/marketing/overview-ai.jpg" alt="AI-powered Benefits" />
-        <h4>AI-powered Benefits</h4>
+        <h4>Smart automation</h4>
       </div>
     </div>
   </div>
@@ -188,10 +184,9 @@ export default function Page() {
 <section className="section alt">
   <div className="container split">
     <div>
-      <h2>Consumer-grade employee benefits technology</h2>
+      <h2>Built for employees. Designed for HR.</h2>
       <p>
-        Employee expectations have adapted to the technology they use outside work; it’s time to give them the tech
-        they expect, and deserve.
+        Employees expect simple, mobile-first systems. BenefitNest delivers enterprise-grade security with consumer-grade experience.
       </p>
     </div>
     <img src="/images/marketing/challenges.jpg" alt="Modern technology expectations" />
@@ -199,10 +194,9 @@ export default function Page() {
   <div className="container split">
     <img src="/images/marketing/model.jpg" alt="Simple-to-Complex rollout model" />
     <div>
-      <h2>A Simple-to-Complex model for global rollouts</h2>
+      <h2>Scales from pilot to enterprise rollout</h2>
       <p>
-        Implementing a global benefits solution doesn’t need to be stressful. From communicating simple content to
-        managing complex rules, eligibility, options and flexibility — get it right first time.
+        Start with core benefits and expand across locations, insurers, and employee groups without rework.
       </p>
     </div>
   </div>
@@ -215,17 +209,17 @@ export default function Page() {
     <div className="stories">
       <div className="story">
         <img src="/images/marketing/story-ocado.jpg" alt="Ocado Group" />
-        <h4>Ocado Group</h4>
+        <h4>Mid-size Indian enterprise</h4>
         <p>Celebrate achievements of people worldwide.</p>
       </div>
       <div className="story">
         <img src="/images/marketing/story-lendlease.jpg" alt="Lendlease" />
-        <h4>Lendlease</h4>
+        <h4>Large corporate HR team</h4>
         <p>Build an award-winning benefits strategy.</p>
       </div>
       <div className="story">
         <img src="/images/marketing/story-salesforce.jpg" alt="Salesforce" />
-        <h4>Salesforce</h4>
+        <h4>Multi-location organisation</h4>
         <p>Launched global benefits tech in 30+ countries.</p>
       </div>
     </div>
@@ -242,19 +236,19 @@ export default function Page() {
     <div className="resources">
       <div className="resource">
         <img src="/images/marketing/res-report-big-benefits.jpg" alt="The Big Benefits Report" />
-        <h4>The Big Benefits Report</h4>
+        <h4>Benefits & Insurance Guide</h4>
       </div>
       <div className="resource">
         <img src="/images/marketing/res-report-tech.jpg" alt="Employee Benefits Tech Report" />
-        <h4>Employee Benefits Tech Report</h4>
+        <h4>HR Operations Playbook</h4>
       </div>
       <div className="resource">
         <img src="/images/marketing/res-guide-global.jpg" alt="Going global with benefits" />
-        <h4>Going global with benefits</h4>
+        <h4>Corporate onboarding checklist</h4>
       </div>
       <div className="resource">
         <img src="/images/marketing/res-blog-valued.jpg" alt="Most valued benefits & tech" />
-        <h4>The impact of offering the most valued benefits, with the right tech</h4>
+        <h4>Optimising employee benefits spend</h4>
       </div>
     </div>
   </div>
@@ -278,9 +272,9 @@ export default function Page() {
       {/* CTA */}
       <section className="cta">
         <div className="container cta-inner">
-          <h2>Ready to launch an award-winning employee benefits experience?</h2>
+          <h2>Ready to simplify employee benefits for your organisation?</h2>
           <a className="btn primary large" href="#">Book a demo</a>
-          <p className="cta-note">A global community of changemakers.</p>
+          <p className="cta-note">Built for Indian enterprises. Scalable globally.</p>
         </div>
       </section>
 
