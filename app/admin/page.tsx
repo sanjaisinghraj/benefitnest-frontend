@@ -1,33 +1,37 @@
-import Link from "next/link";
-
-export default function AdminLanding() {
+export default function AdminLoginPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-slate-50">
-      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 text-center">
-        <img
-          src="/images/marketing/admin-login-illustration.jpg"
-          alt="Admin"
-          className="rounded-lg mb-6"
-        />
-
-        <h1 className="text-2xl font-bold mb-2">BenefitNest Admin</h1>
-        <p className="text-slate-600 mb-6">
-          Secure access for corporate administrators.
+    <main className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="bg-white p-10 rounded-2xl shadow-xl w-full max-w-sm">
+        <h1 className="text-2xl font-bold text-center text-slate-900">
+          Admin Login
+        </h1>
+        <p className="text-center text-slate-600 mt-2">
+          Authorized administrators only
         </p>
 
-        <Link
-          href="/admin/login"
-          className="block w-full py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700"
-        >
-          Login as Admin
-        </Link>
+        <form className="mt-8 space-y-4">
+          <input
+            type="email"
+            placeholder="admin@benefitnest.space"
+            className="w-full rounded-lg border px-4 py-3"
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            className="w-full rounded-lg border px-4 py-3"
+          />
 
-        <button
-          disabled
-          className="mt-3 w-full py-3 rounded-lg border text-slate-400 cursor-not-allowed"
-        >
-          Employee Login (Coming Soon)
-        </button>
+          <button
+            type="submit"
+            className="w-full rounded-lg bg-blue-600 py-3 text-white font-medium hover:bg-blue-700"
+          >
+            Secure Sign In
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-slate-400">
+          © 2025 BenefitNest
+        </p>
       </div>
     </main>
   );
