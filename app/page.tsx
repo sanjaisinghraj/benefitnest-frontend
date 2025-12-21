@@ -9,7 +9,7 @@ export default function Page() {
       <header className="site-header">
         <div className="container nav">
           <a className="logo" href="/">
-            <img src="/images/marketinglogo.png" alt="BenefitNest" />
+            <img src="/images/marketing//logo.png" alt="BenefitNest" />
           </a>
 
           <nav className="menu">
@@ -41,13 +41,13 @@ export default function Page() {
               <a className="btn ghost" href="#features">Explore features</a>
             </div>
             <div className="hero-brands">
-              <img src="/images/marketingbrands-strip.png" alt="A global community of changemakers" />
+              <img src="/images/marketing//brands-strip.png" alt="A global community of changemakers" />
             </div>
           </div>
           <div className="hero-media">
             <img
               className="hero-illustration"
-              src="/images/marketinghero-illustration.jpg"
+              src="/images/marketing//hero-illustration.jpg"
               alt="Employee benefits platform overview"
             />
           </div>
@@ -70,7 +70,7 @@ export default function Page() {
               </div>
             </div>
             <img
-              src="/images/marketingfeature-oneplace.jpg"
+              src="/images/marketing/feature-oneplace.jpg"
               alt="One place, all benefits"
               className="feature-img"
             />
@@ -78,32 +78,32 @@ export default function Page() {
 
           <div className="feature-grid">
             <div className="feature-card">
-              <img src="/images/marketingfeature-total-reward.jpg" alt="Total reward" />
+              <img src="/images/marketing/feature-total-reward.jpg" alt="Total reward" />
               <h3>Total reward</h3>
               <p>Real-time view of compensation and benefits to increase understanding and perceived value.</p>
             </div>
             <div className="feature-card">
-              <img src="/images/marketingfeature-insights.jpg" alt="Insights" />
+              <img src="/images/marketing/feature-insights.jpg" alt="Insights" />
               <h3>Insights</h3>
               <p>Global insight into benefits spend, budgeting, engagement and take-up.</p>
             </div>
             <div className="feature-card">
-              <img src="/images/marketingfeature-reimbursement.jpg" alt="Reimbursement accounts" />
+              <img src="/images/marketing/feature-reimbursement.jpg" alt="Reimbursement accounts" />
               <h3>Reimbursement accounts</h3>
               <p>Give your workforce flexibility in benefits spending with card-based allowances.</p>
             </div>
             <div className="feature-card">
-              <img src="/images/marketingfeature-administration.jpg" alt="Administration" />
+              <img src="/images/marketing/feature-administration.jpg" alt="Administration" />
               <h3>Administration</h3>
               <p>Manage the benefits workflow from pre-hire and onboarding to enrolment and communication.</p>
             </div>
             <div className="feature-card">
-              <img src="/images/marketingfeature-search.jpg" alt="Supercharged search" />
+              <img src="/images/marketing/feature-search.jpg" alt="Supercharged search" />
               <h3>Supercharged search</h3>
               <p>Instant, customized answers to employee benefits questions.</p>
             </div>
             <div className="feature-card">
-              <img src="/images/marketingfeature-content-assistant.jpg" alt="Content assistant" />
+              <img src="/images/marketing/feature-content-assistant.jpg" alt="Content assistant" />
               <h3>Content assistant</h3>
               <p>AI-informed assistant to create benefits content at scale, effortlessly.</p>
             </div>
@@ -119,22 +119,22 @@ export default function Page() {
     <h2>More features and services</h2>
     <div className="feature-grid compact">
       <div className="feature-mini">
-        <img src="/images/marketingfeature-integrations.jpg" alt="Automation & integrations" />
+        <img src="/images/marketing/feature-integrations.jpg" alt="Automation & integrations" />
         <h4>Automation & integrations</h4>
         <p>Integrate seamlessly with workplace systems and platforms.</p>
       </div>
       <div className="feature-mini">
-        <img src="/images/marketingfeature-comms.jpg" alt="Communications" />
+        <img src="/images/marketing/feature-comms.jpg" alt="Communications" />
         <h4>Communications</h4>
         <p>Award-winning communications to boost understanding and engagement.</p>
       </div>
       <div className="feature-mini">
-        <img src="/images/marketingfeature-support.jpg" alt="Administration & support" />
+        <img src="/images/marketing/feature-support.jpg" alt="Administration & support" />
         <h4>Administration & support</h4>
         <p>Reduce administrative burden with 24/7 support in 100+ languages.</p>
       </div>
       <div className="feature-mini">
-        <img src="/images/marketingfeature-consulting.jpg" alt="Benefit consulting" />
+        <img src="/images/marketing/feature-consulting.jpg" alt="Benefit consulting" />
         <h4>Benefit consulting</h4>
         <p>Data-driven design for engaging global benefits experiences.</p>
       </div>
@@ -157,27 +157,27 @@ export default function Page() {
     </p>
     <div className="overview-grid">
       <div className="overview-item">
-        <img src="/images/marketingoverview-benefits.jpg" alt="Benefits" />
+        <img src="/images/marketing/overview-benefits.jpg" alt="Benefits" />
         <h4>Benefits</h4>
       </div>
       <div className="overview-item">
-        <img src="/images/marketingoverview-wallet.jpg" alt="Wallet" />
+        <img src="/images/marketing/overview-wallet.jpg" alt="Wallet" />
         <h4>Wallet</h4>
       </div>
       <div className="overview-item">
-        <img src="/images/marketingoverview-discounts.jpg" alt="Discounts" />
+        <img src="/images/marketing/overview-discounts.jpg" alt="Discounts" />
         <h4>Discounts</h4>
       </div>
       <div className="overview-item">
-        <img src="/images/marketingoverview-recognition.jpg" alt="Reward & Recognition" />
+        <img src="/images/marketing/overview-recognition.jpg" alt="Reward & Recognition" />
         <h4>Reward & Recognition</h4>
       </div>
       <div className="overview-item">
-        <img src="/images/marketingoverview-mobile.jpg" alt="Mobile" />
+        <img src="/images/marketing/overview-mobile.jpg" alt="Mobile" />
         <h4>Mobile</h4>
       </div>
       <div className="overview-item">
-        <img src="/images/marketingoverview-ai.jpg" alt="AI-powered Benefits" />
+        <img src="/images/marketing/overview-ai.jpg" alt="AI-powered Benefits" />
         <h4>AI-powered Benefits</h4>
       </div>
     </div>
@@ -194,10 +194,10 @@ export default function Page() {
         they expect, and deserve.
       </p>
     </div>
-    <img src="/images/marketingchallenges.jpg" alt="Modern technology expectations" />
+    <img src="/images/marketing/challenges.jpg" alt="Modern technology expectations" />
   </div>
   <div className="container split">
-    <img src="/images/marketingmodel.jpg" alt="Simple-to-Complex rollout model" />
+    <img src="/images/marketing/model.jpg" alt="Simple-to-Complex rollout model" />
     <div>
       <h2>A Simple-to-Complex model for global rollouts</h2>
       <p>
@@ -214,17 +214,17 @@ export default function Page() {
     <h2>Customer stories</h2>
     <div className="stories">
       <div className="story">
-        <img src="/images/marketingstory-ocado.jpg" alt="Ocado Group" />
+        <img src="/images/marketing/story-ocado.jpg" alt="Ocado Group" />
         <h4>Ocado Group</h4>
         <p>Celebrate achievements of people worldwide.</p>
       </div>
       <div className="story">
-        <img src="/images/marketingstory-lendlease.jpg" alt="Lendlease" />
+        <img src="/images/marketing/story-lendlease.jpg" alt="Lendlease" />
         <h4>Lendlease</h4>
         <p>Build an award-winning benefits strategy.</p>
       </div>
       <div className="story">
-        <img src="/images/marketingstory-salesforce.jpg" alt="Salesforce" />
+        <img src="/images/marketing/story-salesforce.jpg" alt="Salesforce" />
         <h4>Salesforce</h4>
         <p>Launched global benefits tech in 30+ countries.</p>
       </div>
@@ -241,19 +241,19 @@ export default function Page() {
     <h2>Related resources, events & insights</h2>
     <div className="resources">
       <div className="resource">
-        <img src="/images/marketingres-report-big-benefits.jpg" alt="The Big Benefits Report" />
+        <img src="/images/marketing/res-report-big-benefits.jpg" alt="The Big Benefits Report" />
         <h4>The Big Benefits Report</h4>
       </div>
       <div className="resource">
-        <img src="/images/marketingres-report-tech.jpg" alt="Employee Benefits Tech Report" />
+        <img src="/images/marketing/res-report-tech.jpg" alt="Employee Benefits Tech Report" />
         <h4>Employee Benefits Tech Report</h4>
       </div>
       <div className="resource">
-        <img src="/images/marketingres-guide-global.jpg" alt="Going global with benefits" />
+        <img src="/images/marketing/res-guide-global.jpg" alt="Going global with benefits" />
         <h4>Going global with benefits</h4>
       </div>
       <div className="resource">
-        <img src="/images/marketingres-blog-valued.jpg" alt="Most valued benefits & tech" />
+        <img src="/images/marketing/res-blog-valued.jpg" alt="Most valued benefits & tech" />
         <h4>The impact of offering the most valued benefits, with the right tech</h4>
       </div>
     </div>
