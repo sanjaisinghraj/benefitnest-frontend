@@ -21,7 +21,7 @@ export default function Page() {
           </nav>
 
           <div className="actions">
-            <a className="btn ghost" href="#">Log in</a>
+            <a className="btn ghost" href="#">Admin Login</a>
             <a className="btn primary" href="#">Book a demo</a>
           </div>
         </div>
