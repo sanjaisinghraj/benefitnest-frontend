@@ -40,8 +40,7 @@ export default function Page() {
               <a className="btn primary" href="#">Book a demo</a>
               <a className="btn ghost" href="#features">Explore BenefitNest</a>
             </div>
-          </div> {/* ✅ Fixed missing closing div */}
-
+          </div>
           <div className="hero-media">
             <img
               className="hero-illustration"
@@ -214,7 +213,7 @@ export default function Page() {
             <div className="story">
               <img src="/images/marketing/story-ocado.jpg" alt="Ocado Group" />
               <h4>Mid-size Indian enterprise</h4>
-                            <p>Celebrate achievements of people worldwide.</p>
+              <p>Celebrate achievements of people worldwide.</p>
             </div>
             <div className="story">
               <img src="/images/marketing/story-lendlease.jpg" alt="Lendlease" />
@@ -336,33 +335,33 @@ export default function Page() {
         .story h4 { margin-bottom: 6px; }
 
         /* Resources */
-.resources { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 16px; }
-.resource { background: #fff; border: 1px solid #e8eef7; border-radius: 16px; padding: 18px; }
-.resource img { width: 100%; border-radius: 12px; margin-bottom: 8px; }
+        .resources { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 16px; }
+        .resource { background: #fff; border: 1px solid #e8eef7; border-radius: 16px; padding: 18px; }
+        .resource img { width: 100%; border-radius: 12px; margin-bottom: 8px; }
 
-/* CTA */
-.cta { padding: 80px 0; background: linear-gradient(135deg, #3563ff, #1e3fd8); color: #fff; text-align: center; }
-.cta-inner { display: flex; flex-direction: column; align-items: center; gap: 12px; }
-.cta-note { opacity: 0.9; }
+        /* CTA */
+        .cta { padding: 80px 0; background: linear-gradient(135deg, #3563ff, #1e3fd8); color: #fff; text-align: center; }
+        .cta-inner { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .cta-note { opacity: 0.9; }
 
-/* Footer */
-.site-footer { background: #0b1220; color: #cbd5e1; padding: 24px 0; text-align: center; font-size: 14px; }
+        /* Footer */
+        .site-footer { background: #0b1220; color: #cbd5e1; padding: 24px 0; text-align: center; font-size: 14px; }
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .hero-grid, .split { grid-template-columns: 1fr; }
-  .feature-grid { grid-template-columns: repeat(2, 1fr); }
-  .feature-grid.compact { grid-template-columns: repeat(2, 1fr); }
-  .overview-grid { grid-template-columns: repeat(2, 1fr); }
-  .stories { grid-template-columns: 1fr 1fr; }
-  .resources { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 640px) {
-  .menu { display: none; }
-  h1 { font-size: 36px; }
-  .feature-grid, .resources { grid-template-columns: 1fr; }
-  .stories { grid-template-columns: 1fr; }
-}
+        /* Responsive */
+        @media (max-width: 1024px) {
+          .hero-grid, .split { grid-template-columns: 1fr; }
+          .feature-grid { grid-template-columns: repeat(2, 1fr); }
+          .feature-grid.compact { grid-template-columns: repeat(2, 1fr); }
+          .overview-grid { grid-template-columns: repeat(2, 1fr); }
+          .stories { grid-template-columns: 1fr 1fr; }
+          .resources { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 640px) {
+          .menu { display: none; }
+          h1 { font-size: 36px; }
+          .feature-grid, .resources { grid-template-columns: 1fr; }
+          .stories { grid-template-columns: 1fr; }
+        }
       `}</style>
     </>
   );
