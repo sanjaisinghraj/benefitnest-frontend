@@ -21,7 +21,17 @@ export default function Page() {
           </nav>
 
           <div className="actions">
-            <a className="btn ghost" href="#">Admin Login</a>
+            <a
+  className="btn ghost"
+  href="https://admin.benefitnest.space"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Admin Login
+</a>
+
+
+
             <a className="btn primary" href="#">Book a demo</a>
           </div>
         </div>
@@ -31,7 +41,8 @@ export default function Page() {
       <section className="hero">
         <div className="container hero-grid">
           <div className="hero-copy">
-            <span className="badge">Badge: Enterprise employee benefits platform</span>
+            <span className="badge">Enterprise employee benefits platform</span>
+
             <h1>Run, manage, and engage your employees in benefits — anywhere in the world.</h1>
             <p>
               BenefitNest helps organisations manage employee insurance, benefits enrolment, claims, and analytics through a single secure platform.
@@ -61,7 +72,7 @@ export default function Page() {
                 Centralise insurance, benefits, reimbursements, and engagement tools so HR teams and employees operate from one system of record.
               </p>
               <div className="feature-cta">
-                <a className="btn primary" href="#">Keep CTA</a>
+                <a className="btn primary" href="#">Learn more</a>
               </div>
             </div>
             <img
