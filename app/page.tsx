@@ -40,10 +40,7 @@ export default function Page() {
               <a className="btn primary" href="#">Book a demo</a>
               <a className="btn ghost" href="#features">Explore BenefitNest</a>
             </div>
-            <div className="hero-brands">
-              <img src="/images/marketing/brands-strip.png" alt="A global community of changemakers" />
-            </div>
-          </div>
+
           <div className="hero-media">
             <img
               className="hero-illustration"
@@ -189,10 +186,20 @@ export default function Page() {
         Employees expect simple, mobile-first systems. BenefitNest delivers enterprise-grade security with consumer-grade experience.
       </p>
     </div>
-    <img src="/images/marketing/challenges.jpg" alt="Modern technology expectations" />
+    <img
+  src="/images/marketing/challenges.jpg"
+  alt="Modern technology expectations"
+  style={{ width: "75%" }}
+/>
+
   </div>
   <div className="container split">
-    <img src="/images/marketing/model.jpg" alt="Simple-to-Complex rollout model" />
+    <img
+  src="/images/marketing/model.jpg"
+  alt="Simple-to-Complex rollout model"
+  style={{ width: "75%" }}
+/>
+
     <div>
       <h2>Scales from pilot to enterprise rollout</h2>
       <p>
