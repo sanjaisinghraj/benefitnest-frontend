@@ -6,28 +6,40 @@ export default function Page() {
   return (
     <>
       {/* HEADER */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-10 flex items-center justify-between h-20">
-          <img src="/images/marketing/logo.png" alt="BenefitNest" className="h-10" />
+      <header className="bg-white/80 backdrop-blur border-b sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 flex items-center justify-between h-20">
+          <a href="/">
+            <img
+              src="/images/marketing/logo.png"
+              alt="BenefitNest"
+              className="h-10"
+            />
+          </a>
 
-          <nav className="hidden md:flex gap-7 font-semibold">
-            <a className="hover:text-blue-600" href="#">Platform</a>
-            <a className="hover:text-blue-600" href="#">Features</a>
-            <a className="hover:text-blue-600" href="#">Services</a>
-            <a className="hover:text-blue-600" href="#">Customers</a>
-            <a className="hover:text-blue-600" href="#">Resources</a>
+          <nav className="hidden md:flex gap-8 font-semibold text-gray-700">
+            {["Platform", "Features", "Services", "Customers", "Resources"].map(
+              (item) => (
+                <a
+                  key={item}
+                  href="#"
+                  className="relative after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-0 after:bg-blue-600 hover:after:w-full after:transition-all"
+                >
+                  {item}
+                </a>
+              )
+            )}
           </nav>
 
           <div className="flex gap-3">
             <a
               href="https://admin.benefitnest.space/admin"
-              className="px-4 py-2 rounded-lg border font-semibold hover:shadow-md"
+              className="px-4 py-2 rounded-lg font-semibold border hover:bg-gray-100"
             >
               Admin Login
             </a>
             <a
               href="#"
-              className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:shadow-lg"
+              className="px-4 py-2 rounded-lg font-semibold bg-blue-600 text-white hover:bg-blue-700"
             >
               Book a demo
             </a>
@@ -36,106 +48,122 @@ export default function Page() {
       </header>
 
       {/* HERO */}
-      <section className="bg-gray-50 py-20">
-        <div className="max-w-7xl mx-auto px-10 grid md:grid-cols-2 gap-16 items-center">
+      <section className="bg-gradient-to-b from-gray-50 to-white py-20">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 grid lg:grid-cols-2 gap-16 items-center">
           <div>
-            <span className="inline-block mb-4 px-4 py-1 rounded-full bg-blue-100 text-blue-600 text-xs font-bold">
+            <span className="inline-block px-4 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mb-4">
               Enterprise employee benefits platform
             </span>
 
-            <h1 className="text-5xl font-bold mb-6 leading-tight">
-              Run, manage, and engage your employees in benefits — anywhere in the world.
+            <h1 className="text-4xl lg:text-5xl font-extrabold leading-tight mb-6">
+              Run, manage, and engage your employees in benefits — anywhere in the
+              world.
             </h1>
 
             <p className="text-lg text-gray-600 max-w-xl">
-              BenefitNest helps organisations manage employee insurance, benefits enrolment,
-              claims, and analytics through a single secure platform.
+              Manage insurance, benefits enrolment, claims, engagement, and
+              analytics from one secure platform.
             </p>
 
             <div className="flex gap-4 mt-8">
-              <a className="px-6 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:shadow-lg" href="#">
+              <a className="px-6 py-3 rounded-lg font-semibold bg-blue-600 text-white hover:bg-blue-700">
                 Book a demo
               </a>
-              <a className="px-6 py-3 rounded-lg border font-semibold hover:shadow-md" href="#features">
+              <a className="px-6 py-3 rounded-lg font-semibold border hover:bg-gray-100">
                 Explore BenefitNest
               </a>
             </div>
           </div>
 
-          {/* SAME HOVER EFFECT */}
-          <img
-            src="/images/marketing/hero-illustration.jpg"
-            className="rounded-xl shadow-xl transition-transform duration-300 hover:scale-[1.02]"
-            alt=""
-          />
+          <div className="relative group">
+            <img
+              src="/images/marketing/hero-illustration.jpg"
+              className="rounded-2xl shadow-2xl transition-transform group-hover:scale-[1.02]"
+            />
+          </div>
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section id="features" className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-10 grid md:grid-cols-2 gap-16 items-center">
-          <div>
-            <h2 className="text-3xl font-bold mb-4">
-              All employee benefits. One secure platform.
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Centralise insurance, benefits, reimbursements, and engagement tools.
-            </p>
-            <a className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:shadow-lg" href="#">
-              Learn more
-            </a>
-          </div>
-
-          <img
-            src="/images/marketing/feature-oneplace.jpg"
-            className="rounded-xl shadow-xl transition-transform duration-300 hover:scale-[1.02]"
-            alt=""
-          />
-        </div>
-
-        {/* FEATURE CARDS */}
-        <div className="max-w-7xl mx-auto px-10 grid md:grid-cols-3 gap-6 mt-12">
-          {[
-            ["feature-total-reward.jpg", "Total reward"],
-            ["feature-insights.jpg", "HR analytics & reporting"],
-            ["feature-reimbursement.jpg", "Claims & reimbursements"],
-          ].map(([img, title]) => (
-            <div
-              key={title}
-              className="bg-white border rounded-xl p-6 shadow transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-            >
-              <div className="h-40 flex items-center justify-center overflow-hidden rounded-lg mb-4">
-                <img src={`/images/marketing/${img}`} className="object-cover h-full w-full" />
-              </div>
-              <h3 className="font-semibold mb-1">{title}</h3>
-              <p className="text-sm text-gray-600">
-                Unified and scalable benefit experience.
+      {/* FEATURE GRID */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="text-3xl font-bold mb-4">
+                All employee benefits. One secure platform.
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Centralise insurance, benefits, reimbursements, and engagement.
               </p>
             </div>
-          ))}
+
+            <img
+              src="/images/marketing/feature-oneplace.jpg"
+              className="rounded-2xl shadow-xl hover:scale-[1.02] transition"
+            />
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 mt-14">
+            {[
+              {
+                img: "feature-total-reward.jpg",
+                title: "Total reward",
+                desc: "Unified view of benefits & compensation",
+              },
+              {
+                img: "feature-insights.jpg",
+                title: "HR analytics & reporting",
+                desc: "Actionable insights for HR teams",
+              },
+              {
+                img: "feature-reimbursement.jpg",
+                title: "Claims & reimbursements",
+                desc: "Policy-based automated processing",
+              },
+            ].map((f) => (
+              <div
+                key={f.title}
+                className="group bg-white border rounded-2xl p-6 shadow hover:shadow-2xl transition"
+              >
+                <div className="aspect-[4/3] overflow-hidden rounded-xl mb-4">
+                  <img
+                    src={`/images/marketing/${f.img}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition"
+                  />
+                </div>
+                <h3 className="font-semibold text-lg mb-1">{f.title}</h3>
+                <p className="text-gray-600 text-sm">{f.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* MORE FEATURES */}
       <section className="py-20">
-        <div className="max-w-7xl mx-auto px-10">
-          <h2 className="text-3xl font-bold mb-10">More features and services</h2>
+        <div className="max-w-7xl mx-auto px-6 lg:px-10">
+          <h2 className="text-3xl font-bold mb-10">
+            More features and services
+          </h2>
 
           <div className="grid md:grid-cols-4 gap-6">
             {[
-              ["feature-integrations.jpg", "Automation & integrations"],
-              ["feature-comms.jpg", "Communications"],
-              ["feature-support.jpg", "Administration & support"],
-              ["feature-consulting.jpg", "Benefit consulting"],
-            ].map(([img, title]) => (
+              "integrations",
+              "comms",
+              "support",
+              "consulting",
+            ].map((k) => (
               <div
-                key={title}
-                className="bg-white border rounded-xl p-6 shadow transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                key={k}
+                className="group bg-white border rounded-2xl p-6 hover:shadow-xl transition"
               >
-                <div className="h-32 flex items-center justify-center overflow-hidden rounded-lg mb-3">
-                  <img src={`/images/marketing/${img}`} className="object-cover h-full w-full" />
+                <div className="aspect-square rounded-xl overflow-hidden mb-4">
+                  <img
+                    src={`/images/marketing/feature-${k}.jpg`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition"
+                  />
                 </div>
-                <h4 className="font-semibold">{title}</h4>
+                <h4 className="font-semibold capitalize">{k}</h4>
               </div>
             ))}
           </div>
@@ -144,59 +172,46 @@ export default function Page() {
 
       {/* HOW IT WORKS */}
       <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-10">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10">
           <h2 className="text-3xl font-bold mb-4">How BenefitNest works</h2>
-          <p className="text-gray-600 mb-10 max-w-2xl">
-            BenefitNest connects insurance, benefits, reimbursements, engagement, and analytics.
+          <p className="text-gray-600 mb-10">
+            A single HR benefits hub connecting everything.
           </p>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-8">
             {[
-              ["overview-benefits.jpg", "Benefits"],
-              ["overview-wallet.jpg", "Wallet"],
-              ["overview-discounts.jpg", "Discounts"],
-              ["overview-recognition.jpg", "Recognition"],
-              ["overview-mobile.jpg", "Mobile"],
-              ["overview-ai.jpg", "AI"],
-            ].map(([img, title]) => (
+              "benefits",
+              "wallet",
+              "discounts",
+              "recognition",
+              "mobile",
+              "ai",
+            ].map((k) => (
               <div
-                key={title}
-                className="bg-white border rounded-xl p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                key={k}
+                className="group bg-white border rounded-2xl p-6 text-center hover:shadow-xl transition"
               >
-                <div className="h-40 flex items-center justify-center overflow-hidden rounded-lg mb-4">
-                  <img src={`/images/marketing/${img}`} className="object-contain h-full" />
+                <div className="aspect-square rounded-xl overflow-hidden mb-4">
+                  <img
+                    src={`/images/marketing/overview-${k}.jpg`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition"
+                  />
                 </div>
-                <h4 className="font-semibold">{title}</h4>
+                <h4 className="font-semibold capitalize">{k}</h4>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CUSTOMER STORIES */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-10">
-          <h2 className="text-3xl font-bold mb-10">Customer stories</h2>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              "story-ocado.jpg",
-              "story-lendlease.jpg",
-              "story-salesforce.jpg",
-            ].map((img) => (
-              <div
-                key={img}
-                className="bg-white border rounded-xl p-6 shadow transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-              >
-                <div className="h-44 overflow-hidden rounded-lg mb-4">
-                  <img src={`/images/marketing/${img}`} className="object-cover h-full w-full" />
-                </div>
-                <h4 className="font-semibold mb-1">Enterprise customer</h4>
-                <p className="text-sm text-gray-600">Delivering measurable impact at scale.</p>
-              </div>
-            ))}
-          </div>
-        </div>
+      {/* CTA */}
+      <section className="py-24 bg-gradient-to-r from-blue-600 to-blue-800 text-white text-center">
+        <h2 className="text-4xl font-extrabold mb-6">
+          Ready to simplify employee benefits?
+        </h2>
+        <a className="inline-block px-8 py-4 bg-white text-blue-700 font-bold rounded-xl hover:scale-105 transition">
+          Book a demo
+        </a>
       </section>
 
       {/* FOOTER */}
