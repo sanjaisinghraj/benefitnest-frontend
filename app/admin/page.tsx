@@ -28,14 +28,14 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-400 via-blue-300 to-sky-200 relative overflow-hidden px-4">
-      {/* Background clouds */}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 via-blue-400 to-sky-300 relative overflow-hidden px-4">
+      {/* Decorative background */}
       <div className="absolute inset-0 bg-[url('/images/marketing/clouds-bg.svg')] bg-cover opacity-20 pointer-events-none" />
 
       {/* Login Card */}
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 z-10">
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 z-10">
         <div className="text-center mb-6">
-          <h1 className="text-4xl font-bold text-indigo-700">WELCOME</h1>
+          <h1 className="text-4xl font-extrabold text-indigo-700">WELCOME</h1>
           <p className="text-gray-600 mt-2 text-sm">
             BenefitNest Administration Portal by Sanjai
           </p>
@@ -48,7 +48,7 @@ export default function AdminLoginPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+          <div className="relative">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Username
             </label>
@@ -57,12 +57,15 @@ export default function AdminLoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2 pl-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="admin@benefitnest.space"
             />
+            <span className="absolute left-3 top-9 text-gray-400">
+              📧
+            </span>
           </div>
 
-          <div>
+          <div className="relative">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
@@ -71,9 +74,12 @@ export default function AdminLoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2 pl-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="••••••••"
             />
+            <span className="absolute left-3 top-9 text-gray-400">
+              🔒
+            </span>
           </div>
 
           <button
