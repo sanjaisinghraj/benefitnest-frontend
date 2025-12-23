@@ -39,7 +39,7 @@ export default function AdminLoginPage() {
           />
           <h1 className="text-3xl font-bold text-gray-900">Admin Login</h1>
           <p className="text-gray-600 mt-1 text-sm">
-            BenefitNest Administration Portal
+            BenefitNest Administration Portal by Sanjai
           </p>
         </div>
 
