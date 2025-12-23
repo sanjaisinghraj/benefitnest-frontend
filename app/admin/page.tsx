@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { LockClosedIcon } from "@heroicons/react/24/solid";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
@@ -29,13 +28,19 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-indigo-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-blue-100 px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
-        {/* Header */}
-        <div className="text-center mb-6">
-          <LockClosedIcon className="mx-auto h-12 w-12 text-indigo-600" />
+        {/* Illustration */}
+        <div className="mb-6 text-center">
+          <img
+            src="/images/marketing/admin-login-illustration.jpg"
+            alt="Admin login illustration"
+            className="mx-auto mb-4 w-32 rounded-xl shadow-md"
+          />
           <h1 className="text-3xl font-bold text-gray-900">Admin Login</h1>
-          <p className="text-gray-600 mt-1">BenefitNest Administration Portal</p>
+          <p className="text-gray-600 mt-1 text-sm">
+            BenefitNest Administration Portal
+          </p>
         </div>
 
         {/* Error message */}
@@ -73,16 +78,6 @@ export default function AdminLoginPage() {
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="••••••••"
             />
-          </div>
-
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2">
-              <input type="checkbox" className="rounded border-gray-300" />
-              Remember me
-            </label>
-            <a href="#" className="text-indigo-600 hover:underline">
-              Forgot password?
-            </a>
           </div>
 
           <button
