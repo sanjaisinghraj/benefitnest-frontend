@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
 import "./globals.css";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "BenefitNest",
-  description: "Enterprise Employee Benefits Platform",
+  description: "Employee benefits platform",
 };
 
 export default function RootLayout({
@@ -13,11 +13,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-white text-slate-900 antialiased">
+      <body className="min-h-screen bg-gray-50 text-gray-900 antialiased">
         {children}
       </body>
     </html>
   );
 }
-
-
