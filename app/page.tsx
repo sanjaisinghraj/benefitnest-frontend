@@ -21,14 +21,13 @@ export default function Page() {
           </nav>
 
           <div className="actions">
-            <a
+<a
   className="btn ghost"
-  href="https://admin.benefitnest.space"
-  target="_blank"
-  rel="noopener noreferrer"
+  href="https://admin.benefitnest.space/admin"
 >
   Admin Login
 </a>
+
 
 
 
