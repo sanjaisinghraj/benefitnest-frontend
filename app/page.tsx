@@ -1,56 +1,78 @@
 "use client";
 
+import React from "react";
+
 export default function Page() {
   return (
     <>
-      {/* ================= HEADER ================= */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <img src="/images/marketing/logo.png" className="h-10" alt="BenefitNest" />
+      {/* HEADER */}
+      <header className="bg-white/90 backdrop-blur border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-20">
+          <a href="/" className="flex items-center gap-2">
+            <img src="/images/marketing/logo.png" alt="BenefitNest" className="h-10" />
+          </a>
 
-          <nav className="hidden md:flex gap-8 font-semibold text-gray-700">
-            <a className="hover:text-blue-600">Platform</a>
-            <a className="hover:text-blue-600">Features</a>
-            <a className="hover:text-blue-600">Services</a>
-            <a className="hover:text-blue-600">Customers</a>
-            <a className="hover:text-blue-600">Resources</a>
+          {/* MENU */}
+          <nav className="hidden md:flex gap-8 font-semibold text-gray-800">
+            {[
+              { name: "Platform", items: ["Employee Portal", "Admin Dashboard", "Claims Engine"] },
+              { name: "Features", items: ["Enrollments", "Claims", "Analytics", "AI Support"] },
+              { name: "Services", items: ["Implementation", "Support", "Consulting"] },
+              { name: "Customers", items: ["Mid-size Firms", "Large Enterprises"] },
+              { name: "Resources", items: ["Guides", "Reports", "Blogs"] },
+            ].map((menu) => (
+              <div key={menu.name} className="relative group">
+                <span className="cursor-pointer hover:text-blue-600">{menu.name}</span>
+                <div className="absolute left-0 mt-3 w-56 bg-white border rounded-xl shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition">
+                  {menu.items.map((i) => (
+                    <a
+                      key={i}
+                      href="#"
+                      className="block px-4 py-3 text-sm hover:bg-blue-50"
+                    >
+                      {i}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ))}
           </nav>
 
           <div className="flex gap-3">
             <a
               href="https://admin.benefitnest.space/admin"
-              className="px-4 py-2 rounded-lg border font-semibold hover:shadow-md"
+              className="px-4 py-2 rounded-lg font-semibold border hover:bg-gray-100 transition"
             >
               Admin Login
             </a>
-            <a className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:shadow-lg">
+            <a
+              href="#"
+              className="px-4 py-2 rounded-lg font-semibold bg-blue-600 text-white hover:bg-blue-700 transition"
+            >
               Book a demo
             </a>
           </div>
         </div>
       </header>
 
-      {/* ================= HERO ================= */}
+      {/* HERO */}
       <section className="bg-gray-50 py-24">
-        <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
+        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
           <div>
-            <span className="inline-block mb-4 px-4 py-1 text-xs font-bold bg-blue-100 text-blue-600 rounded-full">
+            <span className="inline-block px-4 py-1 rounded-full bg-blue-100 text-blue-600 text-xs font-bold mb-4">
               Enterprise employee benefits platform
             </span>
-
-            <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-6">
+            <h1 className="text-5xl font-extrabold leading-tight mb-6">
               Run, manage, and engage your employees in benefits — anywhere in the world.
             </h1>
-
-            <p className="text-gray-600 text-lg max-w-xl">
-              Manage insurance, enrolment, claims, analytics and engagement from a single secure platform.
+            <p className="text-lg text-gray-600 max-w-xl">
+              BenefitNest helps organisations manage employee insurance, benefits enrolment, claims, and analytics through a single secure platform.
             </p>
-
-            <div className="mt-8 flex gap-4">
-              <a className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:shadow-xl">
+            <div className="flex gap-4 mt-8">
+              <a className="px-6 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:scale-[1.03] transition" href="#">
                 Book a demo
               </a>
-              <a className="px-6 py-3 border rounded-lg font-semibold hover:shadow-md">
+              <a className="px-6 py-3 rounded-lg border font-semibold hover:bg-gray-100 transition" href="#features">
                 Explore BenefitNest
               </a>
             </div>
@@ -64,26 +86,20 @@ export default function Page() {
         </div>
       </section>
 
-      {/* ================= FEATURE GRID ================= */}
-      <section className="py-24">
+      {/* FEATURES */}
+      <section id="features" className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-3xl font-bold mb-4">
-                All employee benefits. One secure platform.
-              </h2>
+              <h2 className="text-3xl font-bold mb-4">All employee benefits. One secure platform.</h2>
               <p className="text-gray-600 mb-6">
-                Centralise insurance, reimbursements and engagement tools.
+                Centralise insurance, benefits, reimbursements, and engagement tools so HR teams and employees operate from one system of record.
               </p>
-              <a className="px-5 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:shadow-lg">
-                Learn more
-              </a>
             </div>
-
             <img
               src="/images/marketing/feature-oneplace.jpg"
-              className="rounded-xl shadow-lg hover:scale-[1.02] transition"
-              alt="One platform"
+              className="rounded-2xl shadow-xl hover:scale-[1.02] transition"
+              alt=""
             />
           </div>
 
@@ -95,98 +111,101 @@ export default function Page() {
             ].map(([img, title]) => (
               <div
                 key={title}
-                className="group bg-white border rounded-xl p-6 hover:-translate-y-1 hover:shadow-xl transition"
+                className="bg-white border rounded-2xl p-6 shadow hover:shadow-2xl hover:-translate-y-1 transition"
               >
-                <div className="h-44 flex items-center justify-center mb-4 overflow-hidden">
-                  <img
-                    src={`/images/marketing/${img}`}
-                    className="h-full object-contain group-hover:scale-105 transition"
-                    alt={title}
-                  />
-                </div>
-                <h3 className="font-semibold">{title}</h3>
+                <img
+                  src={`/images/marketing/${img}`}
+                  className="rounded-lg mb-4 h-44 w-full object-cover"
+                  alt=""
+                />
+                <h3 className="font-semibold mb-2">{title}</h3>
+                <p className="text-gray-600 text-sm">
+                  Enterprise-grade capability with employee-friendly experience.
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ================= MORE FEATURES ================= */}
-      <section className="py-24 bg-gray-50">
+      {/* MORE FEATURES */}
+      <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-bold mb-12">More features & services</h2>
+          <h2 className="text-3xl font-bold mb-10">More features and services</h2>
 
           <div className="grid md:grid-cols-4 gap-6">
             {[
-              ["feature-integrations.jpg", "Automation & integrations"],
-              ["feature-comms.jpg", "Communications"],
-              ["feature-support.jpg", "Administration & support"],
-              ["feature-consulting.jpg", "Benefit consulting"],
-            ].map(([img, title]) => (
+              "feature-integrations.jpg",
+              "feature-comms.jpg",
+              "feature-support.jpg",
+              "feature-consulting.jpg",
+            ].map((img) => (
               <div
-                key={title}
-                className="group bg-white border rounded-xl p-6 hover:-translate-y-1 hover:shadow-xl transition"
+                key={img}
+                className="border rounded-2xl p-5 hover:shadow-xl hover:-translate-y-1 transition"
               >
-                <div className="h-36 flex items-center justify-center mb-4">
-                  <img
-                    src={`/images/marketing/${img}`}
-                    className="h-full object-contain group-hover:scale-105 transition"
-                    alt={title}
-                  />
-                </div>
-                <h4 className="font-semibold">{title}</h4>
+                <img
+                  src={`/images/marketing/${img}`}
+                  className="h-36 w-full object-cover rounded-lg mb-4"
+                  alt=""
+                />
+                <h4 className="font-semibold mb-1">Enterprise Capability</h4>
+                <p className="text-sm text-gray-600">
+                  Designed for scalable corporate operations.
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ================= HOW IT WORKS ================= */}
-      <section className="py-24">
+      {/* PLATFORM OVERVIEW */}
+      <section className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-3xl font-bold mb-4">How BenefitNest works</h2>
-          <p className="text-gray-600 mb-12">
-            Insurance, benefits, engagement and analytics in one hub.
+          <p className="text-gray-600 mb-10">
+            Everything connected — one employee benefits ecosystem.
           </p>
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              ["overview-benefits.jpg", "Benefits"],
-              ["overview-wallet.jpg", "Wallet"],
-              ["overview-discounts.jpg", "Discounts"],
-              ["overview-recognition.jpg", "Recognition"],
-              ["overview-mobile.jpg", "Mobile"],
-              ["overview-ai.jpg", "AI"],
-            ].map(([img, title]) => (
+              "overview-benefits.jpg",
+              "overview-wallet.jpg",
+              "overview-discounts.jpg",
+              "overview-recognition.jpg",
+              "overview-mobile.jpg",
+              "overview-ai.jpg",
+            ].map((img) => (
               <div
-                key={title}
-                className="group bg-white border rounded-xl p-6 text-center hover:-translate-y-1 hover:shadow-xl transition"
+                key={img}
+                className="bg-white border rounded-2xl p-6 text-center hover:shadow-xl hover:-translate-y-1 transition"
               >
-                <div className="h-40 flex items-center justify-center mb-4">
-                  <img
-                    src={`/images/marketing/${img}`}
-                    className="h-full object-contain group-hover:scale-105 transition"
-                    alt={title}
-                  />
-                </div>
-                <h4 className="font-semibold">{title}</h4>
+                <img
+                  src={`/images/marketing/${img}`}
+                  className="h-28 mx-auto object-contain mb-4"
+                  alt=""
+                />
+                <h4 className="font-semibold">Integrated Module</h4>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ================= CTA ================= */}
+      {/* CTA */}
       <section className="py-24 bg-gradient-to-r from-blue-600 to-blue-800 text-white text-center">
-        <h2 className="text-3xl font-bold mb-6">
+        <h2 className="text-3xl font-bold mb-4">
           Ready to simplify employee benefits?
         </h2>
-        <a className="px-8 py-4 bg-white text-blue-600 rounded-lg font-semibold hover:shadow-xl">
+        <p className="mb-6 opacity-90">
+          Built for Indian enterprises. Scalable globally.
+        </p>
+        <a className="inline-block px-8 py-4 bg-white text-blue-700 rounded-xl font-semibold hover:scale-105 transition" href="#">
           Book a demo
         </a>
       </section>
 
-      {/* ================= FOOTER ================= */}
+      {/* FOOTER */}
       <footer className="bg-gray-900 text-gray-400 py-6 text-center text-sm">
         © {new Date().getFullYear()} BenefitNest. All rights reserved.
       </footer>
