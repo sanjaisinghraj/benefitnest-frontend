@@ -30,7 +30,7 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 via-blue-400 to-sky-300 relative overflow-hidden px-4">
       {/* Decorative background */}
-      <div className="absolute inset-0 bg-[url('/images/marketing/clouds-bg.svg')] bg-cover opacity-20 pointer-events-none" />
+      <div className="absolute inset-0 bg-[url('/images/marketing/httpsbenifex.comemployee-benefits.png')] bg-cover opacity-20 pointer-events-none" />
 
       {/* Login Card */}
       <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 z-10">
