@@ -2,42 +2,36 @@
 
 import { useState } from "react";
 
-export default function AdminLoginPage(): JSX.Element {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
+export default function AdminLoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // TEMP: replace with API later
-    console.log("Admin login attempt:", { email, password });
+    // TODO: connect backend API
+    console.log({ email, password });
 
     setTimeout(() => {
       setLoading(false);
-      alert("Login API will be connected next.");
     }, 1000);
   };
 
   return (
-    <main className="min-h-screen bg-slate-100 flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg border border-slate-200">
-        
-        {/* Header */}
-        <div className="px-6 pt-8 pb-6 text-center border-b border-slate-200">
-          <h1 className="text-2xl font-bold text-slate-900">
-            BenefitNest Admin
-          </h1>
-          <p className="mt-1 text-sm text-slate-600">
-            Authorized administrators only
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">Admin Login</h1>
+          <p className="text-gray-600 mt-1">
+            BenefitNest Administration Portal
           </p>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="px-6 py-6 space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Admin Email
             </label>
             <input
@@ -45,13 +39,13 @@ export default function AdminLoginPage(): JSX.Element {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="admin@benefitnest.space"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
             <input
@@ -59,25 +53,24 @@ export default function AdminLoginPage(): JSX.Element {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="••••••••"
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-md bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700 transition disabled:opacity-60"
           >
-            {loading ? "Signing in..." : "Secure Sign In"}
+            {loading ? "Signing in..." : "Login"}
           </button>
         </form>
 
-        {/* Footer */}
-        <div className="px-6 py-4 text-center border-t border-slate-200 text-xs text-slate-500">
-          © {new Date().getFullYear()} BenefitNest. All rights reserved.
+        <div className="mt-6 text-center text-xs text-gray-500">
+          © {new Date().getFullYear()} BenefitNest. Admin access only.
         </div>
       </div>
-    </main>
+    </div>
   );
 }
