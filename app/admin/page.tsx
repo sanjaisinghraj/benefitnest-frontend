@@ -1,11 +1,62 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import ReCAPTCHA from "react-google-recaptcha";
 
 export default function AdminPage() {
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!captchaToken) {
+      alert("Please complete captcha");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            password,
+            rememberMe,
+            captchaToken,
+          }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Login failed");
+        setLoading(false);
+        return;
+      }
+
+      // Store token as cookie (for middleware)
+      document.cookie = `admin_token=${data.token}; path=/; ${
+        rememberMe ? "max-age=2592000;" : ""
+      }`;
+
+      router.push("/admin/dashboard");
+    } catch (err) {
+      alert("Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
@@ -52,42 +103,30 @@ export default function AdminPage() {
             </p>
           </div>
 
-          <form
-            className="space-y-5"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setLoading(true);
-              // TODO: Implement backend authentication
-              // Example: await fetch('/api/admin/login', { method: 'POST', body: JSON.stringify({ email, password }) })
-            }}
-          >
+          <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="admin-email" className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Admin Email
               </label>
               <input
-                id="admin-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                autoComplete="email"
                 className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm
                   focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label htmlFor="admin-password" className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Password
               </label>
               <input
-                id="admin-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                autoComplete="current-password"
                 className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm
                   focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -95,24 +134,44 @@ export default function AdminPage() {
 
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 text-slate-600 cursor-pointer">
-                <input type="checkbox" className="cursor-pointer" />
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
                 Remember me
               </label>
 
-              <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">
+              <button
+                type="button"
+                onClick={() => router.push("/admin/forgot-password")}
+                className="text-blue-600 hover:text-blue-700 font-medium"
+              >
                 Forgot password?
-              </a>
+              </button>
             </div>
+
+            <ReCAPTCHA
+              sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
+              onChange={(token) => setCaptchaToken(token)}
+            />
 
             <button
               type="submit"
               disabled={loading}
               className="w-full rounded-lg bg-blue-600 text-white py-2.5 font-semibold
-                hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                hover:bg-blue-700 transition disabled:opacity-60"
             >
               {loading ? "Signing in..." : "Sign in to Admin"}
             </button>
           </form>
+
+          <button
+            onClick={() => router.push("/")}
+            className="mt-4 text-sm text-slate-600 hover:text-slate-800"
+          >
+            ← Back to main site
+          </button>
 
           <div className="mt-6 text-xs text-slate-500">
             Protected by enterprise-grade security · Audit logs enabled
