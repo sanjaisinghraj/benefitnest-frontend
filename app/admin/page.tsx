@@ -11,7 +11,7 @@ export default function AdminPage() {
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 bg-white rounded-2xl shadow-xl overflow-hidden">
 
-        {/* LEFT: BRAND / INFO */}
+        {/* LEFT PANEL */}
         <div className="hidden lg:flex flex-col justify-between p-10 bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
           <div>
             <div className="flex items-center gap-3 mb-8">
@@ -22,9 +22,7 @@ export default function AdminPage() {
               />
             </div>
 
-            <h1 className="text-3xl font-bold mb-4">
-              Admin Console
-            </h1>
+            <h1 className="text-3xl font-bold mb-4">Admin Console</h1>
 
             <p className="text-blue-100 mb-6 leading-relaxed">
               Securely manage corporates, employees, benefits, claims,
@@ -46,12 +44,10 @@ export default function AdminPage() {
           </p>
         </div>
 
-        {/* RIGHT: LOGIN FORM */}
+        {/* RIGHT PANEL */}
         <div className="p-8 sm:p-12 flex flex-col justify-center">
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-slate-900">
-              Admin Login
-            </h2>
+            <h2 className="text-2xl font-bold text-slate-900">Admin Login</h2>
             <p className="text-slate-600 text-sm mt-1">
               Authorized administrators only
             </p>
@@ -62,8 +58,7 @@ export default function AdminPage() {
             onSubmit={(e) => {
               e.preventDefault();
               setLoading(true);
-              // TODO: connect backend auth
-              setTimeout(() => setLoading(false), 1000);
+              // backend auth later
             }}
           >
             <div>
@@ -72,12 +67,11 @@ export default function AdminPage() {
               </label>
               <input
                 type="email"
-                placeholder="admin@benefitnest.space"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -91,23 +85,17 @@ export default function AdminPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 text-slate-600">
-                <input
-                  type="checkbox"
-                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                />
+                <input type="checkbox" />
                 Remember me
               </label>
 
-              <a
-                href="#"
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
+              <a className="text-blue-600 hover:text-blue-700 font-medium">
                 Forgot password?
               </a>
             </div>
@@ -122,7 +110,7 @@ export default function AdminPage() {
             </button>
           </form>
 
-          <div className="mt-6 text-xs text-slate-500 leading-relaxed">
+          <div className="mt-6 text-xs text-slate-500">
             Protected by enterprise-grade security · Audit logs enabled
           </div>
         </div>
