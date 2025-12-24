@@ -26,16 +26,15 @@ export default function AdminPage() {
 
             <p className="text-blue-100 mb-6 leading-relaxed">
               Securely manage corporates, employees, benefits, claims,
-              analytics, integrations and platform configurations —
-              all from one place.
+              analytics, integrations and platform configurations — all from one place.
             </p>
 
             <ul className="space-y-3 text-sm">
-              <li>✔ Corporate & Employee Management</li>
-              <li>✔ Insurance & Benefits Configuration</li>
-              <li>✔ Claims & Enrollment Monitoring</li>
-              <li>✔ Reports, Analytics & Audit Logs</li>
-              <li>✔ Role-based Admin Access</li>
+              <li>✓ Corporate & Employee Management</li>
+              <li>✓ Insurance & Benefits Configuration</li>
+              <li>✓ Claims & Enrollment Monitoring</li>
+              <li>✓ Reports, Analytics & Audit Logs</li>
+              <li>✓ Role-based Admin Access</li>
             </ul>
           </div>
 
@@ -58,44 +57,49 @@ export default function AdminPage() {
             onSubmit={(e) => {
               e.preventDefault();
               setLoading(true);
-              // backend auth later
+              // TODO: Implement backend authentication
+              // Example: await fetch('/api/admin/login', { method: 'POST', body: JSON.stringify({ email, password }) })
             }}
           >
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label htmlFor="admin-email" className="block text-sm font-medium text-slate-700 mb-1">
                 Admin Email
               </label>
               <input
+                id="admin-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
                 className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm
                   focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label htmlFor="admin-password" className="block text-sm font-medium text-slate-700 mb-1">
                 Password
               </label>
               <input
+                id="admin-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="current-password"
                 className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm
                   focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 text-slate-600">
-                <input type="checkbox" />
+              <label className="flex items-center gap-2 text-slate-600 cursor-pointer">
+                <input type="checkbox" className="cursor-pointer" />
                 Remember me
               </label>
 
-              <a className="text-blue-600 hover:text-blue-700 font-medium">
+              <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">
                 Forgot password?
               </a>
             </div>
@@ -104,7 +108,7 @@ export default function AdminPage() {
               type="submit"
               disabled={loading}
               className="w-full rounded-lg bg-blue-600 text-white py-2.5 font-semibold
-                hover:bg-blue-700 transition disabled:opacity-60"
+                hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {loading ? "Signing in..." : "Sign in to Admin"}
             </button>
