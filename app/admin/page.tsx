@@ -15,9 +15,18 @@ export default function AdminPage() {
         <div className="hidden lg:flex flex-col justify-between p-10 bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
           <div>
             <div className="flex items-center gap-3 mb-8">
-              <img
-                src="/images/marketing/logo.png"
-                 
+
+const ASSET_BASE = process.env.NEXT_PUBLIC_ASSET_BASE || "";
+
+<img
+  src={`${ASSET_BASE}/images/marketing/logo.png`}
+  alt="BenefitNest"
+  className="h-10 bg-white rounded-md p-1"
+/>
+
+
+
+                
                 className="h-10 bg-white rounded-md p-1"
               />
                          </div>
