@@ -166,12 +166,15 @@ export default function AdminPage() {
             </button>
           </form>
 
-          <button
-            onClick={() => router.push("/")}
-            className="mt-4 text-sm text-slate-600 hover:text-slate-800"
-          >
-            ← Back to main site
-          </button>
+<button
+  onClick={() => {
+    window.location.href = "https://www.benefitnest.space";
+  }}
+  className="mt-4 text-sm text-slate-600 hover:text-slate-800"
+>
+  ← Back to main site
+</button>
+
 
           <div className="mt-6 text-xs text-slate-500">
             Protected by enterprise-grade security · Audit logs enabled
