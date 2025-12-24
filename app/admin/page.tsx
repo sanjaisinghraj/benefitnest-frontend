@@ -11,25 +11,16 @@ export default function AdminPage() {
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 bg-white rounded-2xl shadow-xl overflow-hidden">
 
-        {/* LEFT: INFO / BRAND */}
+        {/* LEFT: BRAND / INFO */}
         <div className="hidden lg:flex flex-col justify-between p-10 bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
           <div>
             <div className="flex items-center gap-3 mb-8">
-
-const ASSET_BASE = process.env.NEXT_PUBLIC_ASSET_BASE || "";
-
-<img
-  src={`${ASSET_BASE}/images/marketing/logo.png`}
-  alt="BenefitNest"
-  className="h-10 bg-white rounded-md p-1"
-/>
-
-
-
-                
+              <img
+                src="/images/marketing/logo.png"
+                alt="BenefitNest"
                 className="h-10 bg-white rounded-md p-1"
               />
-                         </div>
+            </div>
 
             <h1 className="text-3xl font-bold mb-4">
               Admin Console
@@ -72,6 +63,7 @@ const ASSET_BASE = process.env.NEXT_PUBLIC_ASSET_BASE || "";
               e.preventDefault();
               setLoading(true);
               // TODO: connect backend auth
+              setTimeout(() => setLoading(false), 1000);
             }}
           >
             <div>
