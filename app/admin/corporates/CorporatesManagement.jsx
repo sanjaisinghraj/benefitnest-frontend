@@ -435,26 +435,6 @@ const CorporatesManagement = () => {
                   objectFit: 'contain'
                 }}
               />
-              <div>
-                <div style={{
-                  fontSize: '20px',
-                  fontWeight: '700',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text'
-                }}>
-                  BenefitNest
-                </div>
-                <div style={{
-                  fontSize: '11px',
-                  color: colors.gray[500],
-                  fontWeight: '500',
-                  marginTop: '-2px'
-                }}>
-                  Platform Administration
-                </div>
-              </div>
             </div>
             
             {/* Back Button */}
