@@ -107,7 +107,8 @@ export default function Page() {
       {/* HERO */}
 <main
   className={`transition-all duration-[2500ms] ease-in-out ${
-    showWelcome ? "blur-md opacity-40" : "blur-0 opacity-100"
+    showWelcome ? "opacity-0" : "opacity-100"
+
   }`}
 >
 
