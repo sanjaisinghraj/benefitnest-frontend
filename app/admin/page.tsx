@@ -1,186 +1,246 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import ReCAPTCHA from "react-google-recaptcha";
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import axios from 'axios';
 
-export default function AdminPage() {
+const AdminLogin = () => {
   const router = useRouter();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  async function handleSubmit(e: React.FormEvent) {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (!captchaToken) {
-      alert("Please complete captcha");
-      return;
-    }
-
     setLoading(true);
+    setError('');
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/admin/login`,
+      const response = await axios.post(
+        'https://benefitnest-backend.onrender.com/api/admin/login',
         {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email,
-            password,
-            rememberMe,
-            captchaToken,
-          }),
+          email: email.trim(),
+          password: password
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
         }
       );
 
-      const data = await res.json();
+      console.log('Login response:', response.data);
 
-      if (!res.ok) {
-        alert(data.error || "Login failed");
-        setLoading(false);
-        return;
+      if (response.data.success && response.data.data?.token) {
+        // Save token to localStorage
+        localStorage.setItem('admin_token', response.data.data.token);
+        
+        // Verify token was saved
+        const savedToken = localStorage.getItem('admin_token');
+        console.log('Token saved successfully:', !!savedToken);
+        
+        // Navigate to dashboard
+        router.push('/admin/dashboard');
+      } else {
+        setError('Invalid response from server');
       }
-
-      // Store token as cookie (for middleware)
-      document.cookie = `admin_token=${data.token}; path=/; ${
-        rememberMe ? "max-age=2592000;" : ""
-      }`;
-
-      router.push("/admin/dashboard");
     } catch (err) {
-      alert("Something went wrong");
+      console.error('Login error:', err);
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
-      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 bg-white rounded-2xl shadow-xl overflow-hidden">
-
-        {/* LEFT PANEL */}
-        <div className="hidden lg:flex flex-col justify-between p-10 bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
-          <div>
-            <div className="flex items-center gap-3 mb-8">
-              <img
-                src="/images/marketing/logo.png"
-                alt="BenefitNest"
-                className="h-10 bg-white rounded-md p-1"
-              />
-            </div>
-
-            <h1 className="text-3xl font-bold mb-4">Admin Console</h1>
-
-            <p className="text-blue-100 mb-6 leading-relaxed">
-              Securely manage corporates, employees, benefits, claims,
-              analytics, integrations and platform configurations — all from one place.
-            </p>
-
-            <ul className="space-y-3 text-sm">
-              <li>✓ Corporate & Employee Management</li>
-              <li>✓ Insurance & Benefits Configuration</li>
-              <li>✓ Claims & Enrollment Monitoring</li>
-              <li>✓ Reports, Analytics & Audit Logs</li>
-              <li>✓ Role-based Admin Access</li>
-            </ul>
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      padding: '20px'
+    }}>
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '16px',
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+        padding: '48px',
+        width: '100%',
+        maxWidth: '450px'
+      }}>
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{
+            width: '64px',
+            height: '64px',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 16px',
+            boxShadow: '0 4px 6px -1px rgba(102, 126, 234, 0.4)'
+          }}>
+            <span style={{
+              color: 'white',
+              fontSize: '32px',
+              fontWeight: 'bold'
+            }}>
+              B
+            </span>
           </div>
-
-          <p className="text-xs text-blue-200 mt-10">
-            © {new Date().getFullYear()} BenefitNest · Internal use only
+          <h1 style={{
+            fontSize: '28px',
+            fontWeight: '700',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            marginBottom: '8px'
+          }}>
+            BenefitNest
+          </h1>
+          <p style={{
+            color: '#6b7280',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}>
+            Platform Administration
           </p>
         </div>
 
-        {/* RIGHT PANEL */}
-        <div className="p-8 sm:p-12 flex flex-col justify-center">
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-slate-900">Admin Login</h2>
-            <p className="text-slate-600 text-sm mt-1">
-              Authorized administrators only
-            </p>
-          </div>
-
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Admin Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm
-                  focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+        {/* Login Form */}
+        <form onSubmit={handleLogin}>
+          {/* Error Message */}
+          {error && (
+            <div style={{
+              backgroundColor: '#fee2e2',
+              border: '1px solid #ef4444',
+              color: '#991b1b',
+              padding: '12px',
+              borderRadius: '8px',
+              marginBottom: '20px',
+              fontSize: '14px'
+            }}>
+              ⚠️ {error}
             </div>
+          )}
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm
-                  focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 text-slate-600 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-                Remember me
-              </label>
-
-              <button
-                type="button"
-                onClick={() => router.push("/admin/forgot-password")}
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Forgot password?
-              </button>
-            </div>
-
-            <ReCAPTCHA
-              sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
-              onChange={(token) => setCaptchaToken(token)}
-            />
-
-            <button
-              type="submit"
+          {/* Email Field */}
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '8px',
+              fontSize: '14px',
+              fontWeight: '600',
+              color: '#374151'
+            }}>
+              Email Address
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="admin@benefitnest.space"
               disabled={loading}
-              className="w-full rounded-lg bg-blue-600 text-white py-2.5 font-semibold
-                hover:bg-blue-700 transition disabled:opacity-60"
-            >
-              {loading ? "Signing in..." : "Sign in to Admin"}
-            </button>
-          </form>
-
-<button
-  onClick={() => {
-    window.location.href = "https://www.benefitnest.space";
-  }}
-  className="mt-4 text-sm text-slate-600 hover:text-slate-800"
->
-  ← Back to main site
-</button>
-
-
-          <div className="mt-6 text-xs text-slate-500">
-            Protected by enterprise-grade security · Audit logs enabled
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                transition: 'border-color 0.2s',
+                outline: 'none'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#667eea'}
+              onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+            />
           </div>
+
+          {/* Password Field */}
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '8px',
+              fontSize: '14px',
+              fontWeight: '600',
+              color: '#374151'
+            }}>
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="Enter your password"
+              disabled={loading}
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontSize: '14px',
+                transition: 'border-color 0.2s',
+                outline: 'none'
+              }}
+              onFocus={(e) => e.target.style.borderColor = '#667eea'}
+              onBlur={(e) => e.target.style.borderColor = '#d1d5db'}
+            />
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: '100%',
+              padding: '14px',
+              background: loading ? '#9ca3af' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s',
+              boxShadow: '0 4px 6px -1px rgba(102, 126, 234, 0.4)'
+            }}
+            onMouseOver={(e) => {
+              if (!loading) {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 10px -1px rgba(102, 126, 234, 0.5)';
+              }
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(102, 126, 234, 0.4)';
+            }}
+          >
+            {loading ? 'Logging in...' : 'Login to Dashboard'}
+          </button>
+        </form>
+
+        {/* Footer */}
+        <div style={{
+          marginTop: '32px',
+          paddingTop: '24px',
+          borderTop: '1px solid #e5e7eb',
+          textAlign: 'center'
+        }}>
+          <p style={{
+            fontSize: '12px',
+            color: '#9ca3af'
+          }}>
+            Secure admin access · All actions are logged
+          </p>
         </div>
       </div>
-    </main>
+    </div>
   );
-}
+};
+
+export default AdminLogin;

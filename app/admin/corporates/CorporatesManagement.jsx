@@ -1,7 +1,6 @@
-'use client';  // ← ADD THIS LINE AT THE VERY TOP
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 
 const API_URL = 'https://benefitnest-backend.onrender.com/api/admin';
 
@@ -95,7 +94,7 @@ const CONTACT_LEVELS = [
 ];
 
 const CorporatesManagement = () => {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [corporates, setCorporates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -129,11 +128,11 @@ const CorporatesManagement = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('admin_token');
-    router.push('/admin');
+    navigate('/admin');
   };
 
   const handleBack = () => {
-    router.push('/admin/dashboard');
+    navigate('/admin/dashboard');
   };
 
   const fetchCorporates = async () => {
@@ -161,7 +160,7 @@ const CorporatesManagement = () => {
       console.error('Error fetching corporates:', error);
       if (error.response?.status === 401) {
         setError('Session expired. Please login again.');
-        setTimeout(() => router.push('/admin'), 2000);
+        setTimeout(() => navigate('/admin'), 2000);
       } else {
         setError(error.response?.data?.message || 'Failed to fetch corporates');
       }
@@ -394,24 +393,38 @@ const CorporatesManagement = () => {
               <div style={{
                 width: '40px',
                 height: '40px',
-                backgroundColor: colors.primary,
-                borderRadius: '8px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                borderRadius: '10px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: 'white',
                 fontWeight: 'bold',
-                fontSize: '20px'
+                fontSize: '20px',
+                boxShadow: '0 4px 6px -1px rgba(102, 126, 234, 0.4)'
               }}>
                 B
               </div>
-              <span style={{
-                fontSize: '20px',
-                fontWeight: '600',
-                color: colors.gray[900]
-              }}>
-                BenefitNest
-              </span>
+              <div>
+                <div style={{
+                  fontSize: '20px',
+                  fontWeight: '700',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}>
+                  BenefitNest
+                </div>
+                <div style={{
+                  fontSize: '11px',
+                  color: colors.gray[500],
+                  fontWeight: '500',
+                  marginTop: '-2px'
+                }}>
+                  Platform Administration
+                </div>
+              </div>
             </div>
             
             {/* Back Button */}
