@@ -8,14 +8,13 @@ export default function Page() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowWelcome(false);
-    }, 2500); // 2.5 seconds
-
+    }, 2500);
     return () => clearTimeout(timer);
   }, []);
 
   return (
     <>
-      {/* GLOBAL ANIMATION */}
+      {/* GLOBAL ANIMATION (ADDED ONLY) */}
       <style jsx global>{`
         @keyframes zoomFade {
           0% {
@@ -37,7 +36,7 @@ export default function Page() {
         }
       `}</style>
 
-      {/* HEADER (UNCHANGED & STICKY) */}
+      {/* HEADER (UNCHANGED) */}
       <header className="bg-white/90 backdrop-blur border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-20">
           <a href="/" className="flex items-center gap-2">
@@ -93,7 +92,7 @@ export default function Page() {
         </div>
       </header>
 
-      {/* WELCOME OVERLAY (TEMPORARY) */}
+      {/* WELCOME OVERLAY (ADDED ONLY) */}
       {showWelcome && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-white">
           <h1
@@ -163,6 +162,95 @@ export default function Page() {
               className="rounded-2xl shadow-xl hover:scale-[1.02] transition"
               alt=""
             />
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 mt-14">
+            {[
+              ["feature-total-reward.jpg", "Total reward"],
+              ["feature-insights.jpg", "HR analytics & reporting"],
+              ["feature-reimbursement.jpg", "Claims & reimbursements"],
+            ].map(([img, title]) => (
+              <div
+                key={title}
+                className="bg-white border rounded-2xl p-6 shadow hover:shadow-2xl hover:-translate-y-1 transition"
+              >
+                <img
+                  src={`/images/marketing/${img}`}
+                  className="rounded-lg mb-4 h-44 w-full object-cover"
+                  alt=""
+                />
+                <h3 className="font-semibold mb-2">{title}</h3>
+                <p className="text-gray-600 text-sm">
+                  Enterprise-grade capability with employee-friendly experience.
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* MORE FEATURES */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="text-3xl font-bold mb-10">
+            More features and services
+          </h2>
+
+          <div className="grid md:grid-cols-4 gap-6">
+            {[
+              "feature-integrations.jpg",
+              "feature-comms.jpg",
+              "feature-support.jpg",
+              "feature-consulting.jpg",
+            ].map((img) => (
+              <div
+                key={img}
+                className="border rounded-2xl p-5 hover:shadow-xl hover:-translate-y-1 transition"
+              >
+                <img
+                  src={`/images/marketing/${img}`}
+                  className="h-36 w-full object-cover rounded-lg mb-4"
+                  alt=""
+                />
+                <h4 className="font-semibold mb-1">Enterprise Capability</h4>
+                <p className="text-sm text-gray-600">
+                  Designed for scalable corporate operations.
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PLATFORM OVERVIEW */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="text-3xl font-bold mb-4">How BenefitNest works</h2>
+          <p className="text-gray-600 mb-10">
+            Everything connected — one employee benefits ecosystem.
+          </p>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              "overview-benefits.jpg",
+              "overview-wallet.jpg",
+              "overview-discounts.jpg",
+              "overview-recognition.jpg",
+              "overview-mobile.jpg",
+              "overview-ai.jpg",
+            ].map((img) => (
+              <div
+                key={img}
+                className="bg-white border rounded-2xl p-6 text-center hover:shadow-xl hover:-translate-y-1 transition"
+              >
+                <img
+                  src={`/images/marketing/${img}`}
+                  className="h-28 mx-auto object-contain mb-4"
+                  alt=""
+                />
+                <h4 className="font-semibold">Integrated Module</h4>
+              </div>
+            ))}
           </div>
         </div>
       </section>
