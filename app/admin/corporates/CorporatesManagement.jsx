@@ -152,38 +152,29 @@ const handleLogout = () => {
   };
 
   const fetchCorporates = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const token = getToken();
-      
-      if (!token) {
-        setLoading(false);
-        return;
+  try {
+    setLoading(true);
+    setError(null);
+    
+    // Make request WITHOUT checking for token first
+    // Let the backend decide if auth is needed
+    const response = await axios.get(`${API_URL}/corporates`, {
+      headers: {
+        'Content-Type': 'application/json'
       }
+      // NO Authorization header - backend doesn't need it
+    });
 
-      const response = await axios.get(`${API_URL}/corporates`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.data.success) {
-        setCorporates(response.data.data || []);
-      }
-    } catch (error) {
-      console.error('Error fetching corporates:', error);
-      if (error.response?.status === 401) {
-        setError('Session expired. Please login again.');
-        setTimeout(() => router.push('/admin'), 2000);  // ✅ Use router instead
-      } else {
-        setError(error.response?.data?.message || 'Failed to fetch corporates');
-      }
-    } finally {
-      setLoading(false);
+    if (response.data.success) {
+      setCorporates(response.data.data || []);
     }
-  };
+  } catch (error) {
+    console.error('Error fetching corporates:', error);
+    setError(error.response?.data?.message || 'Failed to fetch corporates');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleLogoUpload = async (e) => {
     const file = e.target.files[0];
