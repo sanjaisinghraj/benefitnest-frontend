@@ -13,8 +13,10 @@ export default function AdminLoginPage() {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    console.log("Form submitted!"); // Debug log
 
     if (!captchaToken) {
       alert("Please complete captcha");
@@ -24,6 +26,8 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
+      console.log("Sending login request..."); // Debug log
+      
       const res = await fetch(
         "https://benefitnest-backend.onrender.com/api/admin/login",
         {
@@ -41,6 +45,7 @@ export default function AdminLoginPage() {
       );
 
       const data = await res.json();
+      console.log("Response received:", data); // Debug log
 
       if (!res.ok) {
         alert(data.error || "Login failed");
@@ -49,16 +54,17 @@ export default function AdminLoginPage() {
       }
 
       // ✅ store token
+      console.log("Storing token..."); // Debug log
       localStorage.setItem("admin_token", data.token);
 
+      console.log("Redirecting to dashboard..."); // Debug log
       router.push("/admin/dashboard");
     } catch (err) {
-      console.error(err);
-      alert("Server error");
-    } finally {
+      console.error("Login error:", err);
+      alert("Server error - check console");
       setLoading(false);
     }
-  }
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
