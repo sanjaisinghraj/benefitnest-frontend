@@ -270,22 +270,22 @@ const CorporatesManagement = () => {
   useEffect(() => { fetchLookupData(); fetchCorporates(); }, []);
 
   // Filtered & Paginated data
-  const filteredCorporates = useMemo(() => {
-    if (!searchQuery.trim()) return corporates;
-    const q = searchQuery.toLowerCase();
-    return corporates.filter(c => 
-      c.tenant_code?.toLowerCase().includes(q) ||
-      c.subdomain?.toLowerCase().includes(q) ||
-      c.corporate_legal_name?.toLowerCase().includes(q) ||
-      c.corporate_group_name?.toLowerCase().includes(q) ||
-      c.industry_type?.toLowerCase().includes(q) ||
-      c.corporate_type?.toLowerCase().includes(q) ||
-      c.contact_details?.some(contact => 
-        contact.name?.toLowerCase().includes(q) ||
-        contact.email?.toLowerCase().includes(q)
-      )
-    );
-  }, [corporates, searchQuery]);
+const filteredCorporates = useMemo(() => {
+  if (!searchQuery.trim()) return corporates;
+  const q = searchQuery.toLowerCase();
+  return corporates.filter(c => 
+    c.tenant_code?.toLowerCase().includes(q) ||
+    c.subdomain?.toLowerCase().includes(q) ||
+    c.corporate_legal_name?.toLowerCase().includes(q) ||
+    c.corporate_group_name?.toLowerCase().includes(q) ||
+    c.industry_type?.toLowerCase().includes(q) ||
+    c.corporate_type?.toLowerCase().includes(q) ||
+    (Array.isArray(c.contact_details) && c.contact_details.some(contact => 
+      contact?.name?.toLowerCase().includes(q) ||
+      contact?.email?.toLowerCase().includes(q)
+    ))
+  );
+}, [corporates, searchQuery]);
 
   const totalPages = Math.ceil(filteredCorporates.length / itemsPerPage);
   const paginatedCorporates = useMemo(() => {
