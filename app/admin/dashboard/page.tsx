@@ -108,7 +108,7 @@ const AdminDashboard = () => {
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text'
                 }}>
-                  BenefitNest
+                  By
                 </div>
                 <div style={{
                   fontSize: '11px',
@@ -116,7 +116,7 @@ const AdminDashboard = () => {
                   fontWeight: '500',
                   marginTop: '-2px'
                 }}>
-                  Platform Administration
+                  Sanjai Raj Singh
                 </div>
               </div>
             </div>

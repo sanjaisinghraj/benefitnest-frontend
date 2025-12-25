@@ -406,21 +406,14 @@ const handleLogout = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             {/* Logo */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                borderRadius: '10px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontWeight: 'bold',
-                fontSize: '20px',
-                boxShadow: '0 4px 6px -1px rgba(102, 126, 234, 0.4)'
-              }}>
-                B
-              </div>
+              <img
+                src="/images/marketing/logo.png"
+                alt="BenefitNest"
+                style={{
+                  height: '40px',
+                  objectFit: 'contain'
+                }}
+              />
               <div>
                 <div style={{
                   fontSize: '20px',
