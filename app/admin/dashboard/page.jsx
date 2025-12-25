@@ -13,7 +13,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const navigateTo = (path: string) => {
+  const navigateTo = (path) => {
     router.push(path);
   };
 

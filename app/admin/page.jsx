@@ -11,7 +11,7 @@ const AdminLogin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+ const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
