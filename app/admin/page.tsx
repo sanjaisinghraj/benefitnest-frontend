@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import ReCAPTCHA from "react-google-recaptcha";
 
@@ -15,36 +15,13 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    console.log("Component mounted");
-  }, []);
-
-  useEffect(() => {
-    console.log("Captcha token updated:", captchaToken);
-  }, [captchaToken]);
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    console.log("=== FORM SUBMIT TRIGGERED ===");
     e.preventDefault();
-    
-    console.log("Email:", email);
-    console.log("Password:", password ? "***" : "empty");
-    console.log("Captcha token:", captchaToken);
-    
     setError("");
 
-    if (!captchaToken) {
-      console.log("NO CAPTCHA TOKEN - STOPPING");
-      setError("Please complete the captcha verification");
-      return;
-    }
-
-    console.log("Setting loading to true...");
     setLoading(true);
 
     try {
-      console.log("Making fetch request...");
-      
       const res = await fetch(
         "https://benefitnest-backend.onrender.com/api/admin/login",
         {
@@ -56,17 +33,14 @@ export default function AdminLoginPage() {
             email,
             password,
             rememberMe,
-            captchaToken
+            captchaToken: captchaToken || "skip" // Send "skip" if no token
           })
         }
       );
 
-      console.log("Got response, status:", res.status);
       const data = await res.json();
-      console.log("Response data:", data);
 
       if (!res.ok) {
-        console.log("Login failed:", data.error);
         setError(data.error || "Login failed");
         setLoading(false);
         recaptchaRef.current?.reset();
@@ -74,14 +48,14 @@ export default function AdminLoginPage() {
         return;
       }
 
-      console.log("Login successful! Storing token...");
+      // ✅ Store token
       localStorage.setItem("admin_token", data.token);
-      console.log("Token stored. Redirecting...");
 
+      // ✅ Redirect
       window.location.href = "/admin/dashboard";
       
     } catch (err) {
-      console.error("ERROR:", err);
+      console.error("Login error:", err);
       setError("Network error - please try again");
       setLoading(false);
       recaptchaRef.current?.reset();
@@ -90,19 +64,9 @@ export default function AdminLoginPage() {
   };
 
   const handleCaptchaChange = (token: string | null) => {
-    console.log("=== CAPTCHA CHANGED ===");
-    console.log("New token:", token ? "received" : "null");
     setCaptchaToken(token);
     setError("");
   };
-
-  const handleButtonClick = () => {
-    console.log("=== BUTTON CLICKED ===");
-    console.log("Loading:", loading);
-    console.log("Captcha token:", captchaToken);
-  };
-
-  console.log("RENDER - Loading:", loading, "Captcha:", captchaToken);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
@@ -206,16 +170,11 @@ export default function AdminLoginPage() {
 
             <button
               type="submit"
-              disabled={loading || !captchaToken}
-              onClick={handleButtonClick}
+              disabled={loading}
               className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
             >
               {loading ? "Signing in..." : "Sign in"}
             </button>
-            
-            <div className="text-xs text-gray-500 text-center">
-              Debug: Loading={loading ? "true" : "false"}, Captcha={captchaToken ? "yes" : "no"}
-            </div>
           </form>
 
           <button
