@@ -1,29 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import ReCAPTCHA from "react-google-recaptcha";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError("");
+
+    console.log("Captcha token:", captchaToken); // Debug
 
     if (!captchaToken) {
-      alert("Please complete captcha");
+      setError("Please complete the captcha verification");
       return;
     }
 
     setLoading(true);
 
     try {
+      console.log("Sending request...");
+      
       const res = await fetch(
         "https://benefitnest-backend.onrender.com/api/admin/login",
         {
@@ -41,24 +48,38 @@ export default function AdminLoginPage() {
       );
 
       const data = await res.json();
+      console.log("Response:", data);
 
       if (!res.ok) {
-        alert(data.error || "Login failed");
+        setError(data.error || "Login failed");
         setLoading(false);
+        // Reset captcha on error
+        recaptchaRef.current?.reset();
+        setCaptchaToken(null);
         return;
       }
 
       // ✅ Store token
+      console.log("Storing token and redirecting...");
       localStorage.setItem("admin_token", data.token);
 
-      // ✅ Use window.location for reliable redirect
+      // ✅ Redirect
       window.location.href = "/admin/dashboard";
       
     } catch (err) {
       console.error("Login error:", err);
-      alert("Server error");
+      setError("Network error - please try again");
       setLoading(false);
+      // Reset captcha on error
+      recaptchaRef.current?.reset();
+      setCaptchaToken(null);
     }
+  };
+
+  const handleCaptchaChange = (token: string | null) => {
+    console.log("Captcha changed:", token ? "Token received" : "Token cleared");
+    setCaptchaToken(token);
+    setError(""); // Clear error when captcha is completed
   };
 
   return (
@@ -101,6 +122,12 @@ export default function AdminLoginPage() {
             Authorized administrators only
           </p>
 
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
               <label className="text-sm font-medium">Email</label>
@@ -110,6 +137,7 @@ export default function AdminLoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full mt-1 p-3 border rounded-lg"
+                disabled={loading}
               />
             </div>
 
@@ -121,6 +149,7 @@ export default function AdminLoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full mt-1 p-3 border rounded-lg"
+                disabled={loading}
               />
             </div>
 
@@ -130,6 +159,7 @@ export default function AdminLoginPage() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
+                  disabled={loading}
                 />
                 Remember me
               </label>
@@ -138,20 +168,24 @@ export default function AdminLoginPage() {
                 type="button"
                 onClick={() => router.push("/admin/forgot-password")}
                 className="text-blue-600 hover:underline"
+                disabled={loading}
               >
                 Forgot password?
               </button>
             </div>
 
-            <ReCAPTCHA
-              sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
-              onChange={(token) => setCaptchaToken(token)}
-            />
+            <div className="flex justify-center">
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
+                onChange={handleCaptchaChange}
+              />
+            </div>
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-60"
+              disabled={loading || !captchaToken}
+              className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
             >
               {loading ? "Signing in..." : "Sign in"}
             </button>
@@ -160,6 +194,7 @@ export default function AdminLoginPage() {
           <button
             onClick={() => (window.location.href = "https://www.benefitnest.space")}
             className="mt-4 text-sm text-slate-600 hover:text-slate-800"
+            disabled={loading}
           >
             ← Back to main site
           </button>
