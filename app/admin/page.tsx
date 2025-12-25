@@ -12,11 +12,14 @@ export default function AdminPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
+    
     if (!captchaToken) {
-      alert("Please complete captcha");
+      setError("Please complete captcha");
       return;
     }
 
@@ -40,19 +43,33 @@ export default function AdminPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.error || "Login failed");
+        setError(data.message || data.error || "Login failed");
         setLoading(false);
         return;
       }
 
-      // Store token as cookie (for middleware)
-      document.cookie = `admin_token=${data.token}; path=/; ${
+      // Get token from response (could be at root level or nested)
+      const token = data.token || data.data?.token;
+      
+      if (!token) {
+        setError("No token received from server");
+        setLoading(false);
+        return;
+      }
+
+      // Store token in BOTH cookie AND localStorage for maximum compatibility
+      // Cookie (for middleware)
+      document.cookie = `admin_token=${token}; path=/; ${
         rememberMe ? "max-age=2592000;" : ""
       }`;
+      
+      // localStorage (for API calls in React components)
+      localStorage.setItem('admin_token', token);
 
       router.push("/admin/dashboard");
     } catch (err) {
-      alert("Something went wrong");
+      console.error("Login error:", err);
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -102,6 +119,13 @@ export default function AdminPage() {
               Authorized administrators only
             </p>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              ⚠️ {error}
+            </div>
+          )}
 
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
@@ -166,15 +190,14 @@ export default function AdminPage() {
             </button>
           </form>
 
-<button
-  onClick={() => {
-    window.location.href = "https://www.benefitnest.space";
-  }}
-  className="mt-4 text-sm text-slate-600 hover:text-slate-800"
->
-  ← Back to main site
-</button>
-
+          <button
+            onClick={() => {
+              window.location.href = "https://www.benefitnest.space";
+            }}
+            className="mt-4 text-sm text-slate-600 hover:text-slate-800"
+          >
+            ← Back to main site
+          </button>
 
           <div className="mt-6 text-xs text-slate-500">
             Protected by enterprise-grade security · Audit logs enabled

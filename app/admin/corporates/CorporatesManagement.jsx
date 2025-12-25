@@ -117,64 +117,82 @@ const CorporatesManagement = () => {
     ]
   });
 
-const getToken = () => {
-  if (typeof window === 'undefined') return null;
-  
-  // Try cookies first (new login stores token in cookies)
-  const cookieToken = document.cookie
-    .split('; ')
-    .find(row => row.startsWith('admin_token='))
-    ?.split('=')[1];
-  
-  if (cookieToken) return cookieToken;
-  
-  // Fallback to localStorage (for backwards compatibility)
-  const localToken = localStorage.getItem('admin_token');
-  if (localToken) return localToken;
-  
-  // No token found
-  setError('You are not logged in. Please login first.');
-  return null;
-};
-
-const handleLogout = () => {
-  if (typeof window !== 'undefined') {
-    // Clear both localStorage and cookies
-    localStorage.removeItem('admin_token');
-    document.cookie = 'admin_token=; path=/; max-age=0';
-    // Go to main site
-    window.location.href = 'https://www.benefitnest.space';
-  }
-};
-
-  const handleBack = () => {
-     router.push('/admin/dashboard');
+  // Get token from cookies or localStorage
+  const getToken = () => {
+    if (typeof window === 'undefined') return null;
+    
+    // Try cookies first (new login stores token in cookies)
+    const cookieToken = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('admin_token='))
+      ?.split('=')[1];
+    
+    if (cookieToken) return cookieToken;
+    
+    // Fallback to localStorage (for backwards compatibility)
+    const localToken = localStorage.getItem('admin_token');
+    if (localToken) return localToken;
+    
+    // No token found
+    return null;
   };
 
-  const fetchCorporates = async () => {
-  try {
-    setLoading(true);
-    setError(null);
-    
-    // Make request WITHOUT checking for token first
-    // Let the backend decide if auth is needed
-    const response = await axios.get(`${API_URL}/corporates`, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-      // NO Authorization header - backend doesn't need it
-    });
-
-    if (response.data.success) {
-      setCorporates(response.data.data || []);
+  const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+      // Clear both localStorage and cookies
+      localStorage.removeItem('admin_token');
+      document.cookie = 'admin_token=; path=/; max-age=0';
+      // Go to main site
+      window.location.href = 'https://www.benefitnest.space';
     }
-  } catch (error) {
-    console.error('Error fetching corporates:', error);
-    setError(error.response?.data?.message || 'Failed to fetch corporates');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
+
+  const handleBack = () => {
+    router.push('/admin/dashboard');
+  };
+
+  // FIXED: Now properly sends Authorization header
+  const fetchCorporates = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const token = getToken();
+      
+      if (!token) {
+        setError('You are not logged in. Please login first.');
+        router.push('/admin');
+        return;
+      }
+
+      const response = await axios.get(`${API_URL}/corporates`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.data.success) {
+        setCorporates(response.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching corporates:', error);
+      
+      // Handle 401/403 errors - redirect to login
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        setError('Session expired. Please login again.');
+        // Clear invalid token
+        localStorage.removeItem('admin_token');
+        document.cookie = 'admin_token=; path=/; max-age=0';
+        setTimeout(() => router.push('/admin'), 2000);
+        return;
+      }
+      
+      setError(error.response?.data?.message || error.response?.data?.error || 'Failed to fetch corporates');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogoUpload = async (e) => {
     const file = e.target.files[0];
@@ -220,7 +238,11 @@ const handleLogout = () => {
     try {
       setError(null);
       const token = getToken();
-      if (!token) return;
+      if (!token) {
+        setError('You are not logged in. Please login first.');
+        router.push('/admin');
+        return;
+      }
 
       // Filter out empty contacts
       const validContacts = formData.contacts.filter(c => c.name || c.email);
@@ -265,7 +287,11 @@ const handleLogout = () => {
     try {
       setError(null);
       const token = getToken();
-      if (!token) return;
+      if (!token) {
+        setError('You are not logged in. Please login first.');
+        router.push('/admin');
+        return;
+      }
 
       const validContacts = formData.contacts.filter(c => c.name || c.email);
 
@@ -311,7 +337,11 @@ const handleLogout = () => {
 
     try {
       const token = getToken();
-      if (!token) return;
+      if (!token) {
+        setError('You are not logged in. Please login first.');
+        router.push('/admin');
+        return;
+      }
 
       const response = await axios.delete(`${API_URL}/corporates/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
