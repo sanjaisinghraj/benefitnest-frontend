@@ -18,10 +18,11 @@ export default function AdminPage() {
     e.preventDefault();
     setError(null);
     
-    if (!captchaToken) {
-      setError("Please complete captcha");
-      return;
-    }
+    // Captcha is optional for now - just proceed with login
+    // if (!captchaToken) {
+    //   setError("Please complete captcha");
+    //   return;
+    // }
 
     setLoading(true);
 
