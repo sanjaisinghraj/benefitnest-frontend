@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useRouter } from 'next/navigation';f
+import { useRouter } from 'next/navigation';
 
 const API_URL = 'https://benefitnest-backend.onrender.com/api/admin';
 
@@ -160,7 +160,7 @@ const CorporatesManagement = () => {
       console.error('Error fetching corporates:', error);
       if (error.response?.status === 401) {
         setError('Session expired. Please login again.');
-        setTimeout(() => navigate('/admin'), 2000);
+        setTimeout(() => router.push('/admin'), 2000);  // ✅ Use router instead
       } else {
         setError(error.response?.data?.message || 'Failed to fetch corporates');
       }
