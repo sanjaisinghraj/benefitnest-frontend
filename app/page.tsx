@@ -105,6 +105,12 @@ export default function Page() {
       )}
 
       {/* HERO */}
+<main
+  className={`transition-all duration-[2500ms] ease-in-out ${
+    showWelcome ? "blur-md opacity-40" : "blur-0 opacity-100"
+  }`}
+>
+
       <section className="bg-gray-50 py-24">
         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
           <div>
@@ -275,6 +281,8 @@ export default function Page() {
       <footer className="bg-gray-900 text-gray-400 py-6 text-center text-sm">
         © {new Date().getFullYear()} BenefitNest. All rights reserved.
       </footer>
+</main>
+
     </>
   );
 }
