@@ -2,7 +2,30 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
+const LOOKUP_API_URL = 'https://benefitnest-backend.onrender.com/api/lookup';
 const API_URL = 'https://benefitnest-backend.onrender.com/api/admin';
+
+const [industryTypes, setIndustryTypes] = useState([]);
+const [corporateTypes, setCorporateTypes] = useState([]);
+const [jobLevels, setJobLevels] = useState([]);
+const [loadingLookups, setLoadingLookups] = useState(true);
+
+const fetchLookupData = async () => {
+  try {
+    setLoadingLookups(true);
+    const response = await axios.get(`${LOOKUP_API_URL}/all`);
+    if (response.data.success) {
+      setCorporateTypes(response.data.data.corporateTypes || []);
+      setIndustryTypes(response.data.data.industryTypes || []);
+      setJobLevels(response.data.data.jobLevels || []);
+    }
+  } catch (error) {
+    console.error('Error fetching lookup data:', error);
+  } finally {
+    setLoadingLookups(false);
+  }
+};
+
 
 const colors = {
   primary: '#2563eb',
@@ -409,6 +432,12 @@ const CorporatesManagement = () => {
   };
 
   useEffect(() => { fetchCorporates(); }, []);
+
+useEffect(() => { 
+  fetchLookupData();
+  fetchCorporates(); 
+}, []);
+
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
