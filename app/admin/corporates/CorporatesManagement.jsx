@@ -117,19 +117,35 @@ const CorporatesManagement = () => {
     ]
   });
 
-  const getToken = () => {
-    const token = localStorage.getItem('admin_token');
-    if (!token) {
-      setError('You are not logged in. Please login first.');
-      return null;
-    }
-    return token;
-  };
+const getToken = () => {
+  if (typeof window === 'undefined') return null;
+  
+  // Try cookies first (new login stores token in cookies)
+  const cookieToken = document.cookie
+    .split('; ')
+    .find(row => row.startsWith('admin_token='))
+    ?.split('=')[1];
+  
+  if (cookieToken) return cookieToken;
+  
+  // Fallback to localStorage (for backwards compatibility)
+  const localToken = localStorage.getItem('admin_token');
+  if (localToken) return localToken;
+  
+  // No token found
+  setError('You are not logged in. Please login first.');
+  return null;
+};
 
-  const handleLogout = () => {
+const handleLogout = () => {
+  if (typeof window !== 'undefined') {
+    // Clear both localStorage and cookies
     localStorage.removeItem('admin_token');
-    router.push('/admin');
-  };
+    document.cookie = 'admin_token=; path=/; max-age=0';
+    // Go to main site
+    window.location.href = 'https://www.benefitnest.space';
+  }
+};
 
   const handleBack = () => {
      router.push('/admin/dashboard');
