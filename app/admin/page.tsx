@@ -16,8 +16,6 @@ export default function AdminLoginPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    console.log("Form submitted!"); // Debug log
-
     if (!captchaToken) {
       alert("Please complete captcha");
       return;
@@ -26,8 +24,6 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      console.log("Sending login request..."); // Debug log
-      
       const res = await fetch(
         "https://benefitnest-backend.onrender.com/api/admin/login",
         {
@@ -45,7 +41,6 @@ export default function AdminLoginPage() {
       );
 
       const data = await res.json();
-      console.log("Response received:", data); // Debug log
 
       if (!res.ok) {
         alert(data.error || "Login failed");
@@ -53,15 +48,15 @@ export default function AdminLoginPage() {
         return;
       }
 
-      // ✅ store token
-      console.log("Storing token..."); // Debug log
+      // ✅ Store token
       localStorage.setItem("admin_token", data.token);
 
-      console.log("Redirecting to dashboard..."); // Debug log
-      router.push("/admin/dashboard");
+      // ✅ Use window.location for reliable redirect
+      window.location.href = "/admin/dashboard";
+      
     } catch (err) {
       console.error("Login error:", err);
-      alert("Server error - check console");
+      alert("Server error");
       setLoading(false);
     }
   };
