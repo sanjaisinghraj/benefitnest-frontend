@@ -1,7 +1,6 @@
-'use client';  // ← ADD THIS LINE AT THE VERY TOP
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router-dom';
 
 const API_URL = 'https://benefitnest-backend.onrender.com/api/admin';
 
@@ -95,7 +94,7 @@ const CONTACT_LEVELS = [
 ];
 
 const CorporatesManagement = () => {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [corporates, setCorporates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -129,11 +128,11 @@ const CorporatesManagement = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('admin_token');
-    router.push('/admin');
+    navigate('/admin');
   };
 
   const handleBack = () => {
-    router.push('/admin/dashboard');
+    navigate('/admin/dashboard');
   };
 
   const fetchCorporates = async () => {
@@ -161,7 +160,7 @@ const CorporatesManagement = () => {
       console.error('Error fetching corporates:', error);
       if (error.response?.status === 401) {
         setError('Session expired. Please login again.');
-        setTimeout(() => router.push('/admin'), 2000);
+        setTimeout(() => navigate('/admin'), 2000);
       } else {
         setError(error.response?.data?.message || 'Failed to fetch corporates');
       }
