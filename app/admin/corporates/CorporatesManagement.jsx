@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';f
 
 const API_URL = 'https://benefitnest-backend.onrender.com/api/admin';
 
@@ -94,7 +94,7 @@ const CONTACT_LEVELS = [
 ];
 
 const CorporatesManagement = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [corporates, setCorporates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -128,11 +128,11 @@ const CorporatesManagement = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('admin_token');
-    navigate('/admin');
+    router.push('/admin');
   };
 
   const handleBack = () => {
-    navigate('/admin/dashboard');
+     router.push('/admin/dashboard');
   };
 
   const fetchCorporates = async () => {
