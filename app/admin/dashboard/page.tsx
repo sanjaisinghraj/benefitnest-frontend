@@ -8,9 +8,16 @@ const AdminDashboard = () => {
 
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
+      // Clear both localStorage and cookies
       localStorage.removeItem('admin_token');
-      router.push('/admin');
+      document.cookie = 'admin_token=; path=/; max-age=0';
+      // Redirect to main site
+      window.location.href = 'https://www.benefitnest.space';
     }
+  };
+
+  const handleBack = () => {
+    router.push('/admin');
   };
 
   const navigateTo = (path: string) => {
@@ -81,43 +88,61 @@ const AdminDashboard = () => {
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          {/* Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              width: '40px',
-              height: '40px',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              borderRadius: '10px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontWeight: 'bold',
-              fontSize: '20px',
-              boxShadow: '0 4px 6px -1px rgba(102, 126, 234, 0.4)'
-            }}>
-              B
-            </div>
-            <div>
-              <div style={{
-                fontSize: '20px',
-                fontWeight: '700',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
-              }}>
-                BenefitNest
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            {/* Logo */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <img
+                src="/images/marketing/logo.png"
+                alt="BenefitNest"
+                style={{
+                  height: '40px',
+                  objectFit: 'contain'
+                }}
+              />
+              <div>
+                <div style={{
+                  fontSize: '20px',
+                  fontWeight: '700',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}>
+                  BenefitNest
+                </div>
+                <div style={{
+                  fontSize: '11px',
+                  color: '#6b7280',
+                  fontWeight: '500',
+                  marginTop: '-2px'
+                }}>
+                  Platform Administration
+                </div>
               </div>
-              <div style={{
-                fontSize: '11px',
-                color: '#6b7280',
+            </div>
+
+            {/* Back Button */}
+            <button
+              onClick={handleBack}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#f3f4f6',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '14px',
+                color: '#374151',
                 fontWeight: '500',
-                marginTop: '-2px'
-              }}>
-                Platform Administration
-              </div>
-            </div>
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+            >
+              <span>←</span> Back
+            </button>
           </div>
 
           {/* Logout Button */}
