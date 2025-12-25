@@ -40,9 +40,12 @@ export default function AdminDashboard() {
           <p className="text-sm text-slate-600 mb-4">
             Create and manage corporate clients, subdomains and configurations.
           </p>
-          <button className="text-blue-600 text-sm font-medium">
-            Manage corporates →
-          </button>
+<button
+  onClick={() => router.push("/admin/corporates")}
+  className="text-blue-600 text-sm font-medium"
+>
+  Manage corporates →
+</button>
         </div>
 
         {/* EMPLOYEES */}
