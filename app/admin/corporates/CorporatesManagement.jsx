@@ -487,14 +487,6 @@ const CorporatesManagement = () => {
         return errors;
     };
 
-const parseExcel = async (file) => {
-    const XLSX = await import('xlsx');
-    const data = await file.arrayBuffer();
-    const workbook = XLSX.read(data);
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-    return XLSX.utils.sheet_to_json(worksheet, { defval: '' });
-};
 
     const handleBulkUpload = async (e) => {
         const file = e.target.files[0];
