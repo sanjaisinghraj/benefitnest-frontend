@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://benefitnest-backend.onrender.com';
 const MASTERS_API = `${API_URL}/api/admin/masters`;
+const AUTH_API = `${API_URL}/api/admin/auth`;
 
 const colors = {
     primary: '#2563eb', primaryHover: '#1d4ed8', primaryLight: '#dbeafe',
@@ -128,6 +129,7 @@ const downloadExcel = async (data, filename, columns) => {
     const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
     URL.revokeObjectURL(url);
 };
+
 const MastersManagement = () => {
     const router = useRouter();
     const [tables, setTables] = useState([]);
@@ -149,6 +151,7 @@ const MastersManagement = () => {
     const [showAddFieldModal, setShowAddFieldModal] = useState(false);
     const [showAIValidateModal, setShowAIValidateModal] = useState(false);
     const [showSchemaModal, setShowSchemaModal] = useState(false);
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
     
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [formData, setFormData] = useState({});
@@ -156,11 +159,14 @@ const MastersManagement = () => {
     const [validationWarnings, setValidationWarnings] = useState([]);
     const [uploadingBulk, setUploadingBulk] = useState(false);
     const [aiValidating, setAiValidating] = useState(false);
+    const [savingRecord, setSavingRecord] = useState(false);
     const [fkOptions, setFkOptions] = useState({});
     const [lookups, setLookups] = useState({});
     const [pendingUploadData, setPendingUploadData] = useState(null);
     const [tableStructure, setTableStructure] = useState(null);
     const [newField, setNewField] = useState({ column_name: '', data_type: 'text', is_nullable: true, default_value: '', description: '' });
+    const [adminPassword, setAdminPassword] = useState('');
+    const [passwordError, setPasswordError] = useState('');
 
     const getToken = () => { if (typeof window === 'undefined') return null; return document.cookie.split('; ').find(row => row.startsWith('admin_token='))?.split('=')[1] || localStorage.getItem('admin_token'); };
     const getAuthHeaders = () => ({ Authorization: `Bearer ${getToken()}` });
@@ -209,14 +215,35 @@ const MastersManagement = () => {
     const handleEdit = (record) => { setSelectedRecord(record); const data = {}; editableColumns.forEach(col => { data[col.column_name] = record[col.column_name] ?? ''; }); setFormData(data); setShowForm(true); };
     const handleDeleteClick = async (record) => { setSelectedRecord(record); const depData = await checkDependencies(selectedTable, record[primaryKeyColumn]); setDependencies(depData.dependencies || []); setShowDeleteModal(true); };
 
+    // Save with AI validation
     const handleSave = async (skipAI = false, ignoreWarnings = false) => {
         try {
-            const payload = selectedRecord ? { updates: formData, skip_ai_validation: skipAI, ai_warnings_ignored: ignoreWarnings } : { record: formData, skip_ai_validation: skipAI, ai_warnings_ignored: ignoreWarnings };
-            const url = selectedRecord ? `${MASTERS_API}/${selectedTable}/${selectedRecord[primaryKeyColumn]}` : `${MASTERS_API}/${selectedTable}`;
+            setSavingRecord(true);
+            const payload = selectedRecord 
+                ? { updates: formData, skip_ai_validation: skipAI, ai_warnings_ignored: ignoreWarnings } 
+                : { record: formData, skip_ai_validation: skipAI, ai_warnings_ignored: ignoreWarnings };
+            const url = selectedRecord 
+                ? `${MASTERS_API}/${selectedTable}/${selectedRecord[primaryKeyColumn]}` 
+                : `${MASTERS_API}/${selectedTable}`;
+            
             const response = await axios({ method: selectedRecord ? 'PUT' : 'POST', url, data: payload, headers: getAuthHeaders() });
-            if (response.data.requires_confirmation) { setValidationWarnings(response.data.validation?.warnings || []); setShowWarningModal(true); return; }
-            if (response.data.success) { setToast({ message: selectedRecord ? 'Record updated!' : 'Record created!', type: 'success' }); setShowForm(false); setShowWarningModal(false); fetchRecords(selectedTable, currentPage); }
-        } catch (err) { setToast({ message: err.response?.data?.message || 'Failed to save', type: 'error' }); }
+            
+            if (response.data.requires_confirmation) { 
+                setValidationWarnings(response.data.validation?.warnings || []); 
+                setShowWarningModal(true); 
+                return; 
+            }
+            if (response.data.success) { 
+                setToast({ message: selectedRecord ? 'Record updated!' : 'Record created!', type: 'success' }); 
+                setShowForm(false); 
+                setShowWarningModal(false); 
+                fetchRecords(selectedTable, currentPage); 
+            }
+        } catch (err) { 
+            setToast({ message: err.response?.data?.message || 'Failed to save', type: 'error' }); 
+        } finally {
+            setSavingRecord(false);
+        }
     };
 
     const handleDeleteConfirm = async () => { try { await axios.delete(`${MASTERS_API}/${selectedTable}/${selectedRecord[primaryKeyColumn]}`, { headers: getAuthHeaders() }); setToast({ message: 'Record deleted!', type: 'success' }); setShowDeleteModal(false); fetchRecords(selectedTable, currentPage); } catch (err) { setToast({ message: err.response?.data?.message || 'Failed to delete', type: 'error' }); } };
@@ -243,7 +270,48 @@ const MastersManagement = () => {
         catch (err) { setToast({ message: err.response?.data?.message || 'Upload failed', type: 'error' }); }
     };
 
-    const handleAIValidateTable = async () => { try { setAiValidating(true); const response = await axios.post(`${MASTERS_API}/${selectedTable}/validate-all`, {}, { headers: getAuthHeaders() }); if (response.data.success) { setValidationWarnings(response.data.warnings || []); setShowAIValidateModal(true); } } catch (err) { setToast({ message: 'AI validation failed', type: 'error' }); } finally { setAiValidating(false); } };
+    // Show password modal before AI validate
+    const handleAIValidateClick = () => {
+        setAdminPassword('');
+        setPasswordError('');
+        setShowPasswordModal(true);
+    };
+
+    // Verify password and run AI validation
+    const handlePasswordSubmit = async () => {
+        try {
+            setPasswordError('');
+            // Verify admin password
+            const verifyResponse = await axios.post(`${AUTH_API}/verify-password`, 
+                { password: adminPassword }, 
+                { headers: getAuthHeaders() }
+            );
+            
+            if (!verifyResponse.data.success) {
+                setPasswordError('Invalid password');
+                return;
+            }
+
+            setShowPasswordModal(false);
+            setAiValidating(true);
+
+            // Run AI validation
+            const response = await axios.post(`${MASTERS_API}/${selectedTable}/validate-all`, {}, { headers: getAuthHeaders() });
+            if (response.data.success) {
+                setValidationWarnings(response.data.warnings || []);
+                setShowAIValidateModal(true);
+            }
+        } catch (err) {
+            if (err.response?.status === 401 || err.response?.data?.message?.includes('password')) {
+                setPasswordError('Invalid password');
+            } else {
+                setShowPasswordModal(false);
+                setToast({ message: 'AI validation failed', type: 'error' });
+            }
+        } finally {
+            setAiValidating(false);
+        }
+    };
 
     const handleAddField = async () => {
         try { if (!newField.column_name) { setToast({ message: 'Column name is required', type: 'error' }); return; }
@@ -268,6 +336,7 @@ const MastersManagement = () => {
         if (fieldType === 'datetime') return <Input key={columnName} label={label} type="datetime-local" value={formData[columnName] ? formData[columnName].slice(0, 16) : ''} onChange={(e) => setFormData({ ...formData, [columnName]: e.target.value })} />;
         return <Input key={columnName} label={label} type={fieldType} value={formData[columnName] || ''} onChange={(e) => setFormData({ ...formData, [columnName]: e.target.value })} />;
     };
+
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
             <header style={{ backgroundColor: 'white', borderBottom: `1px solid ${colors.gray[200]}`, position: 'sticky', top: 0, zIndex: 100 }}>
@@ -289,7 +358,7 @@ const MastersManagement = () => {
                             <Button variant="success" icon="📤" onClick={() => setShowUploadModal(true)} disabled={uploadingBulk}>{uploadingBulk ? 'Uploading...' : 'Bulk Upload'}</Button>
                             <Button variant="outline" icon="📥" onClick={handleDownloadTemplate}>Template</Button>
                             <Button variant="primary" icon="📥" onClick={handleDownloadData} disabled={loading}>Download</Button>
-                            <Button variant="info" icon="🤖" onClick={handleAIValidateTable} disabled={aiValidating}>{aiValidating ? 'Validating...' : 'AI Validate'}</Button>
+                            <Button variant="info" icon="🤖" onClick={handleAIValidateClick} disabled={aiValidating}>{aiValidating ? 'Validating...' : 'AI Validate'}</Button>
                             <Button variant="warning" icon="➕" onClick={() => setShowAddFieldModal(true)}>Add Field</Button>
                             <Button variant="ghost" icon="🗂️" onClick={() => fetchTableStructure(selectedTable)}>Schema</Button>
                         </>)}
@@ -320,40 +389,96 @@ const MastersManagement = () => {
                 {!selectedTable && <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '80px 40px', textAlign: 'center', border: `1px solid ${colors.gray[200]}` }}><div style={{ fontSize: '64px', marginBottom: '16px' }}>📋</div><h3 style={{ fontSize: '18px', fontWeight: '600', color: colors.gray[900], marginBottom: '8px' }}>Select a Master Table</h3><p style={{ color: colors.gray[500] }}>Choose a table from the dropdown above</p></div>}
             </main>
 
+            {/* View Modal */}
             <Modal isOpen={showViewModal} onClose={() => setShowViewModal(false)} title="View Record" icon="👁️" size="lg">
                 {selectedRecord && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>{columns.map(col => <div key={col.column_name} style={{ padding: '12px', backgroundColor: colors.gray[50], borderRadius: '8px' }}><div style={{ fontSize: '11px', fontWeight: '600', color: colors.gray[500], textTransform: 'uppercase', marginBottom: '4px' }}>{col.column_name.replace(/_/g, ' ')}</div><div style={{ fontSize: '14px', color: colors.gray[900], wordBreak: 'break-word' }}>{col.data_type === 'boolean' ? (selectedRecord[col.column_name] ? '✅ Yes' : '❌ No') : String(selectedRecord[col.column_name] ?? '—')}</div></div>)}</div>}
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}><Button variant="outline" onClick={() => setShowViewModal(false)}>Close</Button></div>
             </Modal>
 
+            {/* Add/Edit Form Modal */}
             <Modal isOpen={showForm} onClose={() => setShowForm(false)} title={selectedRecord ? 'Edit Record' : 'Add Record'} icon={selectedRecord ? '✏️' : '➕'} size="lg">
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>{editableColumns.map(col => renderFormField(col))}</div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}><Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button><Button variant="ghost" onClick={() => handleSave(true)}>Save (Skip AI)</Button><Button variant="cyan" onClick={() => handleSave(false)}>{selectedRecord ? 'Update' : 'Create'}</Button></div>
+                <div style={{ backgroundColor: colors.primaryLight, borderRadius: '8px', padding: '12px 16px', marginTop: '16px', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: colors.primary }}>
+                        <span>🤖</span>
+                        <span style={{ fontSize: '13px', fontWeight: '500' }}>AI will automatically validate your data before saving</span>
+                    </div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
+                    <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+                    <Button variant="ghost" onClick={() => handleSave(true)} disabled={savingRecord}>Save (Skip AI)</Button>
+                    <Button variant="cyan" onClick={() => handleSave(false)} disabled={savingRecord} loading={savingRecord}>{selectedRecord ? 'Update' : 'Create'}</Button>
+                </div>
             </Modal>
 
+            {/* Bulk Upload Modal */}
             <Modal isOpen={showUploadModal} onClose={() => setShowUploadModal(false)} title="Bulk Upload" icon="📤" size="md">
                 <p style={{ color: colors.gray[600], marginBottom: '20px' }}>Upload an Excel file. Download template first.</p>
+                <div style={{ backgroundColor: colors.primaryLight, borderRadius: '8px', padding: '12px 16px', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: colors.primary }}>
+                        <span>🤖</span>
+                        <span style={{ fontSize: '13px', fontWeight: '500' }}>AI will validate all records before uploading</span>
+                    </div>
+                </div>
                 <div style={{ backgroundColor: colors.cyanLight, borderRadius: '12px', padding: '20px', marginBottom: '24px' }}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div><div style={{ fontWeight: '600', color: colors.cyan }}>📥 Download Template</div></div><Button variant="cyan" size="sm" onClick={handleDownloadTemplate}>Download</Button></div></div>
                 <input type="file" accept=".xlsx,.xls" onChange={handleBulkUpload} style={{ display: 'none' }} id="bulk-upload" />
                 <label htmlFor="bulk-upload" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px', border: `2px dashed ${colors.gray[300]}`, borderRadius: '12px', cursor: 'pointer', backgroundColor: colors.gray[50] }}><div style={{ fontSize: '48px', marginBottom: '12px' }}>📁</div><div style={{ fontWeight: '600', color: colors.gray[700] }}>Click to select file</div></label>
             </Modal>
 
+            {/* Delete Confirmation Modal */}
             <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} title="Confirm Delete" icon="⚠️" size="sm">
                 <p style={{ color: colors.gray[600], marginBottom: '20px' }}>Are you sure you want to delete this record?</p>
                 {dependencies.length > 0 && <div style={{ backgroundColor: colors.warningLight, borderRadius: '12px', padding: '16px', marginBottom: '20px' }}><div style={{ fontWeight: '600', color: colors.warning, marginBottom: '8px' }}>⚠️ Dependencies Found</div><ul style={{ margin: 0, paddingLeft: '20px' }}>{dependencies.map((dep, i) => <li key={i}>{dep.count} records in {dep.table}</li>)}</ul></div>}
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}><Button variant="outline" onClick={() => setShowDeleteModal(false)}>Cancel</Button><Button variant="danger" onClick={handleDeleteConfirm}>Delete</Button></div>
             </Modal>
 
+            {/* AI Validation Warnings Modal */}
             <Modal isOpen={showWarningModal} onClose={() => { setShowWarningModal(false); setPendingUploadData(null); }} title="AI Validation Warnings" icon="🤖" size="lg">
-                <div style={{ backgroundColor: colors.warningLight, borderRadius: '12px', padding: '20px', marginBottom: '20px' }}><div style={{ fontWeight: '600', color: colors.warning, marginBottom: '12px' }}>⚠️ AI detected issues:</div><div style={{ maxHeight: '300px', overflowY: 'auto' }}>{validationWarnings.map((w, i) => <div key={i} style={{ padding: '8px 12px', backgroundColor: 'white', borderRadius: '6px', marginBottom: '8px', fontSize: '14px' }}><strong>Row {w.row}, {w.field}:</strong> {w.message}{w.verification_url && <a href={w.verification_url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', fontSize: '12px', color: colors.primary }}>🔗 Verify</a>}</div>)}</div></div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}><Button variant="outline" onClick={() => { setShowWarningModal(false); setPendingUploadData(null); }}>Cancel</Button><Button variant="warning" onClick={() => { if (pendingUploadData) handleBulkUploadIgnoreWarnings(); else handleSave(false, true); }}>Proceed Anyway</Button></div>
+                <div style={{ backgroundColor: colors.warningLight, borderRadius: '12px', padding: '20px', marginBottom: '20px' }}><div style={{ fontWeight: '600', color: colors.warning, marginBottom: '12px' }}>⚠️ AI detected potential issues:</div><div style={{ maxHeight: '300px', overflowY: 'auto' }}>{validationWarnings.map((w, i) => <div key={i} style={{ padding: '10px 12px', backgroundColor: 'white', borderRadius: '6px', marginBottom: '8px', fontSize: '14px', borderLeft: `4px solid ${w.severity === 'error' ? colors.danger : colors.warning}` }}><div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}><Badge variant={w.severity === 'error' ? 'danger' : 'warning'}>{w.severity || 'warning'}</Badge><strong>Row {w.row} - {w.field}</strong></div><div style={{ color: colors.gray[700] }}>{w.message}</div>{w.suggested_value && <div style={{ fontSize: '12px', color: colors.success, marginTop: '4px' }}>💡 Suggested: {w.suggested_value}</div>}</div>)}</div></div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}><Button variant="outline" onClick={() => { setShowWarningModal(false); setPendingUploadData(null); }}>Cancel & Fix</Button><Button variant="warning" onClick={() => { if (pendingUploadData) handleBulkUploadIgnoreWarnings(); else handleSave(false, true); }}>Ignore & Proceed</Button></div>
             </Modal>
 
+            {/* AI Validate Results Modal */}
             <Modal isOpen={showAIValidateModal} onClose={() => setShowAIValidateModal(false)} title="AI Validation Results" icon="🤖" size="lg">
-                {validationWarnings.length === 0 ? <div style={{ textAlign: 'center', padding: '40px' }}><div style={{ fontSize: '64px', marginBottom: '16px' }}>✅</div><h3 style={{ fontSize: '18px', fontWeight: '600', color: colors.success }}>All Records Valid!</h3><p style={{ color: colors.gray[500] }}>No issues found.</p></div>
-                : <><div style={{ backgroundColor: colors.warningLight, borderRadius: '12px', padding: '16px', marginBottom: '20px' }}><div style={{ fontWeight: '600', color: colors.warning }}>Found {validationWarnings.length} issues</div></div><div style={{ maxHeight: '400px', overflowY: 'auto' }}>{validationWarnings.map((w, i) => <div key={i} style={{ padding: '12px', backgroundColor: colors.gray[50], borderRadius: '8px', marginBottom: '8px' }}><Badge variant={w.severity === 'error' ? 'danger' : 'warning'}>{w.severity || 'warning'}</Badge> <strong>Row {w.row} - {w.field}</strong><p style={{ margin: '4px 0 0', color: colors.gray[700] }}>{w.message}</p></div>)}</div></>}
+                {validationWarnings.length === 0 ? <div style={{ textAlign: 'center', padding: '40px' }}><div style={{ fontSize: '64px', marginBottom: '16px' }}>✅</div><h3 style={{ fontSize: '18px', fontWeight: '600', color: colors.success }}>All Records Valid!</h3><p style={{ color: colors.gray[500] }}>No issues found in the selected records.</p></div>
+                : <><div style={{ backgroundColor: colors.warningLight, borderRadius: '12px', padding: '16px', marginBottom: '20px' }}><div style={{ fontWeight: '600', color: colors.warning }}>Found {validationWarnings.length} potential issues</div></div><div style={{ maxHeight: '400px', overflowY: 'auto' }}>{validationWarnings.map((w, i) => <div key={i} style={{ padding: '12px', backgroundColor: colors.gray[50], borderRadius: '8px', marginBottom: '8px', borderLeft: `4px solid ${w.severity === 'error' ? colors.danger : colors.warning}` }}><div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}><Badge variant={w.severity === 'error' ? 'danger' : 'warning'}>{w.severity || 'warning'}</Badge><strong>Row {w.row} - {w.field}</strong></div><p style={{ margin: '4px 0 0', color: colors.gray[700] }}>{w.message}</p>{w.suggested_value && <div style={{ fontSize: '12px', color: colors.success, marginTop: '4px' }}>💡 Suggested: {w.suggested_value}</div>}</div>)}</div></>}
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}><Button variant="outline" onClick={() => setShowAIValidateModal(false)}>Close</Button></div>
             </Modal>
 
+            {/* Password Modal for AI Validate */}
+            <Modal isOpen={showPasswordModal} onClose={() => setShowPasswordModal(false)} title="AI Validation - Authentication Required" icon="🔐" size="md">
+                <div style={{ backgroundColor: colors.dangerLight, borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
+                    <div style={{ fontWeight: '600', color: colors.danger, marginBottom: '8px' }}>⚠️ Important Warnings</div>
+                    <ul style={{ margin: 0, paddingLeft: '20px', color: colors.gray[700], fontSize: '14px' }}>
+                        <li style={{ marginBottom: '6px' }}>Validating large tables can <strong>exceed API rate limits</strong></li>
+                        <li style={{ marginBottom: '6px' }}>AI server may <strong>block requests</strong> if overused</li>
+                        <li style={{ marginBottom: '6px' }}>For large tables, validation results may be <strong>incomplete or inaccurate</strong></li>
+                        <li style={{ marginBottom: '6px' }}><strong>Recommended:</strong> Use AI validation on Add/Edit for single records</li>
+                    </ul>
+                </div>
+                <div style={{ backgroundColor: colors.primaryLight, borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
+                    <div style={{ fontSize: '14px', color: colors.primary }}>
+                        <strong>Table:</strong> {TABLE_LABELS[selectedTable] || selectedTable}<br/>
+                        <strong>Records to validate:</strong> {totalRecords}
+                    </div>
+                </div>
+                <Input 
+                    label="Enter Admin Password to Proceed" 
+                    type="password" 
+                    value={adminPassword} 
+                    onChange={(e) => setAdminPassword(e.target.value)} 
+                    placeholder="Your admin login password"
+                />
+                {passwordError && <div style={{ color: colors.danger, fontSize: '13px', marginTop: '-10px', marginBottom: '16px' }}>{passwordError}</div>}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
+                    <Button variant="outline" onClick={() => setShowPasswordModal(false)}>Cancel</Button>
+                    <Button variant="danger" onClick={handlePasswordSubmit} disabled={!adminPassword || aiValidating} loading={aiValidating}>
+                        Validate All Records
+                    </Button>
+                </div>
+            </Modal>
+
+            {/* Add Field Modal */}
             <Modal isOpen={showAddFieldModal} onClose={() => setShowAddFieldModal(false)} title="Add Field" icon="➕" size="md">
                 <Input label="Column Name" required value={newField.column_name} onChange={(e) => setNewField({ ...newField, column_name: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') })} placeholder="e.g., phone_number" />
                 <Select label="Data Type" required value={newField.data_type} onChange={(e) => setNewField({ ...newField, data_type: e.target.value })} options={[{ value: 'text', label: 'Text' }, { value: 'string', label: 'String (255)' }, { value: 'number', label: 'Number' }, { value: 'decimal', label: 'Decimal' }, { value: 'boolean', label: 'Boolean' }, { value: 'date', label: 'Date' }, { value: 'datetime', label: 'DateTime' }, { value: 'uuid', label: 'UUID' }, { value: 'json', label: 'JSON' }]} />
@@ -363,6 +488,7 @@ const MastersManagement = () => {
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}><Button variant="outline" onClick={() => setShowAddFieldModal(false)}>Cancel</Button><Button variant="warning" onClick={handleAddField}>Add Field</Button></div>
             </Modal>
 
+            {/* Schema Modal */}
             <Modal isOpen={showSchemaModal} onClose={() => setShowSchemaModal(false)} title={`Schema: ${selectedTable}`} icon="🗂️" size="lg">
                 {tableStructure && (<>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
