@@ -25,6 +25,13 @@ const AdminDashboard = () => {
   };
 
   const dashboardCards = [
+{
+  title: 'Masters',
+  description: 'Manage lookup tables - insurers, TPAs, job levels, policy types and more.',
+  icon: '⚙️',
+  link: '/admin/masters',
+  color: '#0ea5e9'
+},
     {
       title: 'Corporates',
       description: 'Create and manage corporate clients, subdomains and configurations.',
