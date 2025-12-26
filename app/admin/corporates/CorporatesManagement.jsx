@@ -316,9 +316,6 @@ const CorporateDetailPanel = ({ corporate, onClose, onEdit }) => {
         </div>
     );
 };
-
-
-
 const parseExcel = async (file) => {
   const ExcelJS = (await import('exceljs')).default;
   const workbook = new ExcelJS.Workbook();
@@ -335,24 +332,6 @@ const parseExcel = async (file) => {
   });
   return data;
 };
-
-const downloadExcel = async (data, filename) => {
-  const ExcelJS = (await import('exceljs')).default;
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('Sheet1');
-  if (data.length === 0) return;
-  const headers = Object.keys(data[0]);
-  worksheet.addRow(headers);
-  worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
-  worksheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2563EB' } };
-  data.forEach(row => worksheet.addRow(headers.map(h => row[h] || '')));
-  worksheet.columns.forEach(col => { col.width = 20; });
-  const buffer = await workbook.xlsx.writeBuffer();
-  const url = URL.createObjectURL(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
-  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
-};
-
 
 
 // =====================================================
@@ -409,11 +388,7 @@ const CorporatesManagement = () => {
     const fetchLookupData = async () => {
         try {
             const token = getToken();
-            const token = getToken();
-const response = await axios.get(`${LOOKUP_API}/all`, {
-    headers: { Authorization: `Bearer ${token}` }
-});
-
+            const response = await axios.get(`${LOOKUP_API}/all`);
             if (response.data.success) {
                 setCorporateTypes(response.data.data.corporateTypes || []);
                 setIndustryTypes(response.data.data.industryTypes || []);
@@ -528,7 +503,6 @@ const response = await axios.get(`${LOOKUP_API}/all`, {
         else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.contact1_email.toString().trim())) errors.push('contact1_email invalid');
         return errors;
     };
-
 
     const handleBulkUpload = async (e) => {
         const file = e.target.files[0];
@@ -886,6 +860,7 @@ const response = await axios.get(`${LOOKUP_API}/all`, {
         {getHealthLabel(corp.health_score || 100)}
     </Badge>
 </td>
+
                                                 <td style={{ padding: '12px 16px' }}>
                                                     {corp.portal_url 
                                                       ? <a href={corp.portal_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ color: colors.primary, fontSize: '12px', textDecoration: 'none' }}>🔗 Live</a> 
