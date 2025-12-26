@@ -333,7 +333,22 @@ const parseExcel = async (file) => {
   return data;
 };
 
-
+const downloadExcel = async (data, filename) => {
+  const ExcelJS = (await import('exceljs')).default;
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Sheet1');
+  if (data.length === 0) return;
+  const headers = Object.keys(data[0]);
+  worksheet.addRow(headers);
+  worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+  worksheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2563EB' } };
+  data.forEach(row => worksheet.addRow(headers.map(h => row[h] || '')));
+  worksheet.columns.forEach(col => { col.width = 20; });
+  const buffer = await workbook.xlsx.writeBuffer();
+  const url = URL.createObjectURL(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+};
 // =====================================================
 // MAIN COMPONENT
 // =====================================================
