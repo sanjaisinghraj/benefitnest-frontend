@@ -409,7 +409,11 @@ const CorporatesManagement = () => {
     const fetchLookupData = async () => {
         try {
             const token = getToken();
-            const response = await axios.get(`${LOOKUP_API}/all`);
+            const token = getToken();
+const response = await axios.get(`${LOOKUP_API}/all`, {
+    headers: { Authorization: `Bearer ${token}` }
+});
+
             if (response.data.success) {
                 setCorporateTypes(response.data.data.corporateTypes || []);
                 setIndustryTypes(response.data.data.industryTypes || []);
@@ -427,7 +431,7 @@ const CorporatesManagement = () => {
             setLoading(true);
             const token = getToken();
             if (!token) { router.push('/admin'); return; }
-             const response = await axios.get(`${API_URL}/corporates`, { headers: { Authorization: `Bearer ${token}` } });
+            const response = await axios.get(`${CORPORATES_API}`, { headers: { Authorization: `Bearer ${token}` } });
             if (response.data.success) {
                 const data = response.data.data || [];
                 setCorporates(data);
