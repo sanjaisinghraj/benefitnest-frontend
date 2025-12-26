@@ -317,6 +317,44 @@ const CorporateDetailPanel = ({ corporate, onClose, onEdit }) => {
     );
 };
 
+
+
+const parseExcel = async (file) => {
+  const ExcelJS = (await import('exceljs')).default;
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(await file.arrayBuffer());
+  const worksheet = workbook.worksheets[0];
+  const data = [], headers = [];
+  worksheet.eachRow((row, rowNum) => {
+    if (rowNum === 1) row.eachCell(cell => headers.push(cell.value?.toString() || ''));
+    else {
+      const rowData = {};
+      row.eachCell((cell, colNum) => { if (headers[colNum - 1]) rowData[headers[colNum - 1]] = cell.value?.toString() || ''; });
+      if (Object.keys(rowData).length > 0) data.push(rowData);
+    }
+  });
+  return data;
+};
+
+const downloadExcel = async (data, filename) => {
+  const ExcelJS = (await import('exceljs')).default;
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Sheet1');
+  if (data.length === 0) return;
+  const headers = Object.keys(data[0]);
+  worksheet.addRow(headers);
+  worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+  worksheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2563EB' } };
+  data.forEach(row => worksheet.addRow(headers.map(h => row[h] || '')));
+  worksheet.columns.forEach(col => { col.width = 20; });
+  const buffer = await workbook.xlsx.writeBuffer();
+  const url = URL.createObjectURL(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+};
+
+
+
 // =====================================================
 // MAIN COMPONENT
 // =====================================================
@@ -389,7 +427,7 @@ const CorporatesManagement = () => {
             setLoading(true);
             const token = getToken();
             if (!token) { router.push('/admin'); return; }
-            const response = await axios.get(`${CORPORATES_API}`, { headers: { Authorization: `Bearer ${token}` } });
+             const response = await axios.get(`${API_URL}/corporates`, { headers: { Authorization: `Bearer ${token}` } });
             if (response.data.success) {
                 const data = response.data.data || [];
                 setCorporates(data);
