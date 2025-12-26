@@ -838,7 +838,11 @@ const CorporatesManagement = () => {
                                                 </td>
                                                 <td style={{ padding: '12px 16px', fontSize: '13px', color: colors.gray[600] }}>{corp.industry_type || '—'}</td>
                                                 <td style={{ padding: '12px 16px' }}><Badge variant={STATUS_OPTIONS.find(s => s.value === corp.status)?.color || 'default'} dot>{corp.status}</Badge></td>
-                                                <td style={{ padding: '12px 16px' }}><HealthScoreBadge score={corp.health_score || 100} /></td>
+                                                <td style={{ padding: '12px 16px' }}>
+    <Badge variant={getHealthColor(corp.health_score || 100)}>
+        {getHealthLabel(corp.health_score || 100)}
+    </Badge>
+</td>
                                                 <td style={{ padding: '12px 16px' }}>
                                                     {corp.portal_url 
                                                       ? <a href={corp.portal_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ color: colors.primary, fontSize: '12px', textDecoration: 'none' }}>🔗 Live</a> 
