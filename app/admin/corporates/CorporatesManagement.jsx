@@ -62,8 +62,80 @@ const getDaysUntil = (date) => date ? Math.ceil((new Date(date) - new Date()) / 
 // =====================================================
 // COMPONENTS
 // =====================================================
+// =====================================================i have added it to show table schema
+const fetchCorporatesSchema = async () => {
+  try {
+    setLoadingSchema(true);
+    const token = getToken();
+    const res = await axios.get(
+      `${API_URL}/api/admin/schema/corporates`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (res.data.success) {
+      setSchemaData(res.data);
+    }
+  } catch (err) {
+    setToast({ message: 'Failed to load schema', type: 'error' });
+  } finally {
+    setLoadingSchema(false);
+  }
+};
+// =====================================================i have added it to show table schema
 
 // Modal
+
+<Modal
+  isOpen={showSchemaModal}
+  onClose={() => setShowSchemaModal(false)}
+  title="Corporates Table Schema"
+  icon="🗄️"
+  size="lg"
+>
+  {loadingSchema && <p>Loading schema...</p>}
+
+  {schemaData && (
+    <>
+      <h4 style={{ marginBottom: '12px' }}>📋 Columns</h4>
+      <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px' }}>
+        <thead>
+          <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Nullable</th>
+            <th>Default</th>
+          </tr>
+        </thead>
+        <tbody>
+          {schemaData.columns.map((col, i) => (
+            <tr key={i}>
+              <td>{col.column_name}</td>
+              <td>{col.data_type}</td>
+              <td>{col.is_nullable}</td>
+              <td>{col.column_default || '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <h4 style={{ marginBottom: '12px' }}>🔐 Constraints</h4>
+      <ul>
+        {schemaData.constraints.map((c, i) => (
+          <li key={i}>
+            <strong>{c.constraint_type}</strong> → {c.column_name}
+          </li>
+        ))}
+      </ul>
+    </>
+  )}
+</Modal>
+
+
+
+
+
+
+
+
 const Modal = ({ isOpen, onClose, title, icon, children, size = 'md' }) => {
     if (!isOpen) return null;
     const sizeStyles = { sm: '440px', md: '600px', lg: '800px', xl: '1000px' };
@@ -356,6 +428,13 @@ const CorporatesManagement = () => {
     const router = useRouter();
     
     // States
+
+// ===================================================== I have added it to show the database table schema
+const [showSchemaModal, setShowSchemaModal] = useState(false);
+const [schemaData, setSchemaData] = useState(null);
+const [loadingSchema, setLoadingSchema] = useState(false);
+// =====================================================
+
     const [corporates, setCorporates] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -712,6 +791,18 @@ const CorporatesManagement = () => {
                                 {uploadingBulk ? 'Uploading...' : 'Upload Corporates'}
                             </Button>
                             <Button variant="primary" icon="+" onClick={() => { resetForm(); setShowForm(true); }}>Add Corporate</Button>
+
+<Button
+  variant="outline"
+  icon="🗄️"
+  onClick={() => {
+    setShowSchemaModal(true);
+    fetchCorporatesSchema();
+  }}
+>
+  View Schema
+</Button>
+
                         </div>
                     )}
                 </div>
