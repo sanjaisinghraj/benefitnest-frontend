@@ -389,7 +389,7 @@ const CorporatesManagement = () => {
             setLoading(true);
             const token = getToken();
             if (!token) { router.push('/admin'); return; }
-            const response = await axios.get(`${CORPORATES_API}?all=true`, {headers: { Authorization: `Bearer ${token}` }});
+            const response = await axios.get(`${CORPORATES_API}`, { headers: { Authorization: `Bearer ${token}` } });
             if (response.data.success) {
                 const data = response.data.data || [];
                 setCorporates(data);
@@ -494,14 +494,6 @@ const parseExcel = async (file) => {
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     return XLSX.utils.sheet_to_json(worksheet, { defval: '' });
-};
-
-const downloadExcel = async (data, filename) => {
-    const XLSX = await import('xlsx');
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
-    XLSX.writeFile(workbook, filename);
 };
 
     const handleBulkUpload = async (e) => {
