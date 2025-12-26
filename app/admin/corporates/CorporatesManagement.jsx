@@ -389,7 +389,7 @@ const CorporatesManagement = () => {
             setLoading(true);
             const token = getToken();
             if (!token) { router.push('/admin'); return; }
-            const response = await axios.get(`${CORPORATES_API}`, { headers: { Authorization: `Bearer ${token}` } });
+            const response = await axios.get(`${CORPORATES_API}?all=true`, {headers: { Authorization: `Bearer ${token}` }});
             if (response.data.success) {
                 const data = response.data.data || [];
                 setCorporates(data);
@@ -486,6 +486,23 @@ const CorporatesManagement = () => {
         else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.contact1_email.toString().trim())) errors.push('contact1_email invalid');
         return errors;
     };
+
+const parseExcel = async (file) => {
+    const XLSX = await import('xlsx');
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    return XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+};
+
+const downloadExcel = async (data, filename) => {
+    const XLSX = await import('xlsx');
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+    XLSX.writeFile(workbook, filename);
+};
 
     const handleBulkUpload = async (e) => {
         const file = e.target.files[0];
