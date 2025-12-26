@@ -1117,18 +1117,17 @@ const fetchCorporatesSchema = async () => {
         </tbody>
       </table>
 
-      <h4 style={{ marginBottom: '12px' }}>🔐 Constraints</h4>
+<h4 style={{ marginBottom: '12px' }}>🔐 Constraints</h4>
       <ul>
-        {schemaData.constraints.map((c, i) => (
+        {(schemaData?.constraints || []).map((c, i) => (
           <li key={i}>
-            <strong>{c.constraint_type}</strong> → {c.column_name}
+            <strong>{c.constraint_type}</strong> → {c.column_name || c.constraint_name}
           </li>
         ))}
       </ul>
     </>
   )}
 </Modal>
-
 
 
 
