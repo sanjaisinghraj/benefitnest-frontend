@@ -250,6 +250,7 @@ const CorporateManagement = () => {
     // AI Validation
     const [aiValidating, setAiValidating] = useState(false);
     const [aiValidationResults, setAiValidationResults] = useState({ issues: [], valid: true });
+const hasAIIssues = aiValidationResults?.issues?.length > 0;
     
     // Schema & Add Field
     const [tableStructure, setTableStructure] = useState(null);
@@ -959,9 +960,13 @@ const CorporateManagement = () => {
                     </div>
                     <div style={{ display: 'flex', gap: '12px' }}>
                         <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
-                  
+
+
+
 
   {/* {!selectedCorporate && <Button variant="ghost" onClick={() => handleSave(true)} disabled={savingRecord}>Skip AI & Create</Button>} */}
+
+
 
 
                         <Button variant="primary" onClick={() => handleSave(!!selectedCorporate)} disabled={savingRecord} loading={savingRecord || aiValidating}>
@@ -1004,9 +1009,29 @@ const CorporateManagement = () => {
                     </>
                 )}
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px', paddingTop: '16px', borderTop: `1px solid ${colors.gray[200]}` }}>
-                    <Button variant="outline" onClick={() => setShowAIValidationModal(false)}>← Fix Now</Button>
-                    <Button variant="warning" onClick={() => handleSave(true)} disabled={savingRecord} loading={savingRecord}>Skip & Create Anyway</Button>
-                    {aiValidationResults.valid && <Button variant="success" onClick={() => handleSave(true)} disabled={savingRecord} loading={savingRecord}>✓ Create Corporate</Button>}
+                   <Button
+  variant="outline"
+  onClick={() => setShowAIValidationModal(false)}
+>
+  ← Fix Now
+</Button>
+
+<Button
+  variant="warning"
+  disabled={!hasAIIssues}
+  onClick={() => handleSave(true)}
+>
+  Skip & Create Anyway
+</Button>
+
+<Button
+  variant="success"
+  disabled={hasAIIssues}
+  onClick={() => handleSave(false)}
+>
+  ✓ Create Corporate
+</Button>
+
                 </div>
             </Modal>
 
