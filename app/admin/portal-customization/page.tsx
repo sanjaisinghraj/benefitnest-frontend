@@ -151,7 +151,7 @@ const Select = ({ label, value, onChange, options, placeholder }: any) => (
   </div>
 );
 
-const ColorInput = ({ label, value, onChange }: any) => (
+const ColorInput = ({ label, value, onChange }: { label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) => (
   <div style={{ marginBottom: '16px' }}>
     {label && (
       <label style={{
