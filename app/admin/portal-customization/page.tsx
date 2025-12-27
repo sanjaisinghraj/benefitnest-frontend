@@ -229,18 +229,23 @@ export default function PortalCustomizationPage() {
     fetchCorporates();
   }, []);
 
-  const fetchCorporates = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(`${API_URL}/api/admin/corporates?limit=1000`);
-      setCorporates(response.data.data || []);
-    } catch (err) {
-      showToast('Failed to load corporates', 'error');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+ const fetchCorporates = async () => {
+  try {
+    setLoading(true);
+    const token = localStorage.getItem('token'); // Add this line
+    const response = await axios.get(`${API_URL}/api/admin/corporates?limit=1000`, {
+      headers: {
+        Authorization: `Bearer ${token}`  // Add this header
+      }
+    });
+    setCorporates(response.data.data || []);
+  } catch (err) {
+    showToast('Failed to load corporates', 'error');
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleCorporateSelect = async (corporate: Corporate) => {
     setSelectedCorporate(corporate);
@@ -248,19 +253,25 @@ export default function PortalCustomizationPage() {
   };
 
   const fetchCustomizations = async (corporate: Corporate) => {
-    try {
-      setLoading(true);
-      const response = await axios.get(
-        `${API_URL}/api/admin/corporates/${corporate.tenant_id}/customizations`
-      );
-      setCustomizations(response.data.data || {});
-    } catch (err) {
-      console.error('Failed to fetch customizations:', err);
-      setCustomizations({});
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    const token = localStorage.getItem('token'); // Add this line
+    const response = await axios.get(
+      `${API_URL}/api/admin/corporates/${corporate.tenant_id}/customizations`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`  // Add this header
+        }
+      }
+    );
+    setCustomizations(response.data.data || {});
+  } catch (err) {
+    console.error('Failed to fetch customizations:', err);
+    setCustomizations({});
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleSaveCustomizations = async () => {
     if (!selectedCorporate) {
@@ -270,10 +281,15 @@ export default function PortalCustomizationPage() {
 
     try {
       setSaving(true);
-      const response = await axios.post(
-        `${API_URL}/api/admin/corporates/${selectedCorporate.tenant_id}/customize-portal`,
-        customizations
-      );
+     const response = await axios.post(
+  `${API_URL}/api/admin/corporates/${selectedCorporate.tenant_id}/customize-portal`,
+  customizations,
+  {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('token')}`  // Add this header
+    }
+  }
+);
 
       if (response.data.success) {
         showToast('Customizations saved successfully!', 'success');
