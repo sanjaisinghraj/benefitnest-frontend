@@ -250,8 +250,11 @@ const CorporateManagement = () => {
     // AI Validation
     const [aiValidating, setAiValidating] = useState(false);
     const [aiValidationResults, setAiValidationResults] = useState({ issues: [], valid: true });
-const hasAIIssues = aiValidationResults?.issues?.length > 0;
-    
+
+    const hasAIIssues =
+  Array.isArray(aiValidationResults?.issues) &&
+  aiValidationResults.issues.length > 0;
+
     // Schema & Add Field
     const [tableStructure, setTableStructure] = useState(null);
     const [newField, setNewField] = useState({ column_name: '', data_type: 'text', is_nullable: true, default_value: '', description: '' });
