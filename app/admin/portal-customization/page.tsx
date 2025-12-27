@@ -46,7 +46,7 @@ interface Customizations {
   [key: string]: any;
 }
 
-const Button = ({ children, variant = 'primary', onClick, disabled, loading, style = {} }: any) => {
+const Button = ({ children, variant = 'primary', onClick, disabled, loading, style = {} }: { children: React.ReactNode; variant?: string; onClick?: () => void; disabled?: boolean; loading?: boolean; style?: React.CSSProperties }) => {
   const variants = {
     primary: { bg: colors.primary, color: 'white' },
     success: { bg: colors.success, color: 'white' },
@@ -115,7 +115,7 @@ const Input = ({ label, value, onChange, type = 'text', placeholder, hint, step 
   </div>
 );
 
-const Select = ({ label, value, onChange, options, placeholder }: any) => (
+const Select = ({ label, value, onChange, options, placeholder }: { label?: string; value: string; onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void; options: { value: string; label: string }[]; placeholder?: string }) => (
   <div style={{ marginBottom: '16px' }}>
     {label && (
       <label style={{
@@ -143,7 +143,7 @@ const Select = ({ label, value, onChange, options, placeholder }: any) => (
       }}
     >
       {placeholder && <option value="">{placeholder}</option>}
-      {options.map((opt: any) => (
+     {options.map((opt) => (
         <option key={opt.value} value={opt.value}>
           {opt.label}
         </option>
@@ -195,7 +195,7 @@ const ColorInput = ({ label, value, onChange }: { label: string; value: string; 
   </div>
 );
 
-const Checkbox = ({ label, value, onChange }: any) => (
+const Checkbox = ({ label, value, onChange }: { label?: string; value: boolean; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) => (
   <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
     <input
       type="checkbox"
@@ -616,7 +616,7 @@ export default function PortalCustomizationPage() {
                   <Checkbox
                     label="Sticky Header"
                     value={customizations.header_sticky}
-                    onChange={(e) => updateCustomization('header_sticky', e.target.checked)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateCustomization('header_sticky', e.target.checked)}
                   />
                 </div>
               </section>
