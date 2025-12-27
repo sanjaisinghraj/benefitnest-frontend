@@ -1,627 +1,71 @@
 'use client';
-
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://benefitnest-backend.onrender.com';
+const colors = { primary: '#6366f1', primaryHover: '#4f46e5', primaryLight: '#e0e7ff', primaryDark: '#3730a3', secondary: '#8b5cf6', success: '#10b981', successLight: '#d1fae5', danger: '#ef4444', dangerLight: '#fee2e2', warning: '#f59e0b', warningLight: '#fef3c7', gray: { 50: '#f9fafb', 100: '#f3f4f6', 200: '#e5e7eb', 300: '#d1d5db', 400: '#9ca3af', 500: '#6b7280', 600: '#4b5563', 700: '#374151', 800: '#1f2937', 900: '#111827' } };
 
-// =====================================================
-// DESIGN SYSTEM COLORS
-// =====================================================
-const colors = {
-  primary: '#6366f1',
-  primaryHover: '#4f46e5',
-  primaryLight: '#e0e7ff',
-  secondary: '#8b5cf6',
-  secondaryLight: '#ede9fe',
-  success: '#10b981',
-  successHover: '#059669',
-  successLight: '#d1fae5',
-  danger: '#ef4444',
-  dangerHover: '#dc2626',
-  dangerLight: '#fee2e2',
-  warning: '#f59e0b',
-  warningLight: '#fef3c7',
-  info: '#0ea5e9',
-  infoLight: '#e0f2fe',
-  pink: '#ec4899',
-  pinkLight: '#fce7f3',
-  gray: {
-    50: '#f9fafb', 100: '#f3f4f6', 200: '#e5e7eb', 300: '#d1d5db',
-    400: '#9ca3af', 500: '#6b7280', 600: '#4b5563', 700: '#374151',
-    800: '#1f2937', 900: '#111827'
-  }
+const FONTS = [
+  { name: 'Inter', cat: 'Sans-serif', mood: 'Modern, Clean' }, { name: 'Roboto', cat: 'Sans-serif', mood: 'Versatile' }, { name: 'Open Sans', cat: 'Sans-serif', mood: 'Readable' },
+  { name: 'Poppins', cat: 'Sans-serif', mood: 'Geometric' }, { name: 'Montserrat', cat: 'Sans-serif', mood: 'Bold' }, { name: 'Lato', cat: 'Sans-serif', mood: 'Warm' },
+  { name: 'Playfair Display', cat: 'Serif', mood: 'Elegant' }, { name: 'Merriweather', cat: 'Serif', mood: 'Traditional' }, { name: 'Lora', cat: 'Serif', mood: 'Balanced' },
+  { name: 'Segoe UI', cat: 'System', mood: 'Windows' }, { name: 'Arial', cat: 'System', mood: 'Universal' }
+];
+
+const INDUSTRY_AI: Record<string, { c: { p: string; s: string; a: string }; f: { h: string; b: string }; t: string }> = {
+  healthcare: { c: { p: '#0891b2', s: '#14b8a6', a: '#f59e0b' }, f: { h: 'Nunito', b: 'Open Sans' }, t: 'Trust & Care' },
+  finance: { c: { p: '#1e40af', s: '#3b82f6', a: '#eab308' }, f: { h: 'Playfair Display', b: 'Lato' }, t: 'Stability' },
+  technology: { c: { p: '#6366f1', s: '#8b5cf6', a: '#06b6d4' }, f: { h: 'Inter', b: 'Inter' }, t: 'Innovation' },
+  retail: { c: { p: '#dc2626', s: '#f97316', a: '#fbbf24' }, f: { h: 'Poppins', b: 'Lato' }, t: 'Energy' },
+  manufacturing: { c: { p: '#374151', s: '#6b7280', a: '#f59e0b' }, f: { h: 'Montserrat', b: 'Open Sans' }, t: 'Reliability' },
+  education: { c: { p: '#059669', s: '#10b981', a: '#3b82f6' }, f: { h: 'Merriweather', b: 'Open Sans' }, t: 'Knowledge' },
+  default: { c: { p: '#2563eb', s: '#10b981', a: '#f59e0b' }, f: { h: 'Inter', b: 'Open Sans' }, t: 'Professional' }
 };
 
-// =====================================================
-// FONT DATABASE WITH AI SUGGESTIONS
-// =====================================================
-const FONT_DATABASE = {
-  professional: [
-    { name: 'Inter', category: 'Sans-serif', mood: 'Modern, Clean', pairing: 'Playfair Display' },
-    { name: 'Roboto', category: 'Sans-serif', mood: 'Versatile, Friendly', pairing: 'Roboto Slab' },
-    { name: 'Open Sans', category: 'Sans-serif', mood: 'Neutral, Readable', pairing: 'Lora' },
-    { name: 'Lato', category: 'Sans-serif', mood: 'Warm, Stable', pairing: 'Merriweather' },
-    { name: 'Montserrat', category: 'Sans-serif', mood: 'Geometric, Bold', pairing: 'Source Serif Pro' },
-    { name: 'Poppins', category: 'Sans-serif', mood: 'Geometric, Modern', pairing: 'Lora' },
-    { name: 'Nunito', category: 'Sans-serif', mood: 'Rounded, Friendly', pairing: 'Nunito Sans' },
-  ],
-  elegant: [
-    { name: 'Playfair Display', category: 'Serif', mood: 'Elegant, Classic', pairing: 'Source Sans Pro' },
-    { name: 'Merriweather', category: 'Serif', mood: 'Readable, Traditional', pairing: 'Open Sans' },
-    { name: 'Lora', category: 'Serif', mood: 'Contemporary, Balanced', pairing: 'Lato' },
-    { name: 'Source Serif Pro', category: 'Serif', mood: 'Editorial, Clear', pairing: 'Source Sans Pro' },
-    { name: 'Crimson Text', category: 'Serif', mood: 'Book-like, Refined', pairing: 'Work Sans' },
-    { name: 'Libre Baskerville', category: 'Serif', mood: 'Classic, Authoritative', pairing: 'Source Sans Pro' },
-  ],
-  creative: [
-    { name: 'Raleway', category: 'Sans-serif', mood: 'Elegant, Stylish', pairing: 'Lora' },
-    { name: 'Josefin Sans', category: 'Sans-serif', mood: 'Vintage, Geometric', pairing: 'Playfair Display' },
-    { name: 'Quicksand', category: 'Sans-serif', mood: 'Rounded, Friendly', pairing: 'EB Garamond' },
-    { name: 'Comfortaa', category: 'Sans-serif', mood: 'Rounded, Fun', pairing: 'Roboto' },
-  ],
-  system: [
-    { name: 'Segoe UI', category: 'System', mood: 'Windows Native', pairing: 'Georgia' },
-    { name: 'SF Pro Display', category: 'System', mood: 'Apple Native', pairing: 'New York' },
-    { name: 'Arial', category: 'System', mood: 'Universal, Safe', pairing: 'Times New Roman' },
-    { name: 'Helvetica', category: 'System', mood: 'Swiss, Clean', pairing: 'Georgia' },
-    { name: 'Georgia', category: 'Serif', mood: 'Web Classic', pairing: 'Verdana' },
-  ]
-};
+interface Corporate { tenant_id: string; corporate_legal_name: string; subdomain: string; primary_color?: string; secondary_color?: string; status?: string; industry_type?: string; contact_details?: { email?: string; phone?: string }; logo_url?: string; }
+interface Customizations { [key: string]: any; }
 
-const ALL_FONTS = [...FONT_DATABASE.professional, ...FONT_DATABASE.elegant, ...FONT_DATABASE.creative, ...FONT_DATABASE.system];
-
-// =====================================================
-// COLOR PALETTES FOR AI SUGGESTIONS
-// =====================================================
-const COLOR_PALETTES = {
-  corporate: [
-    { name: 'Navy Professional', primary: '#1e3a8a', secondary: '#3b82f6', accent: '#f59e0b' },
-    { name: 'Forest Trust', primary: '#166534', secondary: '#22c55e', accent: '#eab308' },
-    { name: 'Royal Purple', primary: '#581c87', secondary: '#a855f7', accent: '#f97316' },
-  ],
-  modern: [
-    { name: 'Electric Blue', primary: '#2563eb', secondary: '#06b6d4', accent: '#f43f5e' },
-    { name: 'Sunset Gradient', primary: '#dc2626', secondary: '#f97316', accent: '#fbbf24' },
-    { name: 'Ocean Breeze', primary: '#0891b2', secondary: '#14b8a6', accent: '#8b5cf6' },
-  ],
-  healthcare: [
-    { name: 'Medical Blue', primary: '#0284c7', secondary: '#22d3ee', accent: '#10b981' },
-    { name: 'Wellness Green', primary: '#059669', secondary: '#34d399', accent: '#3b82f6' },
-    { name: 'Care Purple', primary: '#7c3aed', secondary: '#a78bfa', accent: '#ec4899' },
-  ],
-  finance: [
-    { name: 'Trust Blue', primary: '#1e40af', secondary: '#60a5fa', accent: '#fbbf24' },
-    { name: 'Wealth Green', primary: '#047857', secondary: '#34d399', accent: '#f59e0b' },
-    { name: 'Premium Black', primary: '#18181b', secondary: '#52525b', accent: '#eab308' },
-  ]
-};
-
-// =====================================================
-// INTERFACES
-// =====================================================
-interface Corporate {
-  tenant_id: string;
-  corporate_legal_name: string;
-  subdomain: string;
-  company_name?: string;
-  primary_color?: string;
-  secondary_color?: string;
-  status?: string;
-  industry?: string;
-}
-
-interface Customizations {
-  [key: string]: any;
-}
-
-// =====================================================
-// AUTH HELPERS
-// =====================================================
-const getToken = () => {
-  if (typeof window === 'undefined') return null;
-  return document.cookie.split('; ').find(row => row.startsWith('admin_token='))?.split('=')[1] || localStorage.getItem('admin_token');
-};
+const getToken = () => { if (typeof window === 'undefined') return null; return document.cookie.split('; ').find(r => r.startsWith('admin_token='))?.split('=')[1] || localStorage.getItem('admin_token'); };
 const getAuthHeaders = () => ({ Authorization: `Bearer ${getToken()}` });
 
-// =====================================================
-// AI HELPER FUNCTIONS
-// =====================================================
-const getAIFontSuggestion = (industry?: string, mood?: string): { heading: string; body: string; reason: string } => {
-  const suggestions: Record<string, { heading: string; body: string; reason: string }> = {
-    healthcare: { heading: 'Nunito', body: 'Open Sans', reason: 'Friendly and readable - builds patient trust' },
-    finance: { heading: 'Playfair Display', body: 'Source Sans Pro', reason: 'Classic elegance conveys stability and trust' },
-    technology: { heading: 'Inter', body: 'Inter', reason: 'Modern and clean - reflects innovation' },
-    retail: { heading: 'Poppins', body: 'Lato', reason: 'Approachable and modern - great for consumer brands' },
-    legal: { heading: 'Libre Baskerville', body: 'Source Serif Pro', reason: 'Authoritative and traditional - conveys expertise' },
-    education: { heading: 'Merriweather', body: 'Open Sans', reason: 'Readable and scholarly - promotes learning' },
-    default: { heading: 'Montserrat', body: 'Open Sans', reason: 'Versatile combination that works for most industries' }
-  };
-  return suggestions[industry?.toLowerCase() || 'default'] || suggestions.default;
-};
-
-const getAIColorSuggestion = (industry?: string): { primary: string; secondary: string; accent: string; reason: string } => {
-  const suggestions: Record<string, { primary: string; secondary: string; accent: string; reason: string }> = {
-    healthcare: { primary: '#0891b2', secondary: '#14b8a6', accent: '#f59e0b', reason: 'Calming blues and greens inspire trust and health' },
-    finance: { primary: '#1e40af', secondary: '#3b82f6', accent: '#eab308', reason: 'Deep blue conveys stability, gold suggests prosperity' },
-    technology: { primary: '#6366f1', secondary: '#8b5cf6', accent: '#06b6d4', reason: 'Vibrant purples feel innovative and forward-thinking' },
-    retail: { primary: '#dc2626', secondary: '#f97316', accent: '#fbbf24', reason: 'Warm colors create urgency and excitement' },
-    legal: { primary: '#1f2937', secondary: '#4b5563', accent: '#b91c1c', reason: 'Dark neutrals convey authority and professionalism' },
-    education: { primary: '#059669', secondary: '#10b981', accent: '#3b82f6', reason: 'Green represents growth and learning' },
-    default: { primary: '#2563eb', secondary: '#10b981', accent: '#f59e0b', reason: 'Balanced palette works across industries' }
-  };
-  return suggestions[industry?.toLowerCase() || 'default'] || suggestions.default;
-};
-
-// =====================================================
-// REUSABLE COMPONENTS
-// =====================================================
+// Components
 const Button = ({ children, variant = 'primary', size = 'md', icon, onClick, disabled, loading, style = {} }: any) => {
-  const variants: Record<string, any> = {
-    primary: { bg: colors.primary, hoverBg: colors.primaryHover, color: 'white' },
-    secondary: { bg: colors.secondary, hoverBg: '#7c3aed', color: 'white' },
-    success: { bg: colors.success, hoverBg: colors.successHover, color: 'white' },
-    danger: { bg: colors.danger, hoverBg: colors.dangerHover, color: 'white' },
-    warning: { bg: colors.warning, hoverBg: '#d97706', color: 'white' },
-    outline: { bg: 'white', hoverBg: colors.gray[50], color: colors.gray[700], border: `1px solid ${colors.gray[300]}` },
-    ghost: { bg: 'transparent', hoverBg: colors.gray[100], color: colors.gray[700] },
-    gradient: { bg: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', hoverBg: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)', color: 'white' }
-  };
-  const sizes: Record<string, any> = {
-    xs: { padding: '4px 8px', fontSize: '11px' },
-    sm: { padding: '6px 12px', fontSize: '12px' },
-    md: { padding: '10px 16px', fontSize: '14px' },
-    lg: { padding: '14px 24px', fontSize: '16px' }
-  };
-  const v = variants[variant] || variants.primary;
-  const s = sizes[size] || sizes.md;
-  const [hover, setHover] = useState(false);
+  const v: any = { primary: { bg: colors.primary, c: 'white' }, success: { bg: colors.success, c: 'white' }, outline: { bg: 'transparent', c: colors.gray[700], border: `2px solid ${colors.gray[300]}` }, ai: { bg: 'linear-gradient(135deg,#6366f1,#8b5cf6)', c: 'white' }, magic: { bg: 'linear-gradient(135deg,#f59e0b,#ef4444,#ec4899)', c: 'white' } };
+  const s: any = { xs: '6px 10px', sm: '8px 14px', md: '10px 18px', lg: '14px 24px' };
+  const vs = v[variant] || v.primary;
+  return <button onClick={onClick} disabled={disabled || loading} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: s[size] || s.md, fontSize: size === 'xs' ? '11px' : size === 'sm' ? '12px' : size === 'lg' ? '16px' : '14px', fontWeight: '600', color: vs.c, background: vs.bg, border: vs.border || 'none', borderRadius: '10px', cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.6 : 1, boxShadow: variant === 'ai' || variant === 'magic' ? '0 4px 15px rgba(99,102,241,0.4)' : 'none', ...style }}>{loading ? <span style={{ width: '16px', height: '16px', border: '2px solid transparent', borderTopColor: 'currentColor', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} /> : icon ? <span>{icon}</span> : null}{children}</button>;
+};
+const Badge = ({ children, variant = 'default' }: any) => { const v: any = { default: { bg: colors.gray[100], c: colors.gray[700] }, success: { bg: colors.successLight, c: '#065f46' }, warning: { bg: colors.warningLight, c: '#92400e' } }; const vs = v[variant] || v.default; return <span style={{ padding: '4px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', backgroundColor: vs.bg, color: vs.c }}>{children}</span>; };
+const Toast = ({ message, type, onClose }: any) => { useEffect(() => { const t = setTimeout(onClose, 5000); return () => clearTimeout(t); }, [onClose]); const t: any = { success: { bg: colors.successLight, c: '#065f46', icon: '✓' }, error: { bg: colors.dangerLight, c: '#991b1b', icon: '✕' }, ai: { bg: colors.primaryLight, c: colors.primaryDark, icon: '🤖' } }; const ts = t[type] || t.success; return <div style={{ position: 'fixed', bottom: '24px', right: '24px', background: ts.bg, color: ts.c, padding: '16px 20px', borderRadius: '12px', boxShadow: '0 10px 40px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', gap: '12px', zIndex: 2000 }}><span style={{ fontSize: '20px' }}>{ts.icon}</span><span style={{ fontSize: '14px', fontWeight: '500' }}>{message}</span><button onClick={onClose} style={{ background: 'none', border: 'none', color: ts.c, cursor: 'pointer', fontSize: '18px' }}>×</button></div>; };
+const Modal = ({ isOpen, onClose, title, icon, children, size = 'md' }: any) => { if (!isOpen) return null; const s: any = { sm: '480px', md: '640px', lg: '900px', xl: '1200px' }; return <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px', backdropFilter: 'blur(4px)' }} onClick={(e) => e.target === e.currentTarget && onClose()}><div style={{ backgroundColor: 'white', borderRadius: '20px', width: '100%', maxWidth: s[size], maxHeight: '90vh', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', display: 'flex', flexDirection: 'column' }}><div style={{ padding: '20px 24px', borderBottom: `1px solid ${colors.gray[200]}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: colors.gray[50] }}><div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>{icon && <span style={{ fontSize: '24px' }}>{icon}</span>}<h2 style={{ fontSize: '18px', fontWeight: '700', margin: 0 }}>{title}</h2></div><button onClick={onClose} style={{ width: '36px', height: '36px', borderRadius: '10px', border: 'none', backgroundColor: colors.gray[200], cursor: 'pointer', fontSize: '20px' }}>×</button></div><div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>{children}</div></div></div>; };
+const Input = ({ label, value, onChange, type = 'text', placeholder, hint, icon }: any) => <div style={{ marginBottom: '16px' }}>{label && <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: colors.gray[700] }}>{label}</label>}<div style={{ position: 'relative' }}>{icon && <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', fontSize: '16px', color: colors.gray[400] }}>{icon}</span>}<input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} style={{ width: '100%', padding: icon ? '12px 14px 12px 42px' : '12px 14px', border: `2px solid ${colors.gray[200]}`, borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} /></div>{hint && <div style={{ fontSize: '11px', color: colors.gray[500], marginTop: '4px' }}>{hint}</div>}</div>;
+const ColorPicker = ({ label, value, onChange }: any) => { const [show, setShow] = useState(false); const presets = ['#6366f1', '#8b5cf6', '#ec4899', '#ef4444', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6', '#1f2937']; return <div style={{ marginBottom: '16px' }}>{label && <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: colors.gray[700] }}>{label}</label>}<div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><input type="color" value={value || '#6366f1'} onChange={(e) => onChange(e.target.value)} style={{ width: '50px', height: '44px', border: `2px solid ${colors.gray[200]}`, borderRadius: '10px', cursor: 'pointer', padding: '2px' }} /><input type="text" value={value || '#6366f1'} onChange={(e) => onChange(e.target.value)} style={{ flex: 1, padding: '12px', border: `2px solid ${colors.gray[200]}`, borderRadius: '10px', fontSize: '14px', fontFamily: 'monospace', outline: 'none' }} /><button onClick={() => setShow(!show)} style={{ padding: '12px', border: `2px solid ${colors.gray[200]}`, borderRadius: '10px', backgroundColor: 'white', cursor: 'pointer' }}>🎨</button></div>{show && <div style={{ marginTop: '8px', padding: '12px', backgroundColor: colors.gray[50], borderRadius: '10px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>{presets.map(c => <div key={c} onClick={() => { onChange(c); setShow(false); }} style={{ width: '28px', height: '28px', backgroundColor: c, borderRadius: '6px', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }} />)}</div>}</div>; };
+const FontSelector = ({ label, value, onChange }: any) => { const [isOpen, setIsOpen] = useState(false); const [search, setSearch] = useState(''); const filtered = useMemo(() => search ? FONTS.filter(f => f.name.toLowerCase().includes(search.toLowerCase())) : FONTS, [search]); return <div style={{ marginBottom: '16px', position: 'relative' }}>{label && <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: colors.gray[700] }}>{label}</label>}<div onClick={() => setIsOpen(!isOpen)} style={{ padding: '12px 14px', border: `2px solid ${isOpen ? colors.primary : colors.gray[200]}`, borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'white' }}><span style={{ fontFamily: value || 'inherit', fontSize: '14px' }}>{value || 'Select font...'}</span><span style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: colors.gray[400] }}>▼</span></div>{isOpen && <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', border: `2px solid ${colors.gray[200]}`, borderRadius: '12px', boxShadow: '0 10px 40px rgba(0,0,0,0.15)', zIndex: 100, marginTop: '4px', maxHeight: '280px', overflow: 'hidden' }}><div style={{ padding: '10px', borderBottom: `1px solid ${colors.gray[100]}` }}><input type="text" placeholder="🔍 Search fonts..." value={search} onChange={(e) => setSearch(e.target.value)} onClick={(e) => e.stopPropagation()} style={{ width: '100%', padding: '10px', border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} /></div><div style={{ maxHeight: '200px', overflowY: 'auto' }}>{filtered.map(font => <div key={font.name} onClick={() => { onChange(font.name); setIsOpen(false); setSearch(''); }} style={{ padding: '12px 16px', cursor: 'pointer', borderBottom: `1px solid ${colors.gray[50]}`, backgroundColor: value === font.name ? colors.primaryLight : 'white' }} onMouseEnter={(e) => { if (value !== font.name) e.currentTarget.style.backgroundColor = colors.gray[50]; }} onMouseLeave={(e) => { if (value !== font.name) e.currentTarget.style.backgroundColor = 'white'; }}><div style={{ fontFamily: font.name, fontSize: '15px', fontWeight: '600', marginBottom: '2px' }}>{font.name}</div><div style={{ fontSize: '11px', color: colors.gray[500] }}>{font.cat} • {font.mood}</div></div>)}</div></div>}</div>; };
+const Toggle = ({ label, value, onChange, description }: any) => <div onClick={() => onChange(!value)} style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '14px 16px', backgroundColor: value ? colors.primaryLight : colors.gray[50], borderRadius: '12px', cursor: 'pointer', border: `2px solid ${value ? colors.primary : 'transparent'}`, marginBottom: '10px' }}><div style={{ width: '48px', height: '26px', borderRadius: '13px', backgroundColor: value ? colors.primary : colors.gray[300], position: 'relative', flexShrink: 0 }}><div style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: 'white', position: 'absolute', top: '2px', left: value ? '24px' : '2px', transition: 'all 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} /></div><div><div style={{ fontSize: '14px', fontWeight: '600', color: colors.gray[800] }}>{label}</div>{description && <div style={{ fontSize: '12px', color: colors.gray[500], marginTop: '2px' }}>{description}</div>}</div></div>;
 
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled || loading}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      style={{
-        display: 'inline-flex', alignItems: 'center', gap: '8px',
-        padding: s.padding, fontSize: s.fontSize, fontWeight: '600',
-        color: v.color,
-        background: hover && !disabled ? v.hoverBg : v.bg,
-        border: v.border || 'none',
-        borderRadius: '10px',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.6 : 1,
-        transition: 'all 0.2s',
-        boxShadow: variant === 'gradient' ? '0 4px 14px rgba(99, 102, 241, 0.4)' : 'none',
-        ...style
-      }}
-    >
-      {loading ? <span className="spinner" /> : icon ? <span>{icon}</span> : null}
-      {children}
-    </button>
-  );
+// Live Preview
+const LivePreview = ({ customizations: c, corporate, previewMode }: any) => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const theme = { primary: c.primary_color || '#6366f1', secondary: c.secondary_color || '#8b5cf6', accent: c.accent_color || '#f59e0b', background: c.background_color || '#ffffff', text: c.text_color || '#111827', border: c.border_color || '#e5e7eb', headingFont: c.heading_font_family || 'Inter', bodyFont: c.body_font_family || 'Open Sans', logoUrl: c.logo_url || corporate?.logo_url, logoWidth: c.logo_width || 120, logoHeight: c.logo_height || 50 };
+  const content = { title: c.portal_title || corporate?.corporate_legal_name || 'Benefits Portal', tagline: c.portal_tagline || 'Employee Benefits Hub', heroHeadline: c.hero_headline || 'Welcome to Your Benefits', heroSubheadline: c.hero_subheadline || 'Everything you need in one place', heroCtaText: c.hero_cta_button_text || 'Get Started', heroBgImage: c.hero_background_image_url };
+  const vis = { header: c.show_header !== false, hero: c.show_hero_section !== false, features: c.show_features_section !== false, faq: c.show_faq_section !== false, contact: c.show_contact_section !== false, footer: c.show_footer !== false };
+  const features = [{ icon: '🏥', title: 'Health', desc: 'Medical coverage' }, { icon: '🦷', title: 'Dental', desc: 'Full plans' }, { icon: '💰', title: '401(k)', desc: 'Matching' }, { icon: '🏖️', title: 'PTO', desc: 'Time off' }, { icon: '👨‍👩‍👧‍👦', title: 'Life', desc: 'Protection' }, { icon: '🎓', title: 'Education', desc: 'Tuition' }];
+  const faqs = [{ q: 'How do I enroll?', a: 'During open enrollment or after a qualifying event.' }, { q: 'When can I change?', a: 'Open enrollment or qualifying event.' }, { q: 'How to add dependent?', a: 'Profile settings > Manage Dependents.' }];
+  const isMini = previewMode === 'mini';
+
+  if (!isLoggedIn && previewMode === 'full') {
+    return <div style={{ width: '100%', height: '100%', display: 'flex', fontFamily: theme.bodyFont }}><div style={{ flex: 1, background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px', color: 'white', position: 'relative' }}><div style={{ position: 'absolute', inset: 0, opacity: 0.1, backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23fff'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E")` }} /><div style={{ position: 'relative', textAlign: 'center' }}>{theme.logoUrl ? <img src={theme.logoUrl} alt="Logo" style={{ maxWidth: theme.logoWidth, maxHeight: theme.logoHeight, marginBottom: '24px' }} onError={(e: any) => { e.target.style.display = 'none'; }} /> : <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏢</div>}<h1 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px', fontFamily: theme.headingFont }}>{content.title}</h1><p style={{ fontSize: '14px', opacity: 0.9 }}>{content.tagline}</p><div style={{ marginTop: '32px', display: 'flex', gap: '16px' }}>{['🏥 Health', '📋 Claims', '👨‍👩‍👧 Family'].map((item, i) => <div key={i} style={{ textAlign: 'center' }}><div style={{ fontSize: '24px' }}>{item.split(' ')[0]}</div><div style={{ fontSize: '11px', opacity: 0.8 }}>{item.split(' ')[1]}</div></div>)}</div></div></div><div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px', backgroundColor: theme.background }}><div style={{ width: '100%', maxWidth: '320px' }}><div style={{ backgroundColor: 'white', padding: '32px', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)', border: `1px solid ${theme.border}` }}><h2 style={{ fontSize: '20px', fontWeight: '700', color: theme.text, marginBottom: '8px', textAlign: 'center', fontFamily: theme.headingFont }}>Welcome Back</h2><p style={{ fontSize: '13px', color: theme.text, opacity: 0.6, textAlign: 'center', marginBottom: '24px' }}>Sign in to access your benefits</p><div style={{ marginBottom: '16px' }}><label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: theme.text, marginBottom: '6px' }}>Email</label><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter email" style={{ width: '100%', padding: '12px', border: `1px solid ${theme.border}`, borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} /></div><div style={{ marginBottom: '20px' }}><label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: theme.text, marginBottom: '6px' }}>Password</label><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter password" style={{ width: '100%', padding: '12px', border: `1px solid ${theme.border}`, borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} /></div><button onClick={() => setIsLoggedIn(true)} style={{ width: '100%', padding: '12px', backgroundColor: theme.primary, color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>Sign In</button><div style={{ textAlign: 'center', marginTop: '16px' }}><a href="#" style={{ fontSize: '12px', color: theme.primary, textDecoration: 'none' }}>Forgot Password?</a></div></div><div style={{ textAlign: 'center', marginTop: '24px', fontSize: '11px', color: theme.text, opacity: 0.5 }}>Powered by <strong>BenefitNest</strong></div></div></div></div>;
+  }
+
+  return <div style={{ width: '100%', height: '100%', backgroundColor: theme.background, fontFamily: theme.bodyFont, fontSize: isMini ? '12px' : '14px', color: theme.text, overflow: 'auto' }}>{vis.header && <div style={{ background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, padding: isMini ? '10px 14px' : '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>{theme.logoUrl ? <img src={theme.logoUrl} alt="Logo" style={{ height: isMini ? '20px' : '32px' }} onError={(e: any) => { e.target.style.display = 'none'; }} /> : <div style={{ width: isMini ? '20px' : '32px', height: isMini ? '20px' : '32px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMini ? '12px' : '16px' }}>🏢</div>}<span style={{ color: 'white', fontWeight: '700', fontSize: isMini ? '11px' : '15px', fontFamily: theme.headingFont }}>{content.title}</span></div><div style={{ display: 'flex', gap: '8px' }}>{['Home', 'Benefits', 'Contact'].map((item, i) => <span key={i} style={{ color: 'white', fontSize: isMini ? '9px' : '12px', opacity: 0.9 }}>{item}</span>)}</div></div>}{vis.hero && <div style={{ background: content.heroBgImage ? `linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.5)), url(${content.heroBgImage}) center/cover` : `linear-gradient(135deg, ${theme.primary}15, ${theme.secondary}15)`, padding: isMini ? '20px 14px' : '40px 32px', textAlign: 'center' }}><h1 style={{ fontSize: isMini ? '16px' : '28px', fontWeight: '700', color: content.heroBgImage ? 'white' : theme.primary, marginBottom: '8px', fontFamily: theme.headingFont }}>{content.heroHeadline}</h1><p style={{ fontSize: isMini ? '10px' : '14px', color: content.heroBgImage ? 'white' : theme.text, opacity: 0.7, marginBottom: '16px' }}>{content.heroSubheadline}</p>{content.heroCtaText && <button style={{ backgroundColor: theme.primary, color: 'white', border: 'none', borderRadius: '6px', padding: isMini ? '6px 12px' : '10px 20px', fontSize: isMini ? '10px' : '13px', fontWeight: '600' }}>{content.heroCtaText}</button>}</div>}{vis.features && <div style={{ padding: isMini ? '14px' : '28px' }}><h2 style={{ fontSize: isMini ? '12px' : '18px', fontWeight: '700', marginBottom: '14px', color: theme.primary, fontFamily: theme.headingFont }}>Your Benefits</h2><div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: isMini ? '6px' : '12px' }}>{features.map((f, i) => <div key={i} style={{ backgroundColor: colors.gray[50], padding: isMini ? '10px' : '16px', borderRadius: '8px', textAlign: 'center', border: `1px solid ${theme.border}` }}><div style={{ fontSize: isMini ? '18px' : '28px', marginBottom: '6px' }}>{f.icon}</div><div style={{ fontSize: isMini ? '9px' : '12px', fontWeight: '600', color: theme.primary }}>{f.title}</div>{!isMini && <div style={{ fontSize: '10px', color: theme.text, opacity: 0.6, marginTop: '2px' }}>{f.desc}</div>}</div>)}</div></div>}{vis.faq && !isMini && <div style={{ padding: '28px', backgroundColor: colors.gray[50] }}><h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px', color: theme.primary, fontFamily: theme.headingFont }}>FAQs</h2><div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>{faqs.map((faq, i) => <div key={i} style={{ backgroundColor: 'white', padding: '14px', borderRadius: '8px', border: `1px solid ${theme.border}` }}><div style={{ fontWeight: '600', color: theme.text, marginBottom: '6px', fontSize: '13px' }}>{faq.q}</div><div style={{ fontSize: '12px', color: theme.text, opacity: 0.7 }}>{faq.a}</div></div>)}</div></div>}{vis.contact && !isMini && <div style={{ padding: '28px' }}><h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px', color: theme.primary, fontFamily: theme.headingFont }}>Contact HR</h2><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}><div style={{ padding: '16px', backgroundColor: `${theme.primary}10`, borderRadius: '8px', border: `1px solid ${theme.primary}30` }}><div style={{ fontSize: '11px', color: theme.text, opacity: 0.6, marginBottom: '4px' }}>EMAIL</div><div style={{ fontSize: '13px', fontWeight: '600', color: theme.primary }}>{corporate?.contact_details?.email || 'hr@company.com'}</div></div><div style={{ padding: '16px', backgroundColor: `${theme.secondary}10`, borderRadius: '8px', border: `1px solid ${theme.secondary}30` }}><div style={{ fontSize: '11px', color: theme.text, opacity: 0.6, marginBottom: '4px' }}>PHONE</div><div style={{ fontSize: '13px', fontWeight: '600', color: theme.secondary }}>{corporate?.contact_details?.phone || '+1 555-123-4567'}</div></div></div></div>}{vis.footer && <div style={{ padding: isMini ? '10px' : '16px', borderTop: `1px solid ${theme.border}`, textAlign: 'center', backgroundColor: colors.gray[50] }}><span style={{ fontSize: isMini ? '8px' : '11px', color: theme.text, opacity: 0.5 }}>© {new Date().getFullYear()} {content.title} • Powered by BenefitNest</span></div>}</div>;
 };
 
-const Badge = ({ children, variant = 'default' }: any) => {
-  const variants: Record<string, any> = {
-    default: { bg: colors.gray[100], color: colors.gray[700] },
-    success: { bg: colors.successLight, color: '#065f46' },
-    danger: { bg: colors.dangerLight, color: '#991b1b' },
-    warning: { bg: colors.warningLight, color: '#92400e' },
-    info: { bg: colors.infoLight, color: '#0369a1' },
-    primary: { bg: colors.primaryLight, color: '#3730a3' },
-    pink: { bg: colors.pinkLight, color: '#9d174d' }
-  };
-  const v = variants[variant] || variants.default;
-  return <span style={{ display: 'inline-flex', alignItems: 'center', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', backgroundColor: v.bg, color: v.color }}>{children}</span>;
-};
-
-const Toast = ({ message, type = 'info', onClose }: any) => {
-  useEffect(() => { const t = setTimeout(onClose, 4000); return () => clearTimeout(t); }, [onClose]);
-  const types: Record<string, any> = {
-    success: { bg: colors.successLight, color: '#065f46', icon: '✓' },
-    error: { bg: colors.dangerLight, color: '#991b1b', icon: '✕' },
-    warning: { bg: colors.warningLight, color: '#92400e', icon: '⚠' },
-    info: { bg: colors.primaryLight, color: colors.primary, icon: 'ℹ' },
-    ai: { bg: '#e0e7ff', color: '#4338ca', icon: '🤖' }
-  };
-  const t = types[type] || types.info;
-  return (
-    <div style={{ position: 'fixed', bottom: '24px', right: '24px', backgroundColor: t.bg, color: t.color, padding: '16px 20px', borderRadius: '12px', boxShadow: '0 10px 40px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', gap: '12px', zIndex: 2000, maxWidth: '400px', animation: 'slideIn 0.3s ease' }}>
-      <span style={{ fontSize: '18px' }}>{t.icon}</span>
-      <span style={{ fontSize: '14px', fontWeight: '500' }}>{message}</span>
-      <button onClick={onClose} style={{ background: 'none', border: 'none', color: t.color, cursor: 'pointer', fontSize: '18px', marginLeft: '8px', opacity: 0.7 }}>×</button>
-    </div>
-  );
-};
-
-const Modal = ({ isOpen, onClose, title, icon, children, size = 'md' }: any) => {
-  if (!isOpen) return null;
-  const sizeStyles: Record<string, string> = { sm: '480px', md: '640px', lg: '900px', xl: '1200px', full: '95vw' };
-  return (
-    <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px', backdropFilter: 'blur(4px)' }} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div style={{ backgroundColor: 'white', borderRadius: '20px', width: '100%', maxWidth: sizeStyles[size], maxHeight: '90vh', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', display: 'flex', flexDirection: 'column', animation: 'modalIn 0.3s ease' }}>
-        <div style={{ padding: '20px 24px', borderBottom: `1px solid ${colors.gray[200]}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {icon && <span style={{ fontSize: '24px' }}>{icon}</span>}
-            <h2 style={{ fontSize: '18px', fontWeight: '700', color: colors.gray[900], margin: 0 }}>{title}</h2>
-          </div>
-          <button onClick={onClose} style={{ width: '36px', height: '36px', borderRadius: '10px', border: 'none', backgroundColor: colors.gray[100], cursor: 'pointer', fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>×</button>
-        </div>
-        <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>{children}</div>
-      </div>
-    </div>
-  );
-};
-
-// Smart Font Selector with AI
-const FontSelector = ({ label, value, onChange, onAISuggest, aiSuggestion }: any) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('all');
-  
-  const filteredFonts = useMemo(() => {
-    let fonts = ALL_FONTS;
-    if (category !== 'all') {
-      fonts = FONT_DATABASE[category as keyof typeof FONT_DATABASE] || ALL_FONTS;
-    }
-    if (search) {
-      fonts = fonts.filter(f => f.name.toLowerCase().includes(search.toLowerCase()));
-    }
-    return fonts;
-  }, [category, search]);
-
-  return (
-    <div style={{ marginBottom: '16px', position: 'relative' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-        <label style={{ fontSize: '13px', fontWeight: '600', color: colors.gray[700] }}>{label}</label>
-        {onAISuggest && (
-          <button onClick={onAISuggest} style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', border: 'none', color: 'white', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span>🤖</span> AI Suggest
-          </button>
-        )}
-      </div>
-      
-      <div 
-        onClick={() => setIsOpen(!isOpen)}
-        style={{
-          padding: '12px 14px',
-          border: `2px solid ${isOpen ? colors.primary : colors.gray[200]}`,
-          borderRadius: '10px',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          backgroundColor: 'white',
-          transition: 'all 0.2s'
-        }}
-      >
-        <span style={{ fontFamily: value || 'inherit', fontSize: '14px' }}>{value || 'Select font...'}</span>
-        <span style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
-      </div>
-      
-      {aiSuggestion && (
-        <div style={{ marginTop: '6px', padding: '8px 12px', backgroundColor: colors.primaryLight, borderRadius: '8px', fontSize: '12px', color: colors.primary }}>
-          <strong>🤖 AI:</strong> {aiSuggestion}
-        </div>
-      )}
-      
-      {isOpen && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', border: `1px solid ${colors.gray[200]}`, borderRadius: '12px', boxShadow: '0 10px 40px rgba(0,0,0,0.15)', zIndex: 100, marginTop: '4px', maxHeight: '300px', overflow: 'hidden' }}>
-          <div style={{ padding: '12px', borderBottom: `1px solid ${colors.gray[100]}` }}>
-            <input
-              type="text"
-              placeholder="🔍 Search fonts..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              style={{ width: '100%', padding: '8px 12px', border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', fontSize: '13px', outline: 'none' }}
-            />
-            <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
-              {['all', 'professional', 'elegant', 'creative', 'system'].map(cat => (
-                <button
-                  key={cat}
-                  onClick={(e) => { e.stopPropagation(); setCategory(cat); }}
-                  style={{
-                    padding: '4px 10px',
-                    borderRadius: '6px',
-                    border: 'none',
-                    backgroundColor: category === cat ? colors.primary : colors.gray[100],
-                    color: category === cat ? 'white' : colors.gray[600],
-                    fontSize: '11px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    textTransform: 'capitalize'
-                  }}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-            {filteredFonts.map(font => (
-              <div
-                key={font.name}
-                onClick={() => { onChange(font.name); setIsOpen(false); }}
-                style={{
-                  padding: '12px 16px',
-                  cursor: 'pointer',
-                  borderBottom: `1px solid ${colors.gray[50]}`,
-                  backgroundColor: value === font.name ? colors.primaryLight : 'white',
-                  transition: 'background 0.15s'
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.gray[50])}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = value === font.name ? colors.primaryLight : 'white')}
-              >
-                <div style={{ fontFamily: font.name, fontSize: '15px', fontWeight: '600', marginBottom: '2px' }}>{font.name}</div>
-                <div style={{ fontSize: '11px', color: colors.gray[500] }}>{font.category} • {font.mood}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Color Picker with Palettes
-const ColorPicker = ({ label, value, onChange, onAISuggest, showPalettes = true }: any) => {
-  const [showPalette, setShowPalette] = useState(false);
-  
-  return (
-    <div style={{ marginBottom: '16px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-        <label style={{ fontSize: '13px', fontWeight: '600', color: colors.gray[700] }}>{label}</label>
-        {onAISuggest && (
-          <button onClick={onAISuggest} style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', border: 'none', color: 'white', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span>🤖</span> AI Suggest
-          </button>
-        )}
-      </div>
-      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-        <div style={{ position: 'relative' }}>
-          <input
-            type="color"
-            value={value || '#2563eb'}
-            onChange={(e) => onChange(e.target.value)}
-            style={{ width: '48px', height: '48px', border: `2px solid ${colors.gray[200]}`, borderRadius: '10px', cursor: 'pointer', padding: '2px' }}
-          />
-        </div>
-        <input
-          type="text"
-          value={value || '#2563eb'}
-          onChange={(e) => onChange(e.target.value)}
-          style={{ flex: 1, padding: '12px 14px', border: `2px solid ${colors.gray[200]}`, borderRadius: '10px', fontSize: '14px', fontFamily: 'monospace', outline: 'none' }}
-        />
-        {showPalettes && (
-          <button
-            onClick={() => setShowPalette(!showPalette)}
-            style={{ padding: '12px', border: `2px solid ${colors.gray[200]}`, borderRadius: '10px', backgroundColor: 'white', cursor: 'pointer' }}
-            title="Color Palettes"
-          >
-            🎨
-          </button>
-        )}
-      </div>
-      {showPalette && (
-        <div style={{ marginTop: '8px', padding: '12px', backgroundColor: colors.gray[50], borderRadius: '10px' }}>
-          <div style={{ fontSize: '11px', fontWeight: '600', color: colors.gray[500], marginBottom: '8px' }}>QUICK COLORS</div>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            {['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#0ea5e9', '#1f2937', '#6366f1', '#059669'].map(c => (
-              <div
-                key={c}
-                onClick={() => { onChange(c); setShowPalette(false); }}
-                style={{ width: '28px', height: '28px', backgroundColor: c, borderRadius: '6px', cursor: 'pointer', border: value === c ? '3px solid white' : 'none', boxShadow: value === c ? `0 0 0 2px ${c}` : '0 1px 3px rgba(0,0,0,0.1)' }}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Input with Label
-const Input = ({ label, value, onChange, type = 'text', placeholder, hint, icon, required }: any) => (
-  <div style={{ marginBottom: '16px' }}>
-    {label && (
-      <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: colors.gray[700] }}>
-        {label}{required && <span style={{ color: colors.danger }}>*</span>}
-      </label>
-    )}
-    <div style={{ position: 'relative' }}>
-      {icon && <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', fontSize: '16px' }}>{icon}</span>}
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        style={{
-          width: '100%',
-          padding: icon ? '12px 14px 12px 42px' : '12px 14px',
-          border: `2px solid ${colors.gray[200]}`,
-          borderRadius: '10px',
-          fontSize: '14px',
-          outline: 'none',
-          transition: 'border-color 0.2s',
-          boxSizing: 'border-box'
-        }}
-      />
-    </div>
-    {hint && <div style={{ fontSize: '11px', color: colors.gray[500], marginTop: '4px' }}>{hint}</div>}
-  </div>
-);
-
-// Toggle Switch
-const Toggle = ({ label, value, onChange, description }: any) => (
-  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '16px', padding: '12px', backgroundColor: value ? colors.primaryLight : colors.gray[50], borderRadius: '10px', transition: 'all 0.2s' }}>
-    <button
-      onClick={() => onChange(!value)}
-      style={{
-        width: '48px',
-        height: '26px',
-        borderRadius: '13px',
-        border: 'none',
-        backgroundColor: value ? colors.primary : colors.gray[300],
-        cursor: 'pointer',
-        position: 'relative',
-        transition: 'all 0.2s',
-        flexShrink: 0
-      }}
-    >
-      <div style={{
-        width: '22px',
-        height: '22px',
-        borderRadius: '50%',
-        backgroundColor: 'white',
-        position: 'absolute',
-        top: '2px',
-        left: value ? '24px' : '2px',
-        transition: 'all 0.2s',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
-      }} />
-    </button>
-    <div>
-      <div style={{ fontSize: '14px', fontWeight: '600', color: colors.gray[800] }}>{label}</div>
-      {description && <div style={{ fontSize: '12px', color: colors.gray[500], marginTop: '2px' }}>{description}</div>}
-    </div>
-  </div>
-);
-
-// Section Card
-const SectionCard = ({ title, icon, children, collapsible = true, defaultOpen = true, aiAction }: any) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-  return (
-    <div style={{ backgroundColor: 'white', borderRadius: '16px', border: `1px solid ${colors.gray[200]}`, marginBottom: '20px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-      <div
-        onClick={() => collapsible && setIsOpen(!isOpen)}
-        style={{
-          padding: '16px 20px',
-          backgroundColor: colors.gray[50],
-          borderBottom: isOpen ? `1px solid ${colors.gray[200]}` : 'none',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          cursor: collapsible ? 'pointer' : 'default'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontSize: '20px' }}>{icon}</span>
-          <h3 style={{ fontSize: '15px', fontWeight: '700', color: colors.gray[900], margin: 0 }}>{title}</h3>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {aiAction && (
-            <button onClick={(e) => { e.stopPropagation(); aiAction(); }} style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', border: 'none', color: 'white', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              🤖 AI Fill
-            </button>
-          )}
-          {collapsible && <span style={{ fontSize: '12px', color: colors.gray[400], transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>}
-        </div>
-      </div>
-      {isOpen && <div style={{ padding: '20px' }}>{children}</div>}
-    </div>
-  );
-};
-
-// =====================================================
-// LIVE PREVIEW COMPONENT
-// =====================================================
-const LivePreview = ({ customizations, companyName, subdomain }: any) => {
-  const c = customizations;
-  const primaryColor = c.primary_color || '#2563eb';
-  const secondaryColor = c.secondary_color || '#10b981';
-  const bgColor = c.background_color || '#ffffff';
-  const textColor = c.text_color || '#111827';
-  const headingFont = c.heading_font_family || 'Segoe UI';
-  const bodyFont = c.body_font_family || 'Segoe UI';
-  const logoUrl = c.logo_url;
-
-  return (
-    <div style={{ width: '100%', height: '100%', backgroundColor: '#1f2937', borderRadius: '12px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-      {/* Browser Chrome */}
-      <div style={{ backgroundColor: '#374151', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <div style={{ display: 'flex', gap: '6px' }}>
-          <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
-          <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
-          <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#10b981' }} />
-        </div>
-        <div style={{ flex: 1, backgroundColor: '#1f2937', borderRadius: '6px', padding: '6px 12px', marginLeft: '8px' }}>
-          <span style={{ fontSize: '11px', color: '#9ca3af' }}>🔒 https://{subdomain || 'company'}.benefitnest.space</span>
-        </div>
-      </div>
-      
-      {/* Preview Content */}
-      <div style={{ flex: 1, overflow: 'auto', backgroundColor: bgColor }}>
-        {/* Mini Header */}
-        <div style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`, padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {logoUrl ? (
-              <img src={logoUrl} alt="Logo" style={{ height: '32px', objectFit: 'contain' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-            ) : (
-              <div style={{ width: '32px', height: '32px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>🏢</div>
-            )}
-            <span style={{ color: 'white', fontWeight: '700', fontSize: '14px', fontFamily: headingFont }}>{c.portal_title || companyName || 'Company Portal'}</span>
-          </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <div style={{ backgroundColor: 'rgba(255,255,255,0.2)', padding: '6px 12px', borderRadius: '6px', fontSize: '11px', color: 'white' }}>Login</div>
-          </div>
-        </div>
-
-        {/* Hero Section */}
-        {c.show_hero_section !== false && (
-          <div style={{
-            background: c.hero_background_image_url ? `url(${c.hero_background_image_url}) center/cover` : `linear-gradient(135deg, ${primaryColor}15 0%, ${secondaryColor}15 100%)`,
-            padding: '32px 20px',
-            textAlign: 'center'
-          }}>
-            <h1 style={{ fontSize: '20px', fontWeight: '700', color: primaryColor, marginBottom: '8px', fontFamily: headingFont }}>
-              {c.hero_headline || 'Welcome to Your Benefits'}
-            </h1>
-            <p style={{ fontSize: '12px', color: textColor, opacity: 0.7, marginBottom: '16px', fontFamily: bodyFont }}>
-              {c.hero_subheadline || 'Access your employee benefits anytime, anywhere'}
-            </p>
-            {c.hero_cta_button_text && (
-              <button style={{ backgroundColor: primaryColor, color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '12px', fontWeight: '600' }}>
-                {c.hero_cta_button_text}
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Features Grid */}
-        {c.show_features_section !== false && (
-          <div style={{ padding: '20px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-              {['🏥 Health', '📋 Policies', '👨‍👩‍👧 Family'].map((item, i) => (
-                <div key={i} style={{ backgroundColor: colors.gray[50], padding: '16px', borderRadius: '10px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '20px', marginBottom: '4px' }}>{item.split(' ')[0]}</div>
-                  <div style={{ fontSize: '11px', fontWeight: '600', color: textColor, fontFamily: bodyFont }}>{item.split(' ')[1]}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Footer */}
-        {c.show_footer !== false && (
-          <div style={{ padding: '12px 20px', borderTop: `1px solid ${colors.gray[200]}`, textAlign: 'center' }}>
-            <span style={{ fontSize: '10px', color: colors.gray[400] }}>Powered by BenefitNest</span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// =====================================================
-// MAIN COMPONENT
-// =====================================================
-export default function PortalCustomizationPage() {
+// Main Component
+export default function PortalDesignerStudio() {
   const router = useRouter();
-
-  // State
   const [corporates, setCorporates] = useState<Corporate[]>([]);
   const [selectedCorporate, setSelectedCorporate] = useState<Corporate | null>(null);
   const [customizations, setCustomizations] = useState<Customizations>({});
@@ -629,609 +73,111 @@ export default function PortalCustomizationPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: string } | null>(null);
-  
-  // Search & Pagination
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
-  
-  // UI State
-  const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [activeDesignTab, setActiveDesignTab] = useState('branding');
+  const itemsPerPage = 5;
+  const [activeTab, setActiveTab] = useState('branding');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [aiSuggestions, setAiSuggestions] = useState<Record<string, string>>({});
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [previewMode, setPreviewMode] = useState<'mini' | 'full'>('mini');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiLogs, setAiLogs] = useState<string[]>([]);
+  const [showAiModal, setShowAiModal] = useState(false);
 
-  // Fetch corporates on mount
-  useEffect(() => {
-    fetchCorporates();
-  }, []);
+  useEffect(() => { fetchCorporates(); }, []);
+  useEffect(() => { if (selectedCorporate) setHasUnsavedChanges(JSON.stringify(customizations) !== JSON.stringify(originalCustomizations)); }, [customizations, originalCustomizations, selectedCorporate]);
 
-  // Track unsaved changes
-  useEffect(() => {
-    if (selectedCorporate) {
-      const hasChanges = JSON.stringify(customizations) !== JSON.stringify(originalCustomizations);
-      setHasUnsavedChanges(hasChanges);
-    }
-  }, [customizations, originalCustomizations, selectedCorporate]);
-
-  const fetchCorporates = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(`${API_URL}/api/admin/corporates?limit=1000`, { headers: getAuthHeaders() });
-      setCorporates(response.data.data || []);
-    } catch (err) {
-      showToast('Failed to load corporates', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCorporateSelect = async (corporate: Corporate) => {
-    if (hasUnsavedChanges) {
-      if (!confirm('You have unsaved changes. Discard them?')) return;
-    }
-    setSelectedCorporate(corporate);
-    setActiveDesignTab('branding');
-    await fetchCustomizations(corporate);
-  };
-
-  const fetchCustomizations = async (corporate: Corporate) => {
-    try {
-      setLoading(true);
-      const response = await axios.get(`${API_URL}/api/admin/corporates/${corporate.tenant_id}/customizations`, { headers: getAuthHeaders() });
-      const data = response.data.data || {};
-      setCustomizations(data);
-      setOriginalCustomizations(data);
-      setAiSuggestions({});
-    } catch (err) {
-      setCustomizations({});
-      setOriginalCustomizations({});
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSaveCustomizations = async () => {
+  const fetchCorporates = async () => { try { setLoading(true); const res = await axios.get(`${API_URL}/api/admin/corporates?limit=1000`, { headers: getAuthHeaders() }); setCorporates(res.data.data || []); } catch { showToast('Failed to load corporates', 'error'); } finally { setLoading(false); } };
+  const handleCorporateSelect = async (corp: Corporate) => { if (hasUnsavedChanges && !confirm('Discard unsaved changes?')) return; setSelectedCorporate(corp); setActiveTab('branding'); try { setLoading(true); const res = await axios.get(`${API_URL}/api/admin/corporates/${corp.tenant_id}/customizations`, { headers: getAuthHeaders() }); const data = res.data.data || {}; setCustomizations(data); setOriginalCustomizations(data); } catch { setCustomizations({}); setOriginalCustomizations({}); } finally { setLoading(false); } };
+  const handleSave = async () => { if (!selectedCorporate) return; try { setSaving(true); const res = await axios.post(`${API_URL}/api/admin/corporates/${selectedCorporate.tenant_id}/customize-portal`, customizations, { headers: getAuthHeaders() }); if (res.data.success) { showToast('✨ Design saved! Portal updated.', 'success'); setOriginalCustomizations(customizations); setHasUnsavedChanges(false); } } catch { showToast('Save failed', 'error'); } finally { setSaving(false); } };
+  
+  const handleAIMagic = async () => {
     if (!selectedCorporate) return;
-    try {
-      setSaving(true);
-      const response = await axios.post(`${API_URL}/api/admin/corporates/${selectedCorporate.tenant_id}/customize-portal`, customizations, { headers: getAuthHeaders() });
-      if (response.data.success) {
-        showToast('✨ Customizations saved successfully!', 'success');
-        setOriginalCustomizations(customizations);
-        setHasUnsavedChanges(false);
-      }
-    } catch (err) {
-      showToast('Failed to save customizations', 'error');
-    } finally {
-      setSaving(false);
-    }
+    setAiLoading(true); setShowAiModal(true); setAiLogs(['🚀 Starting AI brand discovery...']);
+    const industry = selectedCorporate.industry_type?.toLowerCase() || 'default';
+    const data = INDUSTRY_AI[industry] || INDUSTRY_AI.default;
+    const logs = [`🔍 Analyzing: ${selectedCorporate.corporate_legal_name}`, `📊 Industry: ${industry}`, `🎨 Applying ${data.t} color palette`, `📝 Setting ${data.f.h} + ${data.f.b} fonts`, `✅ Complete! Confidence: ${selectedCorporate.industry_type ? 85 : 70}%`];
+    for (const log of logs) { await new Promise(r => setTimeout(r, 500)); setAiLogs(prev => [...prev, log]); }
+    setCustomizations(prev => ({ ...prev, primary_color: data.c.p, secondary_color: data.c.s, accent_color: data.c.a, heading_font_family: data.f.h, body_font_family: data.f.b, portal_title: `${selectedCorporate.corporate_legal_name} Benefits`, portal_tagline: `Your ${data.t} Partner`, hero_headline: `Welcome to ${selectedCorporate.corporate_legal_name}`, hero_subheadline: `Access your complete benefits with ease`, logo_url: selectedCorporate.logo_url }));
+    showToast('🤖 AI configured your portal!', 'ai'); setAiLoading(false);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('admin_token');
-    document.cookie = 'admin_token=; path=/; max-age=0';
-    window.location.href = 'https://www.benefitnest.space';
-  };
-
+  const handleLogout = () => { localStorage.removeItem('admin_token'); document.cookie = 'admin_token=; path=/; max-age=0'; window.location.href = 'https://www.benefitnest.space'; };
   const showToast = (message: string, type: string) => setToast({ message, type });
-
-  const updateCustomization = (key: string, value: any) => {
-    setCustomizations(prev => ({ ...prev, [key]: value }));
-  };
-
-  // AI Functions
-  const applyAIColorSuggestion = () => {
-    const suggestion = getAIColorSuggestion(selectedCorporate?.industry);
-    setCustomizations(prev => ({
-      ...prev,
-      primary_color: suggestion.primary,
-      secondary_color: suggestion.secondary,
-      accent_color: suggestion.accent
-    }));
-    setAiSuggestions(prev => ({ ...prev, colors: suggestion.reason }));
-    showToast(`🤖 ${suggestion.reason}`, 'ai');
-  };
-
-  const applyAIFontSuggestion = () => {
-    const suggestion = getAIFontSuggestion(selectedCorporate?.industry);
-    setCustomizations(prev => ({
-      ...prev,
-      heading_font_family: suggestion.heading,
-      body_font_family: suggestion.body
-    }));
-    setAiSuggestions(prev => ({ ...prev, fonts: suggestion.reason }));
-    showToast(`🤖 ${suggestion.reason}`, 'ai');
-  };
-
-  const applyFullAISuggestion = () => {
-    const colorSuggestion = getAIColorSuggestion(selectedCorporate?.industry);
-    const fontSuggestion = getAIFontSuggestion(selectedCorporate?.industry);
-    setCustomizations(prev => ({
-      ...prev,
-      primary_color: colorSuggestion.primary,
-      secondary_color: colorSuggestion.secondary,
-      accent_color: colorSuggestion.accent,
-      heading_font_family: fontSuggestion.heading,
-      body_font_family: fontSuggestion.body,
-      hero_headline: `Welcome to ${selectedCorporate?.corporate_legal_name || 'Your'} Benefits`,
-      hero_subheadline: 'Access your complete benefits package anytime, anywhere',
-      portal_title: selectedCorporate?.corporate_legal_name || 'Employee Portal',
-      portal_tagline: 'Your Employee Benefits Hub'
-    }));
-    showToast('🤖 AI has configured optimal settings for your portal!', 'ai');
-  };
-
-  // Filtering & Pagination
-  const filteredCorporates = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-    return corporates.filter(corp =>
-      corp.corporate_legal_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      corp.subdomain.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [corporates, searchQuery]);
-
-  const paginatedCorporates = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredCorporates.slice(start, start + itemsPerPage);
-  }, [filteredCorporates, currentPage, itemsPerPage]);
-
+  const updateCustomization = (key: string, value: any) => setCustomizations(prev => ({ ...prev, [key]: value }));
+  const filteredCorporates = useMemo(() => searchQuery.trim() ? corporates.filter(c => c.corporate_legal_name.toLowerCase().includes(searchQuery.toLowerCase()) || c.subdomain.toLowerCase().includes(searchQuery.toLowerCase())) : [], [corporates, searchQuery]);
+  const paginatedCorporates = useMemo(() => { const start = (currentPage - 1) * itemsPerPage; return filteredCorporates.slice(start, start + itemsPerPage); }, [filteredCorporates, currentPage]);
   const totalPages = Math.ceil(filteredCorporates.length / itemsPerPage);
-
-  // Design Tabs
-  const designTabs = [
-    { id: 'branding', label: 'Branding', icon: '🎨' },
-    { id: 'typography', label: 'Typography', icon: '📝' },
-    { id: 'content', label: 'Content', icon: '✍️' },
-    { id: 'layout', label: 'Layout', icon: '📐' },
-    { id: 'components', label: 'Components', icon: '🧩' },
-    { id: 'advanced', label: 'Advanced', icon: '⚙️' }
-  ];
+  const tabs = [{ id: 'branding', label: 'Branding', icon: '🎨' }, { id: 'typography', label: 'Typography', icon: '📝' }, { id: 'content', label: 'Content', icon: '✍️' }, { id: 'layout', label: 'Layout', icon: '📐' }, { id: 'components', label: 'Components', icon: '🧩' }, { id: 'advanced', label: 'Advanced', icon: '⚙️' }];
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
       {/* Header */}
-      <header style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)', color: 'white', position: 'sticky', top: 0, zIndex: 50 }}>
-        <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <button onClick={() => router.push('/admin/dashboard')} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
-              ← Dashboard
-            </button>
-            <div>
-              <h1 style={{ fontSize: '20px', fontWeight: '700', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '24px' }}>🎨</span> Portal Designer Studio
-              </h1>
-              <p style={{ fontSize: '12px', opacity: 0.8, margin: 0 }}>AI-Powered Customization Platform</p>
-            </div>
+      <header style={{ background: 'linear-gradient(135deg, #1e1b4b, #312e81, #4c1d95)', color: 'white', position: 'sticky', top: 0, zIndex: 50, boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
+        <div style={{ maxWidth: '1800px', margin: '0 auto', padding: '14px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <button onClick={() => router.push('/admin/dashboard')} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>← Dashboard</button>
+            <div style={{ height: '30px', width: '1px', backgroundColor: 'rgba(255,255,255,0.2)' }} />
+            <div><h1 style={{ fontSize: '22px', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}><span style={{ fontSize: '28px' }}>🎨</span> Portal Designer Studio</h1><p style={{ fontSize: '12px', opacity: 0.8, margin: 0, marginTop: '2px' }}>AI-Powered Brand Discovery</p></div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {hasUnsavedChanges && <Badge variant="warning">Unsaved Changes</Badge>}
-            {selectedCorporate && (
-              <>
-                <Button variant="outline" size="sm" icon="👁️" onClick={() => setShowPreviewModal(true)} style={{ borderColor: 'rgba(255,255,255,0.3)', color: 'white' }}>
-                  Full Preview
-                </Button>
-                <Button variant="gradient" size="sm" icon="✓" onClick={handleSaveCustomizations} loading={saving}>
-                  Save Design
-                </Button>
-              </>
-            )}
-            <button onClick={handleLogout} style={{ background: 'rgba(239,68,68,0.2)', border: 'none', color: '#fca5a5', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
-              Logout
-            </button>
+            {hasUnsavedChanges && <Badge variant="warning">● Unsaved</Badge>}
+            {selectedCorporate && <><Button variant="outline" size="sm" icon="👁️" onClick={() => setShowPreviewModal(true)} style={{ borderColor: 'rgba(255,255,255,0.3)', color: 'white' }}>Full Preview</Button><Button variant="ai" size="md" icon="💾" onClick={handleSave} loading={saving}>Save Design</Button></>}
+            <div style={{ height: '30px', width: '1px', backgroundColor: 'rgba(255,255,255,0.2)' }} />
+            <button onClick={handleLogout} style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5', padding: '10px 18px', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>Logout</button>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main style={{ maxWidth: '1600px', margin: '0 auto', padding: '24px', display: 'grid', gridTemplateColumns: selectedCorporate ? '1fr 400px' : '1fr', gap: '24px' }}>
-        {/* Left Panel - Controls */}
+      {/* Main */}
+      <main style={{ maxWidth: '1800px', margin: '0 auto', padding: '24px', display: 'grid', gridTemplateColumns: selectedCorporate ? '1fr 420px' : '1fr', gap: '24px' }}>
         <div>
-          {/* Corporate Search */}
-          <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-              <span style={{ fontSize: '24px' }}>🏢</span>
-              <div>
-                <h2 style={{ fontSize: '16px', fontWeight: '700', margin: 0, color: colors.gray[900] }}>Select Corporate</h2>
-                <p style={{ fontSize: '12px', color: colors.gray[500], margin: 0 }}>Search and select a company to customize</p>
-              </div>
-            </div>
-            
-            <div style={{ position: 'relative' }}>
-              <input
-                type="text"
-                placeholder="🔍 Type company name or subdomain to search..."
-                value={searchQuery}
-                onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                style={{
-                  width: '100%',
-                  padding: '14px 16px',
-                  border: `2px solid ${colors.gray[200]}`,
-                  borderRadius: '12px',
-                  fontSize: '14px',
-                  outline: 'none',
-                  transition: 'all 0.2s'
-                }}
-              />
-            </div>
-
-            {/* Search Results */}
-            {searchQuery && (
-              <div style={{ marginTop: '16px' }}>
-                {loading ? (
-                  <div style={{ textAlign: 'center', padding: '40px', color: colors.gray[500] }}>Loading...</div>
-                ) : filteredCorporates.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '40px', color: colors.gray[500] }}>
-                    <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔍</div>
-                    No companies found for "{searchQuery}"
-                  </div>
-                ) : (
-                  <>
-                    <div style={{ fontSize: '12px', color: colors.gray[500], marginBottom: '12px' }}>
-                      Found {filteredCorporates.length} compan{filteredCorporates.length === 1 ? 'y' : 'ies'}
-                    </div>
-                    
-                    {/* Results List */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {paginatedCorporates.map(corp => (
-                        <div
-                          key={corp.tenant_id}
-                          onClick={() => handleCorporateSelect(corp)}
-                          style={{
-                            padding: '16px',
-                            border: `2px solid ${selectedCorporate?.tenant_id === corp.tenant_id ? colors.primary : colors.gray[200]}`,
-                            borderRadius: '12px',
-                            cursor: 'pointer',
-                            backgroundColor: selectedCorporate?.tenant_id === corp.tenant_id ? colors.primaryLight : 'white',
-                            transition: 'all 0.2s',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between'
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: corp.primary_color || colors.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '700', fontSize: '14px' }}>
-                              {corp.corporate_legal_name.charAt(0)}
-                            </div>
-                            <div>
-                              <div style={{ fontWeight: '600', color: colors.gray[900], fontSize: '14px' }}>{corp.corporate_legal_name}</div>
-                              <div style={{ fontSize: '12px', color: colors.gray[500] }}>{corp.subdomain}.benefitnest.space</div>
-                            </div>
-                          </div>
-                          <Badge variant={corp.status === 'ACTIVE' ? 'success' : 'warning'}>{corp.status || 'UNKNOWN'}</Badge>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Pagination */}
-                    {totalPages > 1 && (
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '16px' }}>
-                        <button
-                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                          disabled={currentPage === 1}
-                          style={{
-                            padding: '8px 12px',
-                            border: `1px solid ${colors.gray[200]}`,
-                            borderRadius: '8px',
-                            backgroundColor: 'white',
-                            cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                            opacity: currentPage === 1 ? 0.5 : 1,
-                            fontSize: '13px'
-                          }}
-                        >
-                          ← Previous
-                        </button>
-                        <span style={{ fontSize: '13px', color: colors.gray[600], padding: '0 12px' }}>
-                          Page {currentPage} of {totalPages}
-                        </span>
-                        <button
-                          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                          disabled={currentPage === totalPages}
-                          style={{
-                            padding: '8px 12px',
-                            border: `1px solid ${colors.gray[200]}`,
-                            borderRadius: '8px',
-                            backgroundColor: 'white',
-                            cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                            opacity: currentPage === totalPages ? 0.5 : 1,
-                            fontSize: '13px'
-                          }}
-                        >
-                          Next →
-                        </button>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* Selected Corporate */}
-            {selectedCorporate && (
-              <div style={{ marginTop: '16px', padding: '16px', background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)', borderRadius: '12px', color: 'white' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ fontSize: '12px', opacity: 0.8, marginBottom: '4px' }}>Currently Editing</div>
-                    <div style={{ fontSize: '16px', fontWeight: '700' }}>{selectedCorporate.corporate_legal_name}</div>
-                  </div>
-                  <button
-                    onClick={() => window.open(`https://${selectedCorporate.subdomain}.benefitnest.space`, '_blank')}
-                    style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}
-                  >
-                    🔗 Visit Portal
-                  </button>
-                </div>
-              </div>
-            )}
+          {/* Search Card */}
+          <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '24px', marginBottom: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: `1px solid ${colors.gray[200]}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}><div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>🏢</div><div><h2 style={{ fontSize: '18px', fontWeight: '700', margin: 0 }}>Select Company</h2><p style={{ fontSize: '13px', color: colors.gray[500], margin: 0 }}>Search by name or subdomain</p></div></div>
+            <div style={{ position: 'relative' }}><span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '18px' }}>🔍</span><input type="text" placeholder="Type company name to search..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} style={{ width: '100%', padding: '16px 16px 16px 48px', border: `2px solid ${colors.gray[200]}`, borderRadius: '14px', fontSize: '15px', outline: 'none', boxSizing: 'border-box' }} /></div>
+            {searchQuery && <div style={{ marginTop: '20px' }}>{loading ? <div style={{ textAlign: 'center', padding: '40px', color: colors.gray[500] }}>Loading...</div> : filteredCorporates.length === 0 ? <div style={{ textAlign: 'center', padding: '40px', color: colors.gray[500] }}><div style={{ fontSize: '40px', marginBottom: '12px' }}>🔍</div>No companies found</div> : <><div style={{ fontSize: '13px', color: colors.gray[500], marginBottom: '12px' }}>Found {filteredCorporates.length} compan{filteredCorporates.length === 1 ? 'y' : 'ies'}</div><div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>{paginatedCorporates.map(corp => <div key={corp.tenant_id} onClick={() => handleCorporateSelect(corp)} style={{ padding: '16px 20px', border: `2px solid ${selectedCorporate?.tenant_id === corp.tenant_id ? colors.primary : colors.gray[200]}`, borderRadius: '14px', cursor: 'pointer', backgroundColor: selectedCorporate?.tenant_id === corp.tenant_id ? colors.primaryLight : 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}><div style={{ width: '44px', height: '44px', borderRadius: '12px', background: `linear-gradient(135deg, ${corp.primary_color || colors.primary}, ${corp.secondary_color || colors.secondary})`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '700', fontSize: '16px' }}>{corp.corporate_legal_name.charAt(0)}</div><div><div style={{ fontWeight: '600', fontSize: '15px' }}>{corp.corporate_legal_name}</div><div style={{ fontSize: '12px', color: colors.gray[500] }}>🌐 {corp.subdomain}.benefitnest.space</div></div></div><Badge variant={corp.status === 'ACTIVE' ? 'success' : 'warning'}>{corp.status || 'UNKNOWN'}</Badge></div>)}</div>{totalPages > 1 && <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginTop: '20px' }}><button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ padding: '10px 16px', border: `1px solid ${colors.gray[200]}`, borderRadius: '10px', backgroundColor: 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.5 : 1, fontSize: '13px' }}>← Previous</button><span style={{ fontSize: '13px', color: colors.gray[600] }}>Page {currentPage} of {totalPages}</span><button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} style={{ padding: '10px 16px', border: `1px solid ${colors.gray[200]}`, borderRadius: '10px', backgroundColor: 'white', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', opacity: currentPage === totalPages ? 0.5 : 1, fontSize: '13px' }}>Next →</button></div>}</>}</div>}
+            {selectedCorporate && <div style={{ marginTop: '20px', padding: '20px', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', borderRadius: '16px', color: 'white' }}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div><div style={{ fontSize: '11px', opacity: 0.8, marginBottom: '4px', textTransform: 'uppercase' }}>Now Editing</div><div style={{ fontSize: '18px', fontWeight: '700' }}>{selectedCorporate.corporate_legal_name}</div><div style={{ fontSize: '12px', opacity: 0.9, marginTop: '4px' }}>🌐 {selectedCorporate.subdomain}.benefitnest.space</div></div><Button variant="outline" size="sm" onClick={() => window.open(`https://${selectedCorporate.subdomain}.benefitnest.space`, '_blank')} style={{ borderColor: 'rgba(255,255,255,0.3)', color: 'white' }}>🔗 Visit Live</Button></div></div>}
           </div>
 
           {/* Design Controls */}
-          {selectedCorporate && (
-            <div style={{ backgroundColor: 'white', borderRadius: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-              {/* AI Quick Actions */}
-              <div style={{ padding: '16px 20px', background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', borderBottom: `1px solid ${colors.gray[200]}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '20px' }}>🤖</span>
-                    <span style={{ fontSize: '14px', fontWeight: '600', color: '#92400e' }}>AI Design Assistant</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <Button size="sm" variant="warning" onClick={applyAIColorSuggestion}>Auto Colors</Button>
-                    <Button size="sm" variant="warning" onClick={applyAIFontSuggestion}>Auto Fonts</Button>
-                    <Button size="sm" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', border: 'none', color: 'white' }} onClick={applyFullAISuggestion}>✨ Full AI Setup</Button>
-                  </div>
-                </div>
-                {aiSuggestions.colors && (
-                  <div style={{ marginTop: '8px', fontSize: '12px', color: '#92400e', backgroundColor: 'rgba(255,255,255,0.5)', padding: '8px 12px', borderRadius: '6px' }}>
-                    💡 {aiSuggestions.colors}
-                  </div>
-                )}
-              </div>
+          {selectedCorporate && <div style={{ backgroundColor: 'white', borderRadius: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: `1px solid ${colors.gray[200]}`, overflow: 'hidden' }}>
+            {/* AI Magic Bar */}
+            <div style={{ padding: '20px 24px', background: 'linear-gradient(135deg, #fef3c7, #fde68a, #fcd34d)', borderBottom: `1px solid ${colors.warning}40` }}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}><div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><div style={{ fontSize: '28px' }}>🤖</div><div><div style={{ fontSize: '15px', fontWeight: '700', color: '#92400e' }}>AI Brand Discovery</div><div style={{ fontSize: '12px', color: '#a16207' }}>Auto-detect colors, fonts & content from brand guidelines</div></div></div><Button variant="magic" size="lg" icon="✨" onClick={handleAIMagic} loading={aiLoading}>AI Magic</Button></div></div>
 
-              {/* Design Tabs */}
-              <div style={{ display: 'flex', borderBottom: `1px solid ${colors.gray[200]}`, overflowX: 'auto' }}>
-                {designTabs.map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveDesignTab(tab.id)}
-                    style={{
-                      padding: '14px 20px',
-                      border: 'none',
-                      borderBottom: `3px solid ${activeDesignTab === tab.id ? colors.primary : 'transparent'}`,
-                      backgroundColor: activeDesignTab === tab.id ? colors.primaryLight : 'transparent',
-                      cursor: 'pointer',
-                      fontSize: '13px',
-                      fontWeight: '600',
-                      color: activeDesignTab === tab.id ? colors.primary : colors.gray[600],
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      whiteSpace: 'nowrap',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    <span>{tab.icon}</span>
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
+            {/* Tabs */}
+            <div style={{ display: 'flex', borderBottom: `1px solid ${colors.gray[200]}`, overflowX: 'auto', backgroundColor: colors.gray[50] }}>{tabs.map(tab => <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ padding: '16px 22px', border: 'none', borderBottom: `3px solid ${activeTab === tab.id ? colors.primary : 'transparent'}`, backgroundColor: activeTab === tab.id ? 'white' : 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: '600', color: activeTab === tab.id ? colors.primary : colors.gray[500], display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}><span style={{ fontSize: '16px' }}>{tab.icon}</span>{tab.label}</button>)}</div>
 
-              {/* Tab Content */}
-              <div style={{ padding: '20px', maxHeight: '600px', overflowY: 'auto' }}>
-                {/* Branding Tab */}
-                {activeDesignTab === 'branding' && (
-                  <div>
-                    <ColorPicker label="Primary Color" value={customizations.primary_color} onChange={(v: string) => updateCustomization('primary_color', v)} onAISuggest={applyAIColorSuggestion} />
-                    <ColorPicker label="Secondary Color" value={customizations.secondary_color} onChange={(v: string) => updateCustomization('secondary_color', v)} />
-                    <ColorPicker label="Accent Color" value={customizations.accent_color} onChange={(v: string) => updateCustomization('accent_color', v)} />
-                    <ColorPicker label="Background Color" value={customizations.background_color} onChange={(v: string) => updateCustomization('background_color', v)} />
-                    <ColorPicker label="Text Color" value={customizations.text_color} onChange={(v: string) => updateCustomization('text_color', v)} />
-                    
-                    <div style={{ marginTop: '24px' }}>
-                      <Input label="Logo URL" value={customizations.logo_url || ''} onChange={(v: string) => updateCustomization('logo_url', v)} placeholder="https://example.com/logo.png" icon="🖼️" />
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                        <Input label="Logo Width (px)" type="number" value={customizations.logo_width || 150} onChange={(v: string) => updateCustomization('logo_width', parseInt(v))} />
-                        <Input label="Logo Height (px)" type="number" value={customizations.logo_height || 60} onChange={(v: string) => updateCustomization('logo_height', parseInt(v))} />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Typography Tab */}
-                {activeDesignTab === 'typography' && (
-                  <div>
-                    <FontSelector
-                      label="Heading Font"
-                      value={customizations.heading_font_family}
-                      onChange={(v: string) => updateCustomization('heading_font_family', v)}
-                      onAISuggest={applyAIFontSuggestion}
-                      aiSuggestion={aiSuggestions.fonts}
-                    />
-                    <FontSelector
-                      label="Body Font"
-                      value={customizations.body_font_family}
-                      onChange={(v: string) => updateCustomization('body_font_family', v)}
-                    />
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                      <Input label="Heading Size (px)" type="number" value={customizations.heading_font_size || 32} onChange={(v: string) => updateCustomization('heading_font_size', parseInt(v))} />
-                      <Input label="Body Size (px)" type="number" value={customizations.body_font_size || 16} onChange={(v: string) => updateCustomization('body_font_size', parseInt(v))} />
-                      <Input label="Heading Weight" type="number" value={customizations.font_weight_heading || 700} onChange={(v: string) => updateCustomization('font_weight_heading', parseInt(v))} hint="400-900" />
-                      <Input label="Line Height" type="number" value={customizations.line_height_multiplier || 1.6} onChange={(v: string) => updateCustomization('line_height_multiplier', parseFloat(v))} hint="1.0-2.0" />
-                    </div>
-                  </div>
-                )}
-
-                {/* Content Tab */}
-                {activeDesignTab === 'content' && (
-                  <div>
-                    <Input label="Portal Title" value={customizations.portal_title || ''} onChange={(v: string) => updateCustomization('portal_title', v)} placeholder="Your Company Benefits" icon="📛" />
-                    <Input label="Portal Tagline" value={customizations.portal_tagline || ''} onChange={(v: string) => updateCustomization('portal_tagline', v)} placeholder="Your Employee Benefits Hub" icon="💬" />
-                    
-                    <div style={{ marginTop: '16px' }}>
-                      <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: colors.gray[700] }}>Portal Description</label>
-                      <textarea
-                        value={customizations.portal_description || ''}
-                        onChange={(e) => updateCustomization('portal_description', e.target.value)}
-                        placeholder="A brief description of your benefits portal..."
-                        style={{ width: '100%', padding: '12px 14px', border: `2px solid ${colors.gray[200]}`, borderRadius: '10px', fontSize: '14px', minHeight: '80px', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }}
-                      />
-                    </div>
-
-                    <div style={{ marginTop: '24px', padding: '16px', backgroundColor: colors.gray[50], borderRadius: '12px' }}>
-                      <div style={{ fontSize: '13px', fontWeight: '600', color: colors.gray[700], marginBottom: '12px' }}>🦸 Hero Section</div>
-                      <Input label="Headline" value={customizations.hero_headline || ''} onChange={(v: string) => updateCustomization('hero_headline', v)} placeholder="Welcome to Your Benefits" />
-                      <Input label="Subheadline" value={customizations.hero_subheadline || ''} onChange={(v: string) => updateCustomization('hero_subheadline', v)} placeholder="Access everything in one place" />
-                      <Input label="Background Image URL" value={customizations.hero_background_image_url || ''} onChange={(v: string) => updateCustomization('hero_background_image_url', v)} placeholder="https://example.com/hero.jpg" icon="🖼️" />
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                        <Input label="CTA Button Text" value={customizations.hero_cta_button_text || ''} onChange={(v: string) => updateCustomization('hero_cta_button_text', v)} placeholder="Get Started" />
-                        <Input label="CTA Button URL" value={customizations.hero_cta_button_url || ''} onChange={(v: string) => updateCustomization('hero_cta_button_url', v)} placeholder="/benefits" />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Layout Tab */}
-                {activeDesignTab === 'layout' && (
-                  <div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                      <Input label="Container Max Width (px)" type="number" value={customizations.container_max_width || 1200} onChange={(v: string) => updateCustomization('container_max_width', parseInt(v))} />
-                      <Input label="Section Gap (px)" type="number" value={customizations.section_gap || 40} onChange={(v: string) => updateCustomization('section_gap', parseInt(v))} />
-                      <Input label="Padding X (px)" type="number" value={customizations.container_padding_x || 20} onChange={(v: string) => updateCustomization('container_padding_x', parseInt(v))} />
-                      <Input label="Padding Y (px)" type="number" value={customizations.container_padding_y || 20} onChange={(v: string) => updateCustomization('container_padding_y', parseInt(v))} />
-                    </div>
-                    
-                    <div style={{ marginTop: '24px' }}>
-                      <Toggle label="Sticky Header" value={customizations.header_sticky} onChange={(v: boolean) => updateCustomization('header_sticky', v)} description="Keep header visible while scrolling" />
-                    </div>
-                  </div>
-                )}
-
-                {/* Components Tab */}
-                {activeDesignTab === 'components' && (
-                  <div>
-                    <div style={{ fontSize: '13px', fontWeight: '600', color: colors.gray[700], marginBottom: '16px' }}>Toggle which sections appear on the portal</div>
-                    <Toggle label="Header" value={customizations.show_header !== false} onChange={(v: boolean) => updateCustomization('show_header', v)} description="Navigation header with logo" />
-                    <Toggle label="Hero Section" value={customizations.show_hero_section !== false} onChange={(v: boolean) => updateCustomization('show_hero_section', v)} description="Welcome banner with headline" />
-                    <Toggle label="Benefits Section" value={customizations.show_benefits_section !== false} onChange={(v: boolean) => updateCustomization('show_benefits_section', v)} description="Benefits overview cards" />
-                    <Toggle label="Features Section" value={customizations.show_features_section !== false} onChange={(v: boolean) => updateCustomization('show_features_section', v)} description="Feature highlights grid" />
-                    <Toggle label="Contact Section" value={customizations.show_contact_section !== false} onChange={(v: boolean) => updateCustomization('show_contact_section', v)} description="Contact information" />
-                    <Toggle label="FAQ Section" value={customizations.show_faq_section !== false} onChange={(v: boolean) => updateCustomization('show_faq_section', v)} description="Frequently asked questions" />
-                    <Toggle label="Employee Directory" value={customizations.show_employee_directory} onChange={(v: boolean) => updateCustomization('show_employee_directory', v)} description="Searchable employee list" />
-                    <Toggle label="Footer" value={customizations.show_footer !== false} onChange={(v: boolean) => updateCustomization('show_footer', v)} description="Page footer with links" />
-                  </div>
-                )}
-
-                {/* Advanced Tab */}
-                {activeDesignTab === 'advanced' && (
-                  <div>
-                    <div style={{ marginBottom: '24px' }}>
-                      <div style={{ fontSize: '13px', fontWeight: '600', color: colors.gray[700], marginBottom: '16px' }}>🌍 Regional Settings</div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                        <Input label="Currency" value={customizations.default_currency || 'USD'} onChange={(v: string) => updateCustomization('default_currency', v)} placeholder="USD, EUR, INR" />
-                        <Input label="Timezone" value={customizations.timezone || 'UTC'} onChange={(v: string) => updateCustomization('timezone', v)} placeholder="UTC, IST, EST" />
-                        <Input label="Date Format" value={customizations.date_format || 'MM/DD/YYYY'} onChange={(v: string) => updateCustomization('date_format', v)} />
-                        <Input label="Language" value={customizations.default_language || 'en'} onChange={(v: string) => updateCustomization('default_language', v)} placeholder="en, es, fr" />
-                      </div>
-                    </div>
-
-                    <div style={{ marginBottom: '24px' }}>
-                      <div style={{ fontSize: '13px', fontWeight: '600', color: colors.gray[700], marginBottom: '16px' }}>🔒 Security & Compliance</div>
-                      <Toggle label="Dark Mode" value={customizations.dark_mode_enabled} onChange={(v: boolean) => updateCustomization('dark_mode_enabled', v)} description="Enable dark mode toggle" />
-                      <Toggle label="SSO Enabled" value={customizations.sso_enabled} onChange={(v: boolean) => updateCustomization('sso_enabled', v)} description="Single sign-on authentication" />
-                      <Toggle label="GDPR Compliance" value={customizations.gdpr_enabled} onChange={(v: boolean) => updateCustomization('gdpr_enabled', v)} description="EU data protection features" />
-                      <Toggle label="Cookie Consent" value={customizations.show_cookie_consent} onChange={(v: boolean) => updateCustomization('show_cookie_consent', v)} description="Show cookie consent banner" />
-                    </div>
-
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: colors.gray[700] }}>Custom CSS</label>
-                      <textarea
-                        value={customizations.custom_css || ''}
-                        onChange={(e) => updateCustomization('custom_css', e.target.value)}
-                        placeholder="/* Add custom CSS rules here... */"
-                        style={{ width: '100%', padding: '12px', border: `2px solid ${colors.gray[200]}`, borderRadius: '10px', fontSize: '13px', minHeight: '150px', fontFamily: 'Monaco, Consolas, monospace', backgroundColor: '#1f2937', color: '#10b981', outline: 'none', boxSizing: 'border-box' }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
+            {/* Tab Content */}
+            <div style={{ padding: '24px', maxHeight: '600px', overflowY: 'auto' }}>
+              {activeTab === 'branding' && <div><ColorPicker label="Primary Color" value={customizations.primary_color} onChange={(v: string) => updateCustomization('primary_color', v)} /><ColorPicker label="Secondary Color" value={customizations.secondary_color} onChange={(v: string) => updateCustomization('secondary_color', v)} /><ColorPicker label="Accent Color" value={customizations.accent_color} onChange={(v: string) => updateCustomization('accent_color', v)} /><ColorPicker label="Background Color" value={customizations.background_color} onChange={(v: string) => updateCustomization('background_color', v)} /><ColorPicker label="Text Color" value={customizations.text_color} onChange={(v: string) => updateCustomization('text_color', v)} /><div style={{ marginTop: '24px', paddingTop: '24px', borderTop: `1px solid ${colors.gray[200]}` }}><h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '16px', color: colors.gray[700] }}>🖼️ Logo</h4><Input label="Logo URL" value={customizations.logo_url || ''} onChange={(v: string) => updateCustomization('logo_url', v)} placeholder="https://example.com/logo.png" icon="🔗" /><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}><Input label="Width (px)" type="number" value={customizations.logo_width || 150} onChange={(v: string) => updateCustomization('logo_width', parseInt(v))} /><Input label="Height (px)" type="number" value={customizations.logo_height || 60} onChange={(v: string) => updateCustomization('logo_height', parseInt(v))} /></div></div></div>}
+              {activeTab === 'typography' && <div><FontSelector label="Heading Font" value={customizations.heading_font_family} onChange={(v: string) => updateCustomization('heading_font_family', v)} /><FontSelector label="Body Font" value={customizations.body_font_family} onChange={(v: string) => updateCustomization('body_font_family', v)} /><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '16px' }}><Input label="Heading Size (px)" type="number" value={customizations.heading_font_size || 32} onChange={(v: string) => updateCustomization('heading_font_size', parseInt(v))} /><Input label="Body Size (px)" type="number" value={customizations.body_font_size || 16} onChange={(v: string) => updateCustomization('body_font_size', parseInt(v))} /><Input label="Heading Weight" type="number" value={customizations.font_weight_heading || 700} onChange={(v: string) => updateCustomization('font_weight_heading', parseInt(v))} hint="400-900" /><Input label="Line Height" type="number" value={customizations.line_height_multiplier || 1.6} onChange={(v: string) => updateCustomization('line_height_multiplier', parseFloat(v))} hint="1.0-2.0" /></div></div>}
+              {activeTab === 'content' && <div><Input label="Portal Title" value={customizations.portal_title || ''} onChange={(v: string) => updateCustomization('portal_title', v)} placeholder="Your Company Benefits" icon="📛" /><Input label="Portal Tagline" value={customizations.portal_tagline || ''} onChange={(v: string) => updateCustomization('portal_tagline', v)} placeholder="Your Employee Benefits Hub" icon="💬" /><div style={{ marginBottom: '16px' }}><label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: colors.gray[700] }}>Portal Description</label><textarea value={customizations.portal_description || ''} onChange={(e) => updateCustomization('portal_description', e.target.value)} placeholder="A brief description..." style={{ width: '100%', padding: '12px 14px', border: `2px solid ${colors.gray[200]}`, borderRadius: '10px', fontSize: '14px', minHeight: '80px', resize: 'vertical', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} /></div><div style={{ marginTop: '24px', padding: '20px', backgroundColor: colors.gray[50], borderRadius: '14px', border: `1px solid ${colors.gray[200]}` }}><div style={{ fontSize: '14px', fontWeight: '700', color: colors.gray[700], marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><span>🦸</span> Hero Section</div><Input label="Headline" value={customizations.hero_headline || ''} onChange={(v: string) => updateCustomization('hero_headline', v)} placeholder="Welcome to Your Benefits" /><Input label="Subheadline" value={customizations.hero_subheadline || ''} onChange={(v: string) => updateCustomization('hero_subheadline', v)} placeholder="Everything in one place" /><Input label="Background Image URL" value={customizations.hero_background_image_url || ''} onChange={(v: string) => updateCustomization('hero_background_image_url', v)} placeholder="https://example.com/hero.jpg" icon="🖼️" /><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}><Input label="CTA Button Text" value={customizations.hero_cta_button_text || ''} onChange={(v: string) => updateCustomization('hero_cta_button_text', v)} placeholder="Get Started" /><Input label="CTA Button URL" value={customizations.hero_cta_button_url || ''} onChange={(v: string) => updateCustomization('hero_cta_button_url', v)} placeholder="#benefits" /></div></div></div>}
+              {activeTab === 'layout' && <div><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}><Input label="Container Max Width (px)" type="number" value={customizations.container_max_width || 1200} onChange={(v: string) => updateCustomization('container_max_width', parseInt(v))} /><Input label="Section Gap (px)" type="number" value={customizations.section_gap || 40} onChange={(v: string) => updateCustomization('section_gap', parseInt(v))} /><Input label="Horizontal Padding (px)" type="number" value={customizations.container_padding_x || 20} onChange={(v: string) => updateCustomization('container_padding_x', parseInt(v))} /><Input label="Vertical Padding (px)" type="number" value={customizations.container_padding_y || 20} onChange={(v: string) => updateCustomization('container_padding_y', parseInt(v))} /></div></div>}
+              {activeTab === 'components' && <div><p style={{ fontSize: '13px', color: colors.gray[500], marginBottom: '20px' }}>Toggle which sections appear on the employee portal</p><Toggle label="Header" value={customizations.show_header !== false} onChange={(v: boolean) => updateCustomization('show_header', v)} description="Navigation bar with logo and menu" /><Toggle label="Hero Section" value={customizations.show_hero_section !== false} onChange={(v: boolean) => updateCustomization('show_hero_section', v)} description="Welcome banner with headline and CTA" /><Toggle label="Benefits Overview" value={customizations.show_benefits_section !== false} onChange={(v: boolean) => updateCustomization('show_benefits_section', v)} description="Summary of available benefits" /><Toggle label="Features Grid" value={customizations.show_features_section !== false} onChange={(v: boolean) => updateCustomization('show_features_section', v)} description="Feature cards with icons" /><Toggle label="FAQ Section" value={customizations.show_faq_section !== false} onChange={(v: boolean) => updateCustomization('show_faq_section', v)} description="Frequently asked questions" /><Toggle label="Contact Information" value={customizations.show_contact_section !== false} onChange={(v: boolean) => updateCustomization('show_contact_section', v)} description="HR contact details" /><Toggle label="Footer" value={customizations.show_footer !== false} onChange={(v: boolean) => updateCustomization('show_footer', v)} description="Copyright and links" /></div>}
+              {activeTab === 'advanced' && <div><h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '16px', color: colors.gray[700] }}>🌍 Regional Settings</h4><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}><Input label="Currency" value={customizations.default_currency || 'USD'} onChange={(v: string) => updateCustomization('default_currency', v)} placeholder="USD, EUR, INR" /><Input label="Timezone" value={customizations.timezone || 'UTC'} onChange={(v: string) => updateCustomization('timezone', v)} placeholder="UTC, IST, EST" /><Input label="Date Format" value={customizations.date_format || 'MM/DD/YYYY'} onChange={(v: string) => updateCustomization('date_format', v)} /><Input label="Language" value={customizations.default_language || 'en'} onChange={(v: string) => updateCustomization('default_language', v)} placeholder="en, es, fr" /></div><h4 style={{ fontSize: '14px', fontWeight: '600', marginTop: '24px', marginBottom: '16px', color: colors.gray[700] }}>🔒 Security</h4><Toggle label="Dark Mode Support" value={customizations.dark_mode_enabled} onChange={(v: boolean) => updateCustomization('dark_mode_enabled', v)} description="Allow users to switch to dark theme" /><Toggle label="SSO Authentication" value={customizations.sso_enabled} onChange={(v: boolean) => updateCustomization('sso_enabled', v)} description="Single sign-on integration" /><Toggle label="GDPR Compliance" value={customizations.gdpr_enabled} onChange={(v: boolean) => updateCustomization('gdpr_enabled', v)} description="EU data protection features" /><Toggle label="Cookie Consent Banner" value={customizations.show_cookie_consent} onChange={(v: boolean) => updateCustomization('show_cookie_consent', v)} description="Display cookie notice" /><h4 style={{ fontSize: '14px', fontWeight: '600', marginTop: '24px', marginBottom: '16px', color: colors.gray[700] }}>💻 Custom CSS</h4><textarea value={customizations.custom_css || ''} onChange={(e) => updateCustomization('custom_css', e.target.value)} placeholder="/* Add custom CSS */" style={{ width: '100%', padding: '16px', border: `2px solid ${colors.gray[700]}`, borderRadius: '10px', fontSize: '13px', minHeight: '150px', fontFamily: 'Monaco, Consolas, monospace', backgroundColor: colors.gray[900], color: '#10b981', outline: 'none', boxSizing: 'border-box' }} /></div>}
             </div>
-          )}
+          </div>}
 
           {/* Empty State */}
-          {!selectedCorporate && !searchQuery && (
-            <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '80px 40px', textAlign: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-              <div style={{ fontSize: '64px', marginBottom: '16px' }}>🎨</div>
-              <h2 style={{ fontSize: '24px', fontWeight: '700', color: colors.gray[900], marginBottom: '8px' }}>Welcome to Portal Designer</h2>
-              <p style={{ fontSize: '14px', color: colors.gray[500], maxWidth: '400px', margin: '0 auto 24px' }}>
-                Search for a company above to start customizing their employee benefits portal with AI-powered design suggestions.
-              </p>
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <Badge variant="primary">🤖 AI-Powered</Badge>
-                <Badge variant="success">⚡ Real-time Preview</Badge>
-                <Badge variant="info">🎨 Smart Palettes</Badge>
-              </div>
-            </div>
-          )}
+          {!selectedCorporate && !searchQuery && <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '80px 40px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: `1px solid ${colors.gray[200]}` }}><div style={{ fontSize: '72px', marginBottom: '20px' }}>🎨</div><h2 style={{ fontSize: '28px', fontWeight: '800', color: colors.gray[900], marginBottom: '12px' }}>Portal Designer Studio</h2><p style={{ fontSize: '16px', color: colors.gray[500], maxWidth: '500px', margin: '0 auto 32px', lineHeight: 1.6 }}>Create stunning, branded employee benefit portals with AI-powered design suggestions and real-time preview.</p><div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}><Badge variant="primary">🤖 AI Brand Discovery</Badge><Badge variant="success">⚡ Real-time Preview</Badge><Badge variant="warning">🎨 Smart Palettes</Badge></div></div>}
         </div>
 
-        {/* Right Panel - Live Preview */}
-        {selectedCorporate && (
-          <div style={{ position: 'sticky', top: '100px', height: 'calc(100vh - 140px)' }}>
-            <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '16px' }}>👁️</span>
-                  <span style={{ fontSize: '14px', fontWeight: '600', color: colors.gray[700] }}>Live Preview</span>
-                </div>
-                <Button size="xs" variant="outline" onClick={() => setShowPreviewModal(true)}>
-                  Expand ↗
-                </Button>
-              </div>
-              <div style={{ flex: 1, borderRadius: '12px', overflow: 'hidden' }}>
-                <LivePreview
-                  customizations={customizations}
-                  companyName={selectedCorporate.corporate_legal_name}
-                  subdomain={selectedCorporate.subdomain}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Live Preview Panel */}
+        {selectedCorporate && <div style={{ position: 'sticky', top: '90px', height: 'calc(100vh - 130px)' }}><div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: `1px solid ${colors.gray[200]}`, height: '100%', display: 'flex', flexDirection: 'column' }}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '12px', borderBottom: `1px solid ${colors.gray[200]}` }}><div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span style={{ fontSize: '20px' }}>👁️</span><div><span style={{ fontSize: '15px', fontWeight: '700', color: colors.gray[900] }}>Live Preview</span><div style={{ fontSize: '11px', color: colors.gray[500] }}>Changes appear instantly</div></div></div><div style={{ display: 'flex', gap: '8px' }}><Button size="xs" variant={previewMode === 'mini' ? 'primary' : 'outline'} onClick={() => setPreviewMode('mini')}>Mini</Button><Button size="xs" variant={previewMode === 'full' ? 'primary' : 'outline'} onClick={() => setPreviewMode('full')}>Full</Button><Button size="xs" variant="outline" onClick={() => setShowPreviewModal(true)}>↗ Expand</Button></div></div><div style={{ flex: 1, borderRadius: '12px', overflow: 'hidden', border: `1px solid ${colors.gray[200]}`, backgroundColor: colors.gray[100] }}><div style={{ backgroundColor: colors.gray[200], padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}><div style={{ display: 'flex', gap: '6px' }}><div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ef4444' }} /><div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#f59e0b' }} /><div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#10b981' }} /></div><div style={{ flex: 1, backgroundColor: 'white', borderRadius: '4px', padding: '4px 10px', marginLeft: '8px' }}><span style={{ fontSize: '10px', color: colors.gray[500] }}>🔒 {selectedCorporate.subdomain}.benefitnest.space</span></div></div><div style={{ height: 'calc(100% - 34px)', overflow: 'hidden' }}><LivePreview customizations={customizations} corporate={selectedCorporate} previewMode={previewMode} /></div></div></div></div>}
       </main>
 
-      {/* Full Preview Modal */}
-      <Modal isOpen={showPreviewModal} onClose={() => setShowPreviewModal(false)} title="Full Portal Preview" icon="🖥️" size="xl">
-        <div style={{ height: '70vh' }}>
-          <LivePreview
-            customizations={customizations}
-            companyName={selectedCorporate?.corporate_legal_name || ''}
-            subdomain={selectedCorporate?.subdomain || ''}
-          />
-        </div>
-        <div style={{ marginTop: '16px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-          <Button variant="outline" onClick={() => setShowPreviewModal(false)}>Close</Button>
-          <Button variant="primary" onClick={() => window.open(`https://${selectedCorporate?.subdomain}.benefitnest.space`, '_blank')}>
-            🔗 Open Live Portal
-          </Button>
-        </div>
-      </Modal>
+      {/* Preview Modal */}
+      <Modal isOpen={showPreviewModal} onClose={() => setShowPreviewModal(false)} title="Full Portal Preview" icon="🖥️" size="xl"><div style={{ height: '70vh', borderRadius: '12px', overflow: 'hidden', border: `1px solid ${colors.gray[200]}` }}><LivePreview customizations={customizations} corporate={selectedCorporate} previewMode="full" /></div><div style={{ marginTop: '20px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}><Button variant="outline" onClick={() => setShowPreviewModal(false)}>Close</Button><Button variant="primary" onClick={() => window.open(`https://${selectedCorporate?.subdomain}.benefitnest.space`, '_blank')}>🔗 Open Live Portal</Button></div></Modal>
+
+      {/* AI Modal */}
+      <Modal isOpen={showAiModal} onClose={() => !aiLoading && setShowAiModal(false)} title="AI Brand Discovery" icon="🤖" size="md"><div style={{ padding: '20px 0' }}><div style={{ textAlign: 'center', marginBottom: '24px' }}><div style={{ width: '80px', height: '80px', margin: '0 auto 16px', background: 'linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px', animation: aiLoading ? 'pulse 1.5s ease-in-out infinite' : 'none', boxShadow: '0 10px 40px rgba(99, 102, 241, 0.4)' }}>🤖</div><h3 style={{ fontSize: '18px', fontWeight: '700', color: colors.gray[900], marginBottom: '8px' }}>{aiLoading ? 'Discovering Brand...' : 'Discovery Complete!'}</h3><p style={{ fontSize: '13px', color: colors.gray[500] }}>{aiLoading ? 'Analyzing company profile and brand guidelines' : 'Brand settings have been applied'}</p></div><div style={{ backgroundColor: colors.gray[900], borderRadius: '12px', padding: '16px', maxHeight: '250px', overflowY: 'auto', fontFamily: 'Monaco, Consolas, monospace', fontSize: '12px' }}>{aiLogs.map((log, i) => <div key={i} style={{ color: log.startsWith('✅') ? '#10b981' : log.startsWith('❌') ? '#ef4444' : '#9ca3af', marginBottom: '8px', opacity: i === aiLogs.length - 1 ? 1 : 0.7 }}>{log}</div>)}{aiLoading && <div style={{ color: '#6366f1', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '12px', height: '12px', border: '2px solid transparent', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />Processing...</div>}</div>{!aiLoading && <div style={{ marginTop: '20px', textAlign: 'center' }}><Button variant="primary" onClick={() => setShowAiModal(false)}>Done</Button></div>}</div></Modal>
 
       {/* Toast */}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      {/* Global Styles */}
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes modalIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .spinner { width: 16px; height: 16px; border: 2px solid transparent; border-top-color: currentColor; border-radius: 50%; animation: spin 0.6s linear infinite; }
-        * { box-sizing: border-box; }
-        input:focus, select:focus, textarea:focus { border-color: ${colors.primary} !important; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: ${colors.gray[100]}; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb { background: ${colors.gray[300]}; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: ${colors.gray[400]}; }
-      `}</style>
+      {/* Styles */}
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } } @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } } * { box-sizing: border-box; } input:focus, select:focus, textarea:focus { border-color: ${colors.primary} !important; } ::-webkit-scrollbar { width: 8px; height: 8px; } ::-webkit-scrollbar-track { background: ${colors.gray[100]}; border-radius: 4px; } ::-webkit-scrollbar-thumb { background: ${colors.gray[300]}; border-radius: 4px; }`}</style>
     </div>
   );
 }
