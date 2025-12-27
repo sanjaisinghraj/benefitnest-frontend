@@ -760,26 +760,49 @@ const CorporateManagement = () => {
     
     const checkAndOpenPortal = async (corporate) => {
         try {
-            const response = await axios.get(`${CORPORATES_API}/${corporate.tenant_id}/check-portal`, { headers: getAuthHeaders() });
-            
-            if (response.data.success) {
-                if (response.data.data.portal_exists) {
-                    window.open(response.data.data.portal_url, '_blank');
-                } else {
-                    if (confirm(`Portal doesn't exist for ${corporate.corporate_legal_name}. Create it now?`)) {
-                        const createResponse = await axios.post(`${CORPORATES_API}/${corporate.tenant_id}/create-portal`, {}, { headers: getAuthHeaders() });
-                        if (createResponse.data.success) {
-                            setToast({ message: 'Portal created successfully!', type: 'success' });
-                            window.open(createResponse.data.data.portal_url, '_blank');
+            // Step 1: Try to check if portal exists
+            try {
+                const response = await axios.get(`${CORPORATES_API}/${corporate.tenant_id}/check-portal`, { headers: getAuthHeaders() });
+                
+                if (response.data.success && response.data.data.portal_exists) {
+                    // Portal exists, open it
+                    const portalUrl = response.data.data.portal_url || `https://${corporate.subdomain}.benefitnest.space`;
+                    window.open(portalUrl, '_blank');
+                    return;
+                }
+            } catch (checkErr) {
+                console.log('Check portal endpoint not available, proceeding with creation');
+            }
+
+            // Step 2: If portal doesn't exist, prompt to create it
+            if (confirm(`Portal doesn't exist for ${corporate.corporate_legal_name}. Create it now?`)) {
+                try {
+                    const createResponse = await axios.post(`${CORPORATES_API}/${corporate.tenant_id}/create-portal`, {}, { headers: getAuthHeaders() });
+                    
+                    if (createResponse.data.success) {
+                        setToast({ message: 'Portal created successfully!', type: 'success' });
+                        const portalUrl = createResponse.data.data?.portal_url || `https://${corporate.subdomain}.benefitnest.space`;
+                        
+                        // Wait a moment for the portal to be ready, then open
+                        setTimeout(() => {
+                            window.open(portalUrl, '_blank');
                             fetchCorporates(currentPage);
-                        }
+                        }, 1000);
+                        return;
+                    } else {
+                        throw new Error(createResponse.data.message || 'Failed to create portal');
                     }
+                } catch (createErr) {
+                    console.log('Create portal endpoint not available, trying direct URL');
                 }
             }
+
+            // Step 3: Fallback - open the URL directly (portal may already be deployed)
+            const fallbackUrl = corporate.portal_url || `https://${corporate.subdomain}.benefitnest.space`;
+            window.open(fallbackUrl, '_blank');
         } catch (err) {
-            // Fallback: just try to open the URL
-            const url = corporate.portal_url || `https://${corporate.subdomain}.benefitnest.space`;
-            window.open(url, '_blank');
+            console.error('Portal opening error:', err);
+            setToast({ message: 'Failed to open portal', type: 'error' });
         }
     };
 
