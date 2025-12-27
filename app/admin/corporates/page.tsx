@@ -1,7 +1,7 @@
 'use client';
 
-import CorporatesManagement from './CorporatesManagement';
+import CorporateManagement from './CorporateManagement';
 
 export default function CorporatesPage() {
-  return <CorporatesManagement />;
+  return <CorporateManagement />;
 }
