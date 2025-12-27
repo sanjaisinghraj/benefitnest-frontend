@@ -130,7 +130,7 @@ const downloadExcel = async (data, filename, columns) => {
 };
 
 // Main Component
-const CorporateManagement = () => {
+const CorporatesManagement = () => {
     const router = useRouter();
     
     // State
@@ -760,4 +760,4 @@ const CorporateManagement = () => {
     );
 };
 
-export default CorporateManagement;
+export default CorporatesManagement;
