@@ -618,14 +618,14 @@ const CorporateManagement = () => {
             
             const validContacts = contacts.filter(c => c.full_name && c.email);
 
-            // Build payload from formData
+            // Build payload from formData - put contacts at root level, not nested
             const payload = {
                 ...formData,
-                contact_details: {
-                    ...(formData.contact_details || {}),
-                    contacts: validContacts
-                }
+                contacts: validContacts
             };
+            
+            // Remove the nested contact_details if it exists
+            delete payload.contact_details;
 
             // Fields to ALWAYS remove (system managed or not in DB)
             const ALWAYS_REMOVE = [
@@ -647,9 +647,9 @@ const CorporateManagement = () => {
                 // UPDATE: Remove frozen/system fields
                 ALWAYS_REMOVE.forEach(field => delete payload[field]);
 
-                // Also remove any undefined or function values
+                // Also remove any undefined, null, or function values
                 Object.keys(payload).forEach(key => {
-                    if (payload[key] === undefined || typeof payload[key] === 'function') {
+                    if (payload[key] === undefined || payload[key] === null || typeof payload[key] === 'function') {
                         delete payload[key];
                     }
                 });
@@ -677,7 +677,7 @@ const CorporateManagement = () => {
                 // CREATE: Remove system fields but keep tenant_code and subdomain
                 ['tenant_id', 'created_at', 'created_by', 'updated_at', 'updated_by', 'last_activity_at', 'health_score', 'health_factors'].forEach(field => delete payload[field]);
                 
-                payload.contacts = validContacts;
+                // contacts already in payload from above
                 payload.ai_scan_skipped = skipAI;
                 payload.ai_observations = skipAI ? null : aiValidationResults;
 
@@ -853,7 +853,7 @@ const CorporateManagement = () => {
                 <Button variant="danger" icon="🚪" onClick={() => { 
                     document.cookie = 'admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'; 
                     localStorage.removeItem('admin_token'); 
-                    router.push('/admin/login'); 
+                    router.push('/admin/'); 
                 }}>Logout</Button>
             </header>
 
