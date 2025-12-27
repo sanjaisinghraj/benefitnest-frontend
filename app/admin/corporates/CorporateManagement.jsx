@@ -618,11 +618,36 @@ const CorporateManagement = () => {
             
             const validContacts = contacts.filter(c => c.full_name && c.email);
 
+            // Helper to clean empty strings from nested objects
+            const cleanPayload = (obj) => {
+                const cleaned = {};
+                Object.keys(obj).forEach(key => {
+                    const value = obj[key];
+                    if (value === undefined || value === null || typeof value === 'function') {
+                        return; // Skip
+                    }
+                    if (typeof value === 'object' && !Array.isArray(value)) {
+                        // Recursively clean nested objects
+                        const cleanedNested = cleanPayload(value);
+                        if (Object.keys(cleanedNested).length > 0) {
+                            cleaned[key] = cleanedNested;
+                        }
+                    } else if (Array.isArray(value)) {
+                        // Keep arrays as-is
+                        cleaned[key] = value;
+                    } else if (value !== '') {
+                        // Only include non-empty strings
+                        cleaned[key] = value;
+                    }
+                });
+                return cleaned;
+            };
+
             // Build payload from formData - put contacts at root level, not nested
-            const payload = {
+            const payload = cleanPayload({
                 ...formData,
                 contacts: validContacts
-            };
+            });
             
             // Remove the nested contact_details if it exists
             delete payload.contact_details;
@@ -646,13 +671,6 @@ const CorporateManagement = () => {
             if (selectedCorporate) {
                 // UPDATE: Remove frozen/system fields
                 ALWAYS_REMOVE.forEach(field => delete payload[field]);
-
-                // Also remove any undefined, null, or function values
-                Object.keys(payload).forEach(key => {
-                    if (payload[key] === undefined || payload[key] === null || typeof payload[key] === 'function') {
-                        delete payload[key];
-                    }
-                });
 
                 console.log('=== UPDATE PAYLOAD ===');
                 console.log('Tenant ID:', selectedCorporate.tenant_id);
