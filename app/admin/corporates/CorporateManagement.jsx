@@ -972,64 +972,158 @@ if (selectedCorporate) {
                 </div>
             </Modal>
 
-            {/* AI Validation Results Modal */}
-            <Modal isOpen={showAIValidationModal} onClose={() => setShowAIValidationModal(false)} title="AI Validation Results" icon="🤖" size="lg">
-                {aiValidationResults.valid && aiValidationResults.issues?.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '40px' }}>
-                        <div style={{ fontSize: '64px', marginBottom: '16px' }}>✅</div>
-                        <h3 style={{ fontSize: '18px', fontWeight: '600', color: colors.success, marginBottom: '8px' }}>All Validations Passed!</h3>
-                        <p style={{ color: colors.gray[500] }}>No issues found. The corporate data looks good.</p>
-                    </div>
-                ) : (
-                    <>
-                        <div style={{ backgroundColor: colors.warningLight, borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
-                            <div style={{ fontWeight: '600', color: colors.warning, marginBottom: '4px' }}>⚠️ Found {aiValidationResults.issues?.length || 0} potential issue(s)</div>
-                            <div style={{ fontSize: '13px', color: colors.gray[600] }}>Review the issues below. You can fix them or skip validation.</div>
-                        </div>
-                        <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
-                            {aiValidationResults.issues?.map((issue, i) => (
-                                <div key={i} style={{ padding: '14px', backgroundColor: colors.gray[50], borderRadius: '8px', marginBottom: '10px', borderLeft: `4px solid ${issue.severity === 'error' ? colors.danger : colors.warning}` }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                                        <Badge variant={issue.severity === 'error' ? 'danger' : 'warning'}>{issue.severity?.toUpperCase() || 'WARNING'}</Badge>
-                                        <strong style={{ color: colors.gray[800] }}>{issue.field?.replace(/_/g, ' ').replace(/\./g, ' → ')}</strong>
-                                    </div>
-                                    <p style={{ margin: '0 0 6px 0', color: colors.gray[700], fontSize: '14px' }}>{issue.message}</p>
-                                    {issue.suggestion && (
-                                        <div style={{ fontSize: '13px', color: colors.success, backgroundColor: colors.successLight, padding: '8px 12px', borderRadius: '6px', marginTop: '8px' }}>
-                                            💡 <strong>Suggestion:</strong> {issue.suggestion}
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </>
-                )}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px', paddingTop: '16px', borderTop: `1px solid ${colors.gray[200]}` }}>
-                   <Button
-  variant="outline"
-  onClick={() => setShowAIValidationModal(false)}
+{/* AI Validation Results Modal */}
+<Modal
+  isOpen={showAIValidationModal}
+  onClose={() => setShowAIValidationModal(false)}
+  title="AI Validation Results"
+  icon="🤖"
+  size="lg"
 >
-  ← Fix Now
-</Button>
+  {aiValidationResults?.valid === true &&
+  (aiValidationResults.issues?.length ?? 0) === 0 ? (
+    <div style={{ textAlign: 'center', padding: '40px' }}>
+      <div style={{ fontSize: '64px', marginBottom: '16px' }}>✅</div>
+      <h3
+        style={{
+          fontSize: '18px',
+          fontWeight: '600',
+          color: colors.success,
+          marginBottom: '8px'
+        }}
+      >
+        All Validations Passed!
+      </h3>
+      <p style={{ color: colors.gray[500] }}>
+        No issues found. The corporate data looks good.
+      </p>
+    </div>
+  ) : (
+    <>
+      <div
+        style={{
+          backgroundColor: colors.warningLight,
+          borderRadius: '12px',
+          padding: '16px',
+          marginBottom: '20px'
+        }}
+      >
+        <div
+          style={{
+            fontWeight: '600',
+            color: colors.warning,
+            marginBottom: '4px'
+          }}
+        >
+          ⚠️ Found {aiValidationResults.issues?.length || 0} potential issue(s)
+        </div>
+        <div style={{ fontSize: '13px', color: colors.gray[600] }}>
+          Review the issues below. You can fix them or skip validation.
+        </div>
+      </div>
 
-<Button
-  variant="warning"
-  disabled={!hasAIIssues}
-  onClick={() => handleSave(true)}
->
-  Skip & Create Anyway
-</Button>
+      <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
+        {aiValidationResults.issues?.map((issue, i) => (
+          <div
+            key={i}
+            style={{
+              padding: '14px',
+              backgroundColor: colors.gray[50],
+              borderRadius: '8px',
+              marginBottom: '10px',
+              borderLeft: `4px solid ${
+                issue.severity === 'error'
+                  ? colors.danger
+                  : colors.warning
+              }`
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '6px'
+              }}
+            >
+              <Badge
+                variant={
+                  issue.severity === 'error' ? 'danger' : 'warning'
+                }
+              >
+                {issue.severity?.toUpperCase() || 'WARNING'}
+              </Badge>
+              <strong style={{ color: colors.gray[800] }}>
+                {issue.field
+                  ?.replace(/_/g, ' ')
+                  .replace(/\./g, ' → ')}
+              </strong>
+            </div>
 
-<Button
-  variant="success"
-  disabled={hasAIIssues}
-  onClick={() => handleSave(false)}
->
-  ✓ Create Corporate
-</Button>
+            <p
+              style={{
+                margin: '0 0 6px 0',
+                color: colors.gray[700],
+                fontSize: '14px'
+              }}
+            >
+              {issue.message}
+            </p>
 
-                </div>
-            </Modal>
+            {issue.suggestion && (
+              <div
+                style={{
+                  fontSize: '13px',
+                  color: colors.success,
+                  backgroundColor: colors.successLight,
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  marginTop: '8px'
+                }}
+              >
+                💡 <strong>Suggestion:</strong> {issue.suggestion}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </>
+  )}
+
+  <div
+    style={{
+      display: 'flex',
+      justifyContent: 'flex-end',
+      gap: '12px',
+      marginTop: '24px',
+      paddingTop: '16px',
+      borderTop: `1px solid ${colors.gray[200]}`
+    }}
+  >
+    <Button
+      variant="outline"
+      onClick={() => setShowAIValidationModal(false)}
+    >
+      ← Fix Now
+    </Button>
+
+    <Button
+      variant="warning"
+      disabled={!hasAIIssues}
+      onClick={() => handleSave(true)}
+    >
+      Skip & Create Anyway
+    </Button>
+
+    <Button
+      variant="success"
+      disabled={hasAIIssues}
+      onClick={() => handleSave(false)}
+    >
+      ✓ Create Corporate
+    </Button>
+  </div>
+</Modal>
 
             {/* View Modal */}
             <Modal isOpen={showViewModal} onClose={() => setShowViewModal(false)} title="Corporate Details" icon="👁️" size="lg">
