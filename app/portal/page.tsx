@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://benefitnest-backend.onrender.com';
@@ -17,7 +17,7 @@ interface TenantInfo {
     status: string;
 }
 
-export default function PortalLoginPage() {
+function PortalLoginContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const tenant = searchParams.get('tenant') || '';
@@ -498,5 +498,13 @@ export default function PortalLoginPage() {
                 }
             `}</style>
         </div>
+    );
+}
+
+export default function PortalLoginPage() {
+    return (
+        <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f3f4f6' }}><div>Loading...</div></div>}>
+            <PortalLoginContent />
+        </Suspense>
     );
 }
