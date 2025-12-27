@@ -481,13 +481,15 @@ const hasAIIssues = aiValidationResults?.issues?.length > 0;
             
             const validContacts = contacts.filter(c => c.full_name && c.email);
             
-            const payload = {
-                ...formData,
-                contacts: validContacts,
-                contact_details: { ...formData.contact_details, contacts: validContacts },
-                ai_scan_skipped: skipAI,
-                ai_observations: skipAI ? null : aiValidationResults
-            };
+const payload = {
+  ...formData,
+  contact_details: {
+    ...(formData.contact_details || {}),
+    contacts: validContacts
+  },
+  ai_scan_skipped: skipAI,
+  ai_observations: skipAI ? null : aiValidationResults
+};
 
             if (selectedCorporate) {
                 // Update existing
