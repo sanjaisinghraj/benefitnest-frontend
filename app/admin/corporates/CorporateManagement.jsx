@@ -627,19 +627,37 @@ const CorporateManagement = () => {
                 }
             };
 
-            if (selectedCorporate) {
-                // UPDATE: Remove only immutable/frozen fields
-                const FROZEN_FIELDS = [
-                    'tenant_id',
-                    'tenant_code', 
-                    'subdomain',
-                    'created_at',
-                    'created_by'
-                ];
-                
-                FROZEN_FIELDS.forEach(field => delete payload[field]);
+            // Fields to ALWAYS remove (system managed or not in DB)
+            const ALWAYS_REMOVE = [
+                'tenant_id',
+                'tenant_code', 
+                'subdomain',
+                'created_at',
+                'created_by',
+                'updated_at',
+                'updated_by',
+                'last_activity_at',
+                'health_score',
+                'health_factors',
+                'portal_url',
+                'branding_config',
+                'documents'
+            ];
 
-                console.log('Update payload:', payload);
+            if (selectedCorporate) {
+                // UPDATE: Remove frozen/system fields
+                ALWAYS_REMOVE.forEach(field => delete payload[field]);
+
+                // Also remove any undefined or function values
+                Object.keys(payload).forEach(key => {
+                    if (payload[key] === undefined || typeof payload[key] === 'function') {
+                        delete payload[key];
+                    }
+                });
+
+                console.log('=== UPDATE PAYLOAD ===');
+                console.log('Tenant ID:', selectedCorporate.tenant_id);
+                console.log('Payload:', JSON.stringify(payload, null, 2));
 
                 const response = await axios.put(
                     `${CORPORATES_API}/${selectedCorporate.tenant_id}`,
@@ -653,14 +671,19 @@ const CorporateManagement = () => {
                     setShowAIValidationModal(false);
                     fetchCorporates(currentPage);
                     fetchStats();
+                } else {
+                    setToast({ message: response.data.message || 'Update failed', type: 'error' });
                 }
             } else {
-                // CREATE: Add additional fields
+                // CREATE: Remove system fields but keep tenant_code and subdomain
+                ['tenant_id', 'created_at', 'created_by', 'updated_at', 'updated_by', 'last_activity_at', 'health_score', 'health_factors'].forEach(field => delete payload[field]);
+                
                 payload.contacts = validContacts;
                 payload.ai_scan_skipped = skipAI;
                 payload.ai_observations = skipAI ? null : aiValidationResults;
 
-                console.log('Create payload:', payload);
+                console.log('=== CREATE PAYLOAD ===');
+                console.log('Payload:', JSON.stringify(payload, null, 2));
 
                 const response = await axios.post(
                     CORPORATES_API,
@@ -674,12 +697,19 @@ const CorporateManagement = () => {
                     setShowAIValidationModal(false);
                     fetchCorporates(1);
                     fetchStats();
+                } else {
+                    setToast({ message: response.data.message || 'Create failed', type: 'error' });
                 }
             }
         } catch (err) {
-            console.error('Save error:', err);
+            console.error('=== SAVE ERROR ===');
+            console.error('Error:', err);
+            console.error('Error message:', err.message);
             console.error('Error response:', err.response?.data);
-            setToast({ message: err.response?.data?.message || 'Failed to save corporate', type: 'error' });
+            console.error('Error status:', err.response?.status);
+            
+            const errorMsg = err.response?.data?.message || err.response?.data?.error || err.message || 'Failed to save corporate';
+            setToast({ message: errorMsg, type: 'error' });
         } finally {
             setSavingRecord(false);
         }
