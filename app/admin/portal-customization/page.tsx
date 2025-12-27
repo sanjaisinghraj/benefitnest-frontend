@@ -66,7 +66,7 @@ const Button = ({ children, variant = 'primary', onClick, disabled, loading, sty
         fontWeight: '600',
         color: v.color,
         backgroundColor: v.bg,
-        border: v.border || 'none',
+        border: 'border' in v ? v.border : 'none',
         borderRadius: '8px',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.6 : 1,
