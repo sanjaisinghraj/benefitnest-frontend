@@ -640,7 +640,6 @@ const CorporateManagement = () => {
                 'health_score',
                 'health_factors',
                 'portal_url',
-                'branding_config',
                 'documents'
             ];
 
@@ -672,7 +671,7 @@ const CorporateManagement = () => {
                     fetchCorporates(currentPage);
                     fetchStats();
                 } else {
-                    setToast({ message: response.data.message || 'Update failed', type: 'error' });
+                    throw new Error(response.data.message || 'Update failed - server returned false');
                 }
             } else {
                 // CREATE: Remove system fields but keep tenant_code and subdomain
@@ -698,7 +697,7 @@ const CorporateManagement = () => {
                     fetchCorporates(1);
                     fetchStats();
                 } else {
-                    setToast({ message: response.data.message || 'Create failed', type: 'error' });
+                    throw new Error(response.data.message || 'Create failed - server returned false');
                 }
             }
         } catch (err) {
