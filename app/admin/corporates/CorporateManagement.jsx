@@ -491,33 +491,41 @@ const payload = {
   ai_observations: skipAI ? null : aiValidationResults
 };
 
-            if (selectedCorporate) {
-                // Update existing
-                const response = await axios.put(`${CORPORATES_API}/${selectedCorporate.tenant_id}`, payload, { headers: getAuthHeaders() });
-                if (response.data.success) { 
-                    setToast({ message: 'Corporate updated successfully!', type: 'success' }); 
-                    setShowForm(false); 
-                    setShowAIValidationModal(false);
-                    fetchCorporates(currentPage); 
-                    fetchStats(); 
-                }
-            } else {
-                // Create new
-                const response = await axios.post(CORPORATES_API, payload, { headers: getAuthHeaders() });
-                if (response.data.success) { 
-                    setToast({ message: 'Corporate created successfully!', type: 'success' }); 
-                    setShowForm(false); 
-                    setShowAIValidationModal(false);
-                    fetchCorporates(1); 
-                    fetchStats(); 
-                }
-            }
-        } catch (err) { 
-            setToast({ message: err.response?.data?.message || 'Failed to save corporate', type: 'error' }); 
-        } finally { 
-            setSavingRecord(false); 
-        }
-    };
+if (selectedCorporate) {
+  // 🚫 remove immutable fields on update
+  delete payload.tenant_code;
+  delete payload.subdomain;
+
+  // Update existing
+  const response = await axios.put(
+    `${CORPORATES_API}/${selectedCorporate.tenant_id}`,
+    payload,
+    { headers: getAuthHeaders() }
+  );
+
+  if (response.data.success) {
+    setToast({ message: 'Corporate updated successfully!', type: 'success' });
+    setShowForm(false);
+    setShowAIValidationModal(false);
+    fetchCorporates(currentPage);
+    fetchStats();
+  }
+} else {
+  // Create new
+  const response = await axios.post(
+    CORPORATES_API,
+    payload,
+    { headers: getAuthHeaders() }
+  );
+
+  if (response.data.success) {
+    setToast({ message: 'Corporate created successfully!', type: 'success' });
+    setShowForm(false);
+    setShowAIValidationModal(false);
+    fetchCorporates(1);
+    fetchStats();
+  }
+}
 
     const handleDeleteConfirm = async () => { 
         try { 
