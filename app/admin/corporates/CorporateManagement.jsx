@@ -959,7 +959,11 @@ const CorporateManagement = () => {
                     </div>
                     <div style={{ display: 'flex', gap: '12px' }}>
                         <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
-                        {!selectedCorporate && <Button variant="ghost" onClick={() => handleSave(true)} disabled={savingRecord}>Skip AI & Create</Button>}
+                  
+
+  {/* {!selectedCorporate && <Button variant="ghost" onClick={() => handleSave(true)} disabled={savingRecord}>Skip AI & Create</Button>} */}
+
+
                         <Button variant="primary" onClick={() => handleSave(!!selectedCorporate)} disabled={savingRecord} loading={savingRecord || aiValidating}>
                             {aiValidating ? 'Validating...' : (selectedCorporate ? 'Update Corporate' : 'Create Corporate')}
                         </Button>
