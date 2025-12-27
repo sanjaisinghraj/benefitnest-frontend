@@ -584,6 +584,22 @@ const CorporateManagement = () => {
         setShowDeleteModal(true); 
     };
 
+    const handleDeleteConfirm = async () => {
+        try {
+            const response = await axios.delete(`${CORPORATES_API}/${selectedCorporate.tenant_id}`, { headers: getAuthHeaders() });
+            if (response.data.success) {
+                setToast({ message: 'Corporate deleted successfully!', type: 'success' });
+                setShowDeleteModal(false);
+                setSelectedCorporate(null);
+                fetchCorporates(currentPage);
+                fetchStats();
+            }
+        } catch (err) {
+            console.error('Delete error:', err);
+            setToast({ message: err.response?.data?.message || 'Failed to delete corporate', type: 'error' });
+        }
+    };
+
     const handleSave = async (skipAI = false) => {
         // Validate required fields
         if (!formData.tenant_code || !formData.subdomain || !formData.corporate_legal_name) {
