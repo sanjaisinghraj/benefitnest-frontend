@@ -527,17 +527,6 @@ if (selectedCorporate) {
   }
 }
 
-    const handleDeleteConfirm = async () => { 
-        try { 
-            await axios.delete(`${CORPORATES_API}/${selectedCorporate.tenant_id}`, { headers: getAuthHeaders() }); 
-            setToast({ message: 'Corporate deleted successfully!', type: 'success' }); 
-            setShowDeleteModal(false); 
-            fetchCorporates(currentPage); 
-            fetchStats(); 
-        } catch (err) { 
-            setToast({ message: err.response?.data?.message || 'Failed to delete', type: 'error' }); 
-        } 
-    };
 
     // ==================== ADD FIELD HANDLER ====================
     
