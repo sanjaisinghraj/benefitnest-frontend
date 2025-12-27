@@ -40,6 +40,13 @@ const AdminDashboard = () => {
       color: '#2563eb'
     },
     {
+      title: 'Portal Customization',
+      description: 'Customize portal appearance, colors, fonts, and branding per corporate.',
+      icon: '🎨',
+      link: '/admin/portal-customization',
+      color: '#ec4899'
+    },
+    {
       title: 'Employees',
       description: 'View employee data, enrollment status and access control.',
       icon: '👥',
