@@ -91,12 +91,13 @@ const Input = ({ label, value, onChange, type = 'text', placeholder, hint, step 
         {label}
       </label>
     )}
-      <input
+    <input
       type={type}
       value={value}
       onChange={onChange}
       placeholder={placeholder}
       step={step}
+      style={{
         width: '100%',
         padding: '10px 12px',
         border: `1px solid ${colors.gray[300]}`,
