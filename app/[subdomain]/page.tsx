@@ -14,6 +14,42 @@ interface PortalConfig {
   contact_phone?: string;
   status: string;
   created_at: string;
+  // Optional customization properties that may be merged
+  accent_color?: string;
+  background_color?: string;
+  text_color?: string;
+  border_color?: string;
+  heading_font_family?: string;
+  body_font_family?: string;
+  heading_font_size?: number;
+  subheading_font_size?: number;
+  body_font_size?: number;
+  caption_font_size?: number;
+  font_weight_heading?: number;
+  font_weight_body?: number;
+  line_height_multiplier?: number;
+  container_max_width?: number;
+  container_padding_x?: number;
+  container_padding_y?: number;
+  section_gap?: number;
+  portal_title?: string;
+  portal_tagline?: string;
+  portal_description?: string;
+  hero_headline?: string;
+  hero_subheadline?: string;
+  hero_background_image_url?: string;
+  hero_cta_button_text?: string;
+  hero_cta_button_url?: string;
+  show_header?: boolean;
+  show_hero_section?: boolean;
+  show_benefits_section?: boolean;
+  show_features_section?: boolean;
+  show_contact_section?: boolean;
+  show_footer?: boolean;
+  show_employee_directory?: boolean;
+  custom_css?: string;
+  logo_width?: number;
+  logo_height?: number;
 }
 
 interface Customizations {
