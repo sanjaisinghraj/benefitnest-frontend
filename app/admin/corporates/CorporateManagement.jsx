@@ -379,19 +379,141 @@ const CorporateManagement = () => {
     
     const runAIValidation = async () => {
         setAiValidating(true);
+        const issues = [];
+        
         try {
-            const response = await axios.post(`${CORPORATES_API}/validate`, {
-                corporate_legal_name: formData.corporate_legal_name,
-                country: formData.country,
-                industry_type: formData.industry_type,
-                registration_details: formData.registration_details
-            }, { headers: getAuthHeaders() });
+            // 1. Check if corporate name already exists (client-side check)
+            const nameToCheck = formData.corporate_legal_name?.trim().toLowerCase();
+            const existingCorp = corporates.find(c => 
+                c.corporate_legal_name?.trim().toLowerCase() === nameToCheck &&
+                c.tenant_id !== selectedCorporate?.tenant_id // Exclude current record when editing
+            );
             
-            setAiValidationResults(response.data);
+            if (existingCorp) {
+                issues.push({
+                    field: 'corporate_legal_name',
+                    severity: 'error',
+                    message: `Corporate "${existingCorp.corporate_legal_name}" already exists with code ${existingCorp.tenant_code}`
+                });
+            }
+            
+            // 2. Check subdomain uniqueness (only for new records)
+            if (!selectedCorporate) {
+                const subdomainExists = corporates.find(c => 
+                    c.subdomain?.toLowerCase() === formData.subdomain?.toLowerCase()
+                );
+                if (subdomainExists) {
+                    issues.push({
+                        field: 'subdomain',
+                        severity: 'error',
+                        message: `Subdomain "${formData.subdomain}" is already taken by ${subdomainExists.corporate_legal_name}`
+                    });
+                }
+                
+                // Check tenant_code uniqueness
+                const codeExists = corporates.find(c => 
+                    c.tenant_code?.toLowerCase() === formData.tenant_code?.toLowerCase()
+                );
+                if (codeExists) {
+                    issues.push({
+                        field: 'tenant_code',
+                        severity: 'error',
+                        message: `Corporate code "${formData.tenant_code}" is already used by ${codeExists.corporate_legal_name}`
+                    });
+                }
+            }
+            
+            // 3. Validate corporate name format based on country
+            const name = formData.corporate_legal_name?.toLowerCase() || '';
+            if (formData.country === 'India') {
+                const validSuffixes = ['private limited', 'pvt ltd', 'pvt. ltd.', 'limited', 'ltd', 'llp', 'opc', 'llp.'];
+                const hasSuffix = validSuffixes.some(s => name.includes(s));
+                if (!hasSuffix && name.length > 0) {
+                    issues.push({
+                        field: 'corporate_legal_name',
+                        severity: 'warning',
+                        message: 'Indian company names typically end with Private Limited, LLP, or similar suffix',
+                        suggestion: `${formData.corporate_legal_name} Private Limited`
+                    });
+                }
+            }
+            
+            if (formData.country === 'USA') {
+                const validSuffixes = ['inc', 'inc.', 'incorporated', 'llc', 'corp', 'corporation', 'co', 'company'];
+                const hasSuffix = validSuffixes.some(s => name.includes(s));
+                if (!hasSuffix && name.length > 0) {
+                    issues.push({
+                        field: 'corporate_legal_name',
+                        severity: 'warning',
+                        message: 'US company names typically end with Inc, LLC, Corp, etc.',
+                        suggestion: `${formData.corporate_legal_name}, Inc.`
+                    });
+                }
+            }
+            
+            // 4. Validate PAN format (India)
+            const pan = formData.registration_details?.pan;
+            if (pan && pan.length > 0 && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan.toUpperCase())) {
+                issues.push({
+                    field: 'PAN',
+                    severity: 'error',
+                    message: 'Invalid PAN format. Expected: AAAAA9999A (5 letters, 4 digits, 1 letter)'
+                });
+            }
+            
+            // 5. Validate GSTIN format (India)
+            const gstin = formData.registration_details?.gstin;
+            if (gstin && gstin.length > 0 && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(gstin.toUpperCase())) {
+                issues.push({
+                    field: 'GSTIN',
+                    severity: 'error',
+                    message: 'Invalid GSTIN format. Expected: 22AAAAA0000A1Z5 (15 characters)'
+                });
+            }
+            
+            // 6. Validate CIN format (India)
+            const cin = formData.registration_details?.cin;
+            if (cin && cin.length > 0 && cin.length !== 21) {
+                issues.push({
+                    field: 'CIN',
+                    severity: 'warning',
+                    message: 'CIN should be exactly 21 characters long'
+                });
+            }
+            
+            // 7. Contract date validation
+            if (formData.contract_start_date && formData.contract_end_date) {
+                if (new Date(formData.contract_end_date) <= new Date(formData.contract_start_date)) {
+                    issues.push({
+                        field: 'Contract Dates',
+                        severity: 'error',
+                        message: 'Contract end date must be after start date'
+                    });
+                }
+            }
+            
+            // 8. Check at least one contact with email
+            const validContacts = contacts.filter(c => c.full_name && c.email);
+            if (validContacts.length === 0) {
+                issues.push({
+                    field: 'Contacts',
+                    severity: 'warning',
+                    message: 'No valid contacts added. Consider adding at least one contact with name and email.'
+                });
+            }
+            
+            // Set results
+            const hasErrors = issues.some(i => i.severity === 'error');
+            setAiValidationResults({ 
+                issues, 
+                valid: !hasErrors,
+                checkedAt: new Date().toISOString()
+            });
             setShowAIValidationModal(true);
+            
         } catch (err) {
-            // If endpoint doesn't exist, just proceed
-            setAiValidationResults({ issues: [], valid: true });
+            console.error('AI Validation error:', err);
+            setAiValidationResults({ issues, valid: issues.length === 0 });
             setShowAIValidationModal(true);
         } finally {
             setAiValidating(false);
@@ -413,12 +535,10 @@ const CorporateManagement = () => {
             address: { line1: '', line2: '', city: '', state: '', pincode: '', country: 'India' },
             registration_details: { pan: '', gstin: '', cin: '', tan: '' },
             benefitnest_manager: { name: '', email: '', phone: '' },
-            branding_config: { primary_color: '#2563eb', secondary_color: '#10b981', logo_url: '' },
             contract_start_date: '',
             contract_end_date: '',
             contract_value: '',
             compliance_status: 'PENDING',
-            portal_url: '',
             tags: [],
             internal_notes: ''
         });
@@ -444,12 +564,10 @@ const CorporateManagement = () => {
             address: corporate.address || { line1: '', line2: '', city: '', state: '', pincode: '', country: 'India' },
             registration_details: corporate.registration_details || { pan: '', gstin: '', cin: '', tan: '' },
             benefitnest_manager: corporate.benefitnest_manager || { name: '', email: '', phone: '' },
-            branding_config: corporate.branding_config || { primary_color: '#2563eb', secondary_color: '#10b981', logo_url: '' },
             contract_start_date: corporate.contract_start_date?.split('T')[0] || '',
             contract_end_date: corporate.contract_end_date?.split('T')[0] || '',
             contract_value: corporate.contract_value || '',
             compliance_status: corporate.compliance_status || 'PENDING',
-            portal_url: corporate.portal_url || '',
             tags: corporate.tags || [],
             internal_notes: corporate.internal_notes || '',
             status: corporate.status || 'ACTIVE'
@@ -473,8 +591,8 @@ const CorporateManagement = () => {
             return;
         }
 
-        // Run AI validation first (unless skipped or editing existing)
-        if (!skipAI && !selectedCorporate) {
+        // Run AI validation first (unless skipped) - WORKS FOR BOTH CREATE AND UPDATE
+        if (!skipAI) {
             await runAIValidation();
             return;
         }
@@ -484,52 +602,64 @@ const CorporateManagement = () => {
             
             const validContacts = contacts.filter(c => c.full_name && c.email);
             
-const payload = {
-  ...formData,
-  contact_details: {
-    ...(formData.contact_details || {}),
-    contacts: validContacts
-  },
-  ai_scan_skipped: skipAI,
-  ai_observations: skipAI ? null : aiValidationResults
-};
+            const payload = {
+                ...formData,
+                contact_details: {
+                    ...(formData.contact_details || {}),
+                    contacts: validContacts
+                },
+                ai_scan_skipped: skipAI,
+                ai_observations: skipAI ? null : aiValidationResults
+            };
 
-if (selectedCorporate) {
-  // 🚫 remove immutable fields on update
-  delete payload.tenant_code;
-  delete payload.subdomain;
+            // Remove fields that shouldn't be sent
+            delete payload.branding_config;
+            delete payload.portal_url;
 
-  // Update existing
-  const response = await axios.put(
-    `${CORPORATES_API}/${selectedCorporate.tenant_id}`,
-    payload,
-    { headers: getAuthHeaders() }
-  );
+            if (selectedCorporate) {
+                // Remove immutable fields on update
+                delete payload.tenant_code;
+                delete payload.subdomain;
+                delete payload.created_at;
+                delete payload.created_by;
+                delete payload.tenant_id;
 
-  if (response.data.success) {
-    setToast({ message: 'Corporate updated successfully!', type: 'success' });
-    setShowForm(false);
-    setShowAIValidationModal(false);
-    fetchCorporates(currentPage);
-    fetchStats();
-  }
-} else {
-  // Create new
-  const response = await axios.post(
-    CORPORATES_API,
-    payload,
-    { headers: getAuthHeaders() }
-  );
+                const response = await axios.put(
+                    `${CORPORATES_API}/${selectedCorporate.tenant_id}`,
+                    payload,
+                    { headers: getAuthHeaders() }
+                );
 
-  if (response.data.success) {
-    setToast({ message: 'Corporate created successfully!', type: 'success' });
-    setShowForm(false);
-    setShowAIValidationModal(false);
-    fetchCorporates(1);
-    fetchStats();
-  }
-}
+                if (response.data.success) {
+                    setToast({ message: 'Corporate updated successfully!', type: 'success' });
+                    setShowForm(false);
+                    setShowAIValidationModal(false);
+                    fetchCorporates(currentPage);
+                    fetchStats();
+                }
+            } else {
+                // Create new
+                const response = await axios.post(
+                    CORPORATES_API,
+                    payload,
+                    { headers: getAuthHeaders() }
+                );
 
+                if (response.data.success) {
+                    setToast({ message: 'Corporate created successfully!', type: 'success' });
+                    setShowForm(false);
+                    setShowAIValidationModal(false);
+                    fetchCorporates(1);
+                    fetchStats();
+                }
+            }
+        } catch (err) {
+            console.error('Save error:', err);
+            setToast({ message: err.response?.data?.message || 'Failed to save corporate', type: 'error' });
+        } finally {
+            setSavingRecord(false);
+        }
+    };
 
     // ==================== ADD FIELD HANDLER ====================
     
@@ -915,27 +1045,6 @@ if (selectedCorporate) {
                         </div>
                     </div>
 
-                    {/* Branding & Portal */}
-                    <div>
-                        <SectionHeader title="Branding & Portal" icon="🎨" />
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: colors.gray[700] }}>Primary Color</label>
-                                <input type="color" value={formData.branding_config?.primary_color || '#2563eb'} onChange={(e) => setFormData({ ...formData, branding_config: { ...formData.branding_config, primary_color: e.target.value } })} style={{ width: '100%', height: '42px', border: `1px solid ${colors.gray[300]}`, borderRadius: '8px', cursor: 'pointer' }} />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: colors.gray[700] }}>Secondary Color</label>
-                                <input type="color" value={formData.branding_config?.secondary_color || '#10b981'} onChange={(e) => setFormData({ ...formData, branding_config: { ...formData.branding_config, secondary_color: e.target.value } })} style={{ width: '100%', height: '42px', border: `1px solid ${colors.gray[300]}`, borderRadius: '8px', cursor: 'pointer' }} />
-                            </div>
-                            <Input label="Logo URL" value={formData.branding_config?.logo_url || ''} onChange={(e) => setFormData({ ...formData, branding_config: { ...formData.branding_config, logo_url: e.target.value } })} placeholder="https://..." />
-                        </div>
-                        <div style={{ marginTop: '12px', padding: '12px', backgroundColor: colors.cyanLight, borderRadius: '8px' }}>
-                            <div style={{ fontSize: '13px', color: colors.cyan }}>
-                                <strong>🔗 Portal URL:</strong> {formData.portal_url || `https://${formData.subdomain || 'subdomain'}.benefitnest.space`}
-                            </div>
-                        </div>
-                    </div>
-
                     {/* Dynamic Fields (new columns) */}
                     {dynamicFields.length > 0 && (
                         <div>
@@ -962,14 +1071,8 @@ if (selectedCorporate) {
                     </div>
                     <div style={{ display: 'flex', gap: '12px' }}>
                         <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
-
-
-
-
-
-
-                        <Button variant="primary" onClick={() => handleSave(!!selectedCorporate)} disabled={savingRecord} loading={savingRecord || aiValidating}>
-                            {aiValidating ? 'Validating...' : (selectedCorporate ? 'Update Corporate' : 'Create Corporate')}
+                        <Button variant="primary" onClick={() => handleSave(false)} disabled={savingRecord} loading={savingRecord || aiValidating}>
+                            {aiValidating ? '🤖 Validating...' : (selectedCorporate ? 'Update Corporate' : 'Create Corporate')}
                         </Button>
                     </div>
                 </div>
@@ -1107,24 +1210,32 @@ if (selectedCorporate) {
       variant="outline"
       onClick={() => setShowAIValidationModal(false)}
     >
-      ← Fix Now
+      ← Go Back & Fix
     </Button>
 
-    <Button
-      variant="warning"
-      disabled={!hasAIIssues}
-      onClick={() => handleSave(true)}
-    >
-      Skip & Create Anyway
-    </Button>
+    {/* Show Skip button only if there are issues */}
+    {aiValidationResults.issues?.length > 0 && (
+      <Button
+        variant="warning"
+        onClick={() => handleSave(true)}
+        disabled={savingRecord}
+        loading={savingRecord}
+      >
+        Skip & {selectedCorporate ? 'Update' : 'Create'} Anyway
+      </Button>
+    )}
 
-    <Button
-      variant="success"
-      disabled={hasAIIssues}
-      onClick={() => handleSave(false)}
-    >
-      ✓ Create Corporate
-    </Button>
+    {/* Show success button only if no errors (warnings are OK) */}
+    {!aiValidationResults.issues?.some(i => i.severity === 'error') && (
+      <Button
+        variant="success"
+        onClick={() => handleSave(true)}
+        disabled={savingRecord}
+        loading={savingRecord}
+      >
+        ✓ {selectedCorporate ? 'Update' : 'Create'} Corporate
+      </Button>
+    )}
   </div>
 </Modal>
 
