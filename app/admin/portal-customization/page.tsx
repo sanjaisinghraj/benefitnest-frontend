@@ -710,7 +710,7 @@ export default function PortalCustomizationPage() {
                     </label>
                     <textarea
                       value={customizations.portal_description || ''}
-                      onChange={(e) => updateCustomization('portal_description', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateCustomization('portal_description', e.target.value)}
                       placeholder="Detailed description of your portal"
                       style={{
                         width: '100%',
