@@ -78,7 +78,7 @@ const Button = ({ children, variant = 'primary', onClick, disabled, loading, sty
   );
 };
 
-const Input = ({ label, value, onChange, type = 'text', placeholder, hint }: { label?: string; value: string | number; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; type?: string; placeholder?: string; hint?: string }) => (
+cconst Input = ({ label, value, onChange, type = 'text', placeholder, hint, step }: { label?: string; value: string | number; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; type?: string; placeholder?: string; hint?: string; step?: string }) => (
   <div style={{ marginBottom: '16px' }}>
     {label && (
       <label style={{
@@ -91,12 +91,12 @@ const Input = ({ label, value, onChange, type = 'text', placeholder, hint }: { l
         {label}
       </label>
     )}
-    <input
+      <input
       type={type}
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      style={{
+      step={step}
         width: '100%',
         padding: '10px 12px',
         border: `1px solid ${colors.gray[300]}`,
@@ -887,7 +887,7 @@ export default function PortalCustomizationPage() {
                     </label>
                     <textarea
                       value={customizations.custom_css || ''}
-                      onChange={(e) => updateCustomization('custom_css', e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateCustomization('custom_css', e.target.value)}
                       placeholder="Add custom CSS rules here..."
                       style={{
                         width: '100%',
