@@ -617,28 +617,29 @@ const CorporateManagement = () => {
             setSavingRecord(true);
             
             const validContacts = contacts.filter(c => c.full_name && c.email);
-            
+
+            // Build payload from formData
             const payload = {
                 ...formData,
                 contact_details: {
                     ...(formData.contact_details || {}),
                     contacts: validContacts
-                },
-                ai_scan_skipped: skipAI,
-                ai_observations: skipAI ? null : aiValidationResults
+                }
             };
 
-            // Remove fields that shouldn't be sent
-            delete payload.branding_config;
-            delete payload.portal_url;
-
             if (selectedCorporate) {
-                // Remove immutable fields on update
-                delete payload.tenant_code;
-                delete payload.subdomain;
-                delete payload.created_at;
-                delete payload.created_by;
-                delete payload.tenant_id;
+                // UPDATE: Remove only immutable/frozen fields
+                const FROZEN_FIELDS = [
+                    'tenant_id',
+                    'tenant_code', 
+                    'subdomain',
+                    'created_at',
+                    'created_by'
+                ];
+                
+                FROZEN_FIELDS.forEach(field => delete payload[field]);
+
+                console.log('Update payload:', payload);
 
                 const response = await axios.put(
                     `${CORPORATES_API}/${selectedCorporate.tenant_id}`,
@@ -654,7 +655,13 @@ const CorporateManagement = () => {
                     fetchStats();
                 }
             } else {
-                // Create new
+                // CREATE: Add additional fields
+                payload.contacts = validContacts;
+                payload.ai_scan_skipped = skipAI;
+                payload.ai_observations = skipAI ? null : aiValidationResults;
+
+                console.log('Create payload:', payload);
+
                 const response = await axios.post(
                     CORPORATES_API,
                     payload,
@@ -671,6 +678,7 @@ const CorporateManagement = () => {
             }
         } catch (err) {
             console.error('Save error:', err);
+            console.error('Error response:', err.response?.data);
             setToast({ message: err.response?.data?.message || 'Failed to save corporate', type: 'error' });
         } finally {
             setSavingRecord(false);
@@ -1229,29 +1237,25 @@ const CorporateManagement = () => {
       ← Go Back & Fix
     </Button>
 
-    {/* Show Skip button only if there are issues */}
-    {aiValidationResults.issues?.length > 0 && (
-      <Button
-        variant="warning"
-        onClick={() => handleSave(true)}
-        disabled={savingRecord}
-        loading={savingRecord}
-      >
-        Skip & {selectedCorporate ? 'Update' : 'Create'} Anyway
-      </Button>
-    )}
+    {/* Skip button - enabled only if there are issues, disabled if no issues */}
+    <Button
+      variant="warning"
+      onClick={() => handleSave(true)}
+      disabled={savingRecord || (aiValidationResults.issues?.length === 0)}
+      loading={savingRecord}
+    >
+      Skip & {selectedCorporate ? 'Update' : 'Create'} Anyway
+    </Button>
 
-    {/* Show success button only if no errors (warnings are OK) */}
-    {!aiValidationResults.issues?.some(i => i.severity === 'error') && (
-      <Button
-        variant="success"
-        onClick={() => handleSave(true)}
-        disabled={savingRecord}
-        loading={savingRecord}
-      >
-        ✓ {selectedCorporate ? 'Update' : 'Create'} Corporate
-      </Button>
-    )}
+    {/* Create/Update button - enabled only if no issues, disabled if there are issues */}
+    <Button
+      variant="success"
+      onClick={() => handleSave(true)}
+      disabled={savingRecord || (aiValidationResults.issues?.length > 0)}
+      loading={savingRecord}
+    >
+      ✓ {selectedCorporate ? 'Update' : 'Create'} Corporate
+    </Button>
   </div>
 </Modal>
 
