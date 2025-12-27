@@ -78,7 +78,7 @@ const Button = ({ children, variant = 'primary', onClick, disabled, loading, sty
   );
 };
 
-const Input = ({ label, value, onChange, type = 'text', placeholder, hint }: any) => (
+const Input = ({ label, value, onChange, type = 'text', placeholder, hint }: { label?: string; value: string | number; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; type?: string; placeholder?: string; hint?: string }) => (
   <div style={{ marginBottom: '16px' }}>
     {label && (
       <label style={{
