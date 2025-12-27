@@ -963,9 +963,6 @@ if (selectedCorporate) {
 
 
 
-  {/* {!selectedCorporate && <Button variant="ghost" onClick={() => handleSave(true)} disabled={savingRecord}>Skip AI & Create</Button>} */}
-
-
 
 
                         <Button variant="primary" onClick={() => handleSave(!!selectedCorporate)} disabled={savingRecord} loading={savingRecord || aiValidating}>
