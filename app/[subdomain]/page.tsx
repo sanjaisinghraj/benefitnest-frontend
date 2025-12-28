@@ -208,481 +208,514 @@ export default function PortalPage() {
   if (isLoggedIn) return <PortalDashboard config={portalConfig} customizations={customizations} theme={theme} onLogout={handleLogout} />;
 
   // ==========================================
-  // LOGIN PAGE - Inspired by GIF Design
+  // LOGIN PAGE - Sliding Panel Design (Like GIF)
   // ==========================================
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', fontFamily: theme.bodyFont, overflow: 'hidden' }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      fontFamily: theme.bodyFont, 
+      overflow: 'hidden',
+      background: `linear-gradient(135deg, ${theme.primary}15 0%, ${theme.secondary}15 100%)`
+    }}>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-20px) rotate(5deg); } }
-        @keyframes blob { 0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; } 50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; } }
-        @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+        @keyframes blob { 
+          0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; } 
+          50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; } 
+        }
+        @keyframes float { 
+          0%, 100% { transform: translateY(0) rotate(0deg); } 
+          50% { transform: translateY(-15px) rotate(3deg); } 
+        }
+        @keyframes confetti {
+          0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.6; }
+          50% { transform: translateY(-10px) rotate(180deg); opacity: 1; }
+        }
         .blob-shape { animation: blob 8s ease-in-out infinite; }
-        .float-animation { animation: float 6s ease-in-out infinite; }
-        .pulse-animation { animation: pulse 3s ease-in-out infinite; }
+        .float-animation { animation: float 4s ease-in-out infinite; }
+        .confetti { animation: confetti 3s ease-in-out infinite; }
+        .slide-container { transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        .panel-slide { transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
         input:focus { outline: none; border-color: ${theme.primary} !important; box-shadow: 0 0 0 4px ${theme.primary}20; }
-        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 35px -10px ${theme.primary}60 !important; }
-        .outline-btn:hover { background-color: rgba(255,255,255,0.1) !important; }
+        .signin-btn:hover { transform: translateY(-3px); box-shadow: 0 20px 40px -15px ${theme.primary}60 !important; }
+        .outline-btn:hover { background-color: rgba(255,255,255,0.15) !important; transform: scale(1.02); }
         ${theme.customCss}
       `}</style>
 
-      {/* ========== LEFT SIDE - Gradient with Organic Blob Shapes ========== */}
-      <div style={{ 
-        flex: 1, 
-        background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`, 
-        position: 'relative', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        padding: '60px', 
-        overflow: 'hidden' 
+      {/* Main Container */}
+      <div style={{
+        width: '100%',
+        maxWidth: '1000px',
+        minHeight: '600px',
+        display: 'flex',
+        borderRadius: '30px',
+        overflow: 'hidden',
+        boxShadow: '0 50px 100px -30px rgba(0,0,0,0.3)',
+        position: 'relative',
+        margin: '20px'
       }}>
         
-        {/* Organic Blob Shapes - Like in the GIF */}
-        <div className="blob-shape" style={{ 
-          position: 'absolute', 
-          top: '-150px', 
-          left: '-150px', 
-          width: '400px', 
-          height: '400px', 
-          background: 'rgba(255,255,255,0.1)' 
-        }} />
-        <div className="blob-shape" style={{ 
-          position: 'absolute', 
-          bottom: '5%', 
-          left: '0%', 
-          width: '280px', 
-          height: '280px', 
-          background: 'rgba(255,255,255,0.08)', 
-          animationDelay: '-4s' 
-        }} />
-        <div className="blob-shape" style={{ 
-          position: 'absolute', 
-          top: '15%', 
-          right: '-80px', 
-          width: '320px', 
-          height: '320px', 
-          background: 'rgba(0,0,0,0.12)', 
-          animationDelay: '-2s' 
-        }} />
-        <div style={{ 
-          position: 'absolute', 
-          bottom: '-120px', 
-          right: '15%', 
-          width: '350px', 
-          height: '350px', 
-          background: 'rgba(255,255,255,0.05)', 
-          borderRadius: '50%' 
-        }} />
-        
-        {/* Decorative Elements */}
-        <div style={{ 
-          position: 'absolute', 
-          top: '12%', 
-          left: '15%', 
-          width: '100px', 
-          height: '100px', 
-          border: '3px solid rgba(255,255,255,0.15)', 
-          borderRadius: '50%' 
-        }} />
-        <div style={{ 
-          position: 'absolute', 
-          bottom: '20%', 
-          left: '8%', 
-          width: '60px', 
-          height: '60px', 
-          border: '2px solid rgba(255,255,255,0.12)', 
-          borderRadius: '10px', 
-          transform: 'rotate(45deg)' 
-        }} />
-        <div className="pulse-animation" style={{ 
-          position: 'absolute', 
-          top: '40%', 
-          left: '25%', 
-          width: '10px', 
-          height: '10px', 
-          backgroundColor: 'rgba(255,255,255,0.4)', 
-          borderRadius: '50%' 
-        }} />
-        
-        {/* Floating Confetti Elements */}
-        <div className="float-animation" style={{ position: 'absolute', top: '25%', right: '20%', width: '14px', height: '14px', backgroundColor: 'rgba(255,255,255,0.25)', borderRadius: '3px', transform: 'rotate(45deg)' }} />
-        <div className="float-animation" style={{ position: 'absolute', top: '55%', left: '20%', width: '10px', height: '10px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '50%', animationDelay: '-2s' }} />
-        <div className="float-animation" style={{ position: 'absolute', bottom: '35%', right: '30%', width: '16px', height: '16px', backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: '4px', animationDelay: '-4s' }} />
-        <div className="float-animation" style={{ position: 'absolute', top: '70%', right: '15%', width: '8px', height: '8px', backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: '2px', animationDelay: '-1s' }} />
-        
-        {/* Main Content */}
-        <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', color: 'white', maxWidth: '480px' }}>
-          {/* Logo */}
-          {theme.logoUrl ? (
-            <img 
-              src={theme.logoUrl} 
-              alt={theme.portalTitle} 
-              style={{ maxWidth: `${theme.logoWidth}px`, maxHeight: `${theme.logoHeight}px`, marginBottom: '45px', objectFit: 'contain' }} 
-              onError={(e: any) => { e.target.style.display = 'none'; }} 
-            />
-          ) : (
-            <div style={{ 
-              width: '80px', 
-              height: '80px', 
-              backgroundColor: 'rgba(255,255,255,0.15)', 
-              borderRadius: '20px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              margin: '0 auto 45px', 
-              fontSize: '36px',
-              backdropFilter: 'blur(10px)'
-            }}>🏢</div>
-          )}
-          
-          <h1 style={{ 
-            fontSize: `${theme.headingSize}px`, 
-            fontWeight: theme.headingWeight, 
-            marginBottom: '24px', 
-            fontFamily: theme.headingFont, 
-            lineHeight: 1.1,
-            textShadow: '0 2px 20px rgba(0,0,0,0.2)'
-          }}>
-            Welcome Back
-          </h1>
-          
-          <p style={{ 
-            fontSize: '18px', 
-            opacity: 0.9, 
-            lineHeight: 1.7, 
-            marginBottom: '55px',
-            maxWidth: '350px',
-            margin: '0 auto 55px'
-          }}>
-            {theme.tagline}
-          </p>
-
-          {/* Sign In Button */}
-          <button 
-            className="outline-btn"
-            onClick={() => document.getElementById('login-form')?.querySelector('input')?.focus()}
-            style={{ 
-              padding: '18px 55px', 
-              backgroundColor: 'transparent', 
-              color: 'white', 
-              border: '2px solid rgba(255,255,255,0.5)', 
-              borderRadius: '50px', 
-              fontSize: '15px', 
-              fontWeight: 600, 
-              cursor: 'pointer', 
-              transition: 'all 0.3s', 
-              letterSpacing: '2px',
-              textTransform: 'uppercase'
+        {/* ========== LEFT PANEL - Pink Blob with Welcome ========== */}
+        <div 
+          className="panel-slide"
+          style={{ 
+            width: showForgotPassword ? '40%' : '50%',
+            background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`, 
+            position: 'relative', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            padding: '50px 40px', 
+            overflow: 'hidden',
+            zIndex: 10
+          }}
+        >
+          {/* Organic Blob Edge - Like in the GIF */}
+          <svg 
+            viewBox="0 0 100 600" 
+            preserveAspectRatio="none"
+            style={{
+              position: 'absolute',
+              right: '-1px',
+              top: 0,
+              height: '100%',
+              width: '100px',
+              zIndex: 5
             }}
           >
-            SIGN IN
-          </button>
+            <path 
+              d="M0,0 L0,600 L100,600 C60,550 30,480 50,400 C70,320 30,260 60,180 C90,100 50,50 80,0 Z" 
+              fill={`url(#gradient-${theme.primary.replace('#', '')})`}
+            />
+            <defs>
+              <linearGradient id={`gradient-${theme.primary.replace('#', '')}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor={theme.primary} />
+                <stop offset="100%" stopColor={theme.secondary} />
+              </linearGradient>
+            </defs>
+          </svg>
+
+          {/* Decorative Elements - Like in the GIF */}
+          <div className="blob-shape" style={{ 
+            position: 'absolute', 
+            top: '-80px', 
+            left: '-80px', 
+            width: '250px', 
+            height: '250px', 
+            background: 'rgba(255,255,255,0.08)' 
+          }} />
+          <div style={{ 
+            position: 'absolute', 
+            bottom: '8%', 
+            left: '5%', 
+            width: '120px', 
+            height: '120px', 
+            border: '3px solid rgba(255,255,255,0.15)', 
+            borderRadius: '50%' 
+          }} />
+          <div style={{ 
+            position: 'absolute', 
+            top: '20%', 
+            left: '10%', 
+            width: '50px', 
+            height: '50px', 
+            border: '2px solid rgba(255,255,255,0.12)', 
+            borderRadius: '8px', 
+            transform: 'rotate(45deg)' 
+          }} />
+          <div className="blob-shape" style={{ 
+            position: 'absolute', 
+            bottom: '15%', 
+            left: '20%', 
+            width: '80px', 
+            height: '80px', 
+            background: 'rgba(0,0,0,0.1)',
+            animationDelay: '-3s'
+          }} />
+          <div style={{ 
+            position: 'absolute', 
+            top: '60%', 
+            left: '8%', 
+            width: '30px', 
+            height: '30px', 
+            background: 'rgba(255,255,255,0.1)', 
+            borderRadius: '50%' 
+          }} />
+
+          {/* Main Content */}
+          <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', color: 'white', maxWidth: '320px' }}>
+            {/* Logo */}
+            {theme.logoUrl ? (
+              <img 
+                src={theme.logoUrl} 
+                alt={theme.portalTitle} 
+                style={{ maxWidth: `${Math.min(theme.logoWidth, 120)}px`, maxHeight: `${Math.min(theme.logoHeight, 60)}px`, marginBottom: '40px', objectFit: 'contain' }} 
+                onError={(e: any) => { e.target.style.display = 'none'; }} 
+              />
+            ) : (
+              <div style={{ 
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                marginBottom: '40px',
+                justifyContent: 'center'
+              }}>
+                <div style={{ 
+                  width: '45px', 
+                  height: '45px', 
+                  backgroundColor: 'rgba(255,255,255,0.2)', 
+                  borderRadius: '12px', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  fontSize: '22px'
+                }}>🏢</div>
+                <span style={{ fontSize: '16px', fontWeight: 600, opacity: 0.9 }}>{theme.portalTitle}</span>
+              </div>
+            )}
+            
+            <h1 style={{ 
+              fontSize: '42px', 
+              fontWeight: theme.headingWeight, 
+              marginBottom: '20px', 
+              fontFamily: theme.headingFont, 
+              lineHeight: 1.1
+            }}>
+              Welcome Back
+            </h1>
+            
+            <p style={{ 
+              fontSize: '16px', 
+              opacity: 0.85, 
+              lineHeight: 1.7, 
+              marginBottom: '45px'
+            }}>
+              {theme.tagline}
+            </p>
+
+            {/* Sign In Button - Ghost Style */}
+            <button 
+              className="outline-btn"
+              onClick={() => document.getElementById('email-input')?.focus()}
+              style={{ 
+                padding: '16px 50px', 
+                backgroundColor: 'transparent', 
+                color: 'white', 
+                border: '2px solid rgba(255,255,255,0.5)', 
+                borderRadius: '50px', 
+                fontSize: '14px', 
+                fontWeight: 600, 
+                cursor: 'pointer', 
+                transition: 'all 0.3s', 
+                letterSpacing: '2px',
+                textTransform: 'uppercase'
+              }}
+            >
+              SIGN IN
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* ========== RIGHT SIDE - Login Form ========== */}
-      <div id="login-form" style={{ 
-        flex: 1, 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        padding: '60px', 
-        backgroundColor: theme.background, 
-        position: 'relative' 
-      }}>
-        
-        {/* Decorative Background Blurs */}
+        {/* ========== RIGHT PANEL - Illustration & Login Form ========== */}
         <div style={{ 
-          position: 'absolute', 
-          top: '8%', 
-          right: '8%', 
-          width: '250px', 
-          height: '250px', 
-          background: `linear-gradient(135deg, ${theme.primary}10 0%, ${theme.secondary}10 100%)`, 
-          borderRadius: '50%', 
-          filter: 'blur(50px)' 
-        }} />
-        <div style={{ 
-          position: 'absolute', 
-          bottom: '12%', 
-          left: '3%', 
-          width: '180px', 
-          height: '180px', 
-          background: `${theme.primary}08`, 
-          borderRadius: '50%', 
-          filter: 'blur(40px)' 
-        }} />
+          flex: 1,
+          display: 'flex', 
+          flexDirection: 'column',
+          backgroundColor: '#f8f4ff',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Background Decorations - Movie/Carnival Theme like GIF */}
+          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+            {/* Confetti Elements */}
+            <div className="confetti" style={{ position: 'absolute', top: '15%', right: '20%', width: '12px', height: '12px', backgroundColor: theme.primary, opacity: 0.3, borderRadius: '2px', transform: 'rotate(45deg)' }} />
+            <div className="confetti" style={{ position: 'absolute', top: '25%', left: '15%', width: '8px', height: '8px', backgroundColor: theme.secondary, opacity: 0.4, borderRadius: '50%', animationDelay: '-1s' }} />
+            <div className="confetti" style={{ position: 'absolute', bottom: '30%', right: '25%', width: '10px', height: '10px', backgroundColor: '#f59e0b', opacity: 0.5, borderRadius: '2px', animationDelay: '-2s' }} />
+            <div className="confetti" style={{ position: 'absolute', top: '60%', left: '10%', width: '6px', height: '6px', backgroundColor: theme.primary, opacity: 0.3, animationDelay: '-0.5s' }} />
+            <div className="confetti" style={{ position: 'absolute', bottom: '20%', left: '30%', width: '14px', height: '14px', backgroundColor: theme.secondary, opacity: 0.2, borderRadius: '3px', transform: 'rotate(30deg)', animationDelay: '-1.5s' }} />
+            
+            {/* Decorative Shapes */}
+            <div className="float-animation" style={{ position: 'absolute', top: '10%', right: '10%', width: '80px', height: '80px', border: `3px solid ${theme.primary}20`, borderRadius: '50%' }} />
+            <div className="float-animation" style={{ position: 'absolute', bottom: '15%', right: '15%', width: '60px', height: '60px', border: `2px solid ${theme.secondary}15`, borderRadius: '12px', transform: 'rotate(45deg)', animationDelay: '-2s' }} />
+            
+            {/* Large Faded Blob */}
+            <div style={{ 
+              position: 'absolute', 
+              top: '-100px', 
+              right: '-100px', 
+              width: '300px', 
+              height: '300px', 
+              background: `radial-gradient(circle, ${theme.primary}10 0%, transparent 70%)`,
+              borderRadius: '50%'
+            }} />
+            <div style={{ 
+              position: 'absolute', 
+              bottom: '-50px', 
+              left: '10%', 
+              width: '200px', 
+              height: '200px', 
+              background: `radial-gradient(circle, ${theme.secondary}08 0%, transparent 70%)`,
+              borderRadius: '50%'
+            }} />
+          </div>
 
-        <div style={{ width: '100%', maxWidth: '420px', position: 'relative', zIndex: 10 }}>
-          
-          {showForgotPassword ? (
-            /* ===== FORGOT PASSWORD FORM ===== */
-            <div>
-              <h2 style={{ fontSize: '30px', fontWeight: theme.headingWeight, color: theme.text, marginBottom: '12px', fontFamily: theme.headingFont }}>
-                Reset Password
-              </h2>
-              <p style={{ color: theme.text, opacity: 0.5, marginBottom: '35px', fontSize: '15px', lineHeight: 1.6 }}>
-                Enter your email address and we'll send you a link to reset your password
-              </p>
-
-              {forgotSuccess ? (
-                <div style={{ textAlign: 'center', padding: '35px 0' }}>
-                  <div style={{ 
-                    width: '80px', 
-                    height: '80px', 
-                    background: `linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)`, 
-                    borderRadius: '50%', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    margin: '0 auto 25px', 
-                    fontSize: '36px' 
-                  }}>✓</div>
-                  <p style={{ color: theme.text, marginBottom: '35px', lineHeight: 1.7, opacity: 0.8 }}>
-                    If your email is registered, you will receive a password reset link shortly.
+          {/* Login Form Area */}
+          <div style={{ 
+            flex: 1, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            padding: '50px 60px',
+            position: 'relative',
+            zIndex: 10
+          }}>
+            <div style={{ width: '100%', maxWidth: '380px' }}>
+              
+              {showForgotPassword ? (
+                /* ===== FORGOT PASSWORD FORM ===== */
+                <div>
+                  <h2 style={{ fontSize: '28px', fontWeight: theme.headingWeight, color: theme.text, marginBottom: '10px', fontFamily: theme.headingFont }}>
+                    Reset Password
+                  </h2>
+                  <p style={{ color: theme.text, opacity: 0.5, marginBottom: '30px', fontSize: '14px', lineHeight: 1.6 }}>
+                    Enter your email and we'll send you a reset link
                   </p>
-                  <button 
-                    onClick={() => { setShowForgotPassword(false); setForgotSuccess(false); setForgotEmail(''); }} 
-                    className="login-btn"
-                    style={{ 
-                      width: '100%', 
-                      padding: '18px', 
-                      background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`, 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '14px', 
-                      fontSize: '16px', 
-                      fontWeight: 600, 
-                      cursor: 'pointer',
-                      transition: 'all 0.3s'
-                    }}
-                  >
-                    Back to Login
-                  </button>
+
+                  {forgotSuccess ? (
+                    <div style={{ textAlign: 'center', padding: '30px 0' }}>
+                      <div style={{ 
+                        width: '70px', 
+                        height: '70px', 
+                        background: `linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)`, 
+                        borderRadius: '50%', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        margin: '0 auto 20px', 
+                        fontSize: '32px' 
+                      }}>✓</div>
+                      <p style={{ color: theme.text, marginBottom: '30px', lineHeight: 1.7, opacity: 0.8, fontSize: '14px' }}>
+                        Check your email for reset instructions
+                      </p>
+                      <button 
+                        onClick={() => { setShowForgotPassword(false); setForgotSuccess(false); setForgotEmail(''); }} 
+                        className="signin-btn"
+                        style={{ 
+                          width: '100%', 
+                          padding: '16px', 
+                          background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`, 
+                          color: 'white', 
+                          border: 'none', 
+                          borderRadius: '12px', 
+                          fontSize: '15px', 
+                          fontWeight: 600, 
+                          cursor: 'pointer',
+                          transition: 'all 0.3s'
+                        }}
+                      >
+                        Back to Login
+                      </button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleForgotPassword}>
+                      <div style={{ marginBottom: '24px' }}>
+                        <input 
+                          type="email" 
+                          value={forgotEmail} 
+                          onChange={(e) => setForgotEmail(e.target.value)} 
+                          placeholder="Email address" 
+                          required 
+                          style={{ 
+                            width: '100%', 
+                            padding: '16px 20px', 
+                            border: `2px solid ${theme.border}`, 
+                            borderRadius: '12px', 
+                            fontSize: '15px', 
+                            boxSizing: 'border-box', 
+                            backgroundColor: 'white', 
+                            transition: 'all 0.3s' 
+                          }} 
+                        />
+                      </div>
+
+                      {loginError && (
+                        <div style={{ backgroundColor: '#fef2f2', color: '#991b1b', padding: '14px 18px', borderRadius: '10px', fontSize: '13px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          ⚠️ {loginError}
+                        </div>
+                      )}
+
+                      <button 
+                        type="submit" 
+                        disabled={forgotLoading} 
+                        className="signin-btn"
+                        style={{ 
+                          width: '100%', 
+                          padding: '16px', 
+                          background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`, 
+                          color: 'white', 
+                          border: 'none', 
+                          borderRadius: '12px', 
+                          fontSize: '15px', 
+                          fontWeight: 600, 
+                          cursor: forgotLoading ? 'not-allowed' : 'pointer', 
+                          opacity: forgotLoading ? 0.7 : 1, 
+                          marginBottom: '14px',
+                          transition: 'all 0.3s',
+                          boxShadow: `0 12px 30px -10px ${theme.primary}50`
+                        }}
+                      >
+                        {forgotLoading ? 'Sending...' : 'Send Reset Link'}
+                      </button>
+
+                      <button 
+                        type="button" 
+                        onClick={() => { setShowForgotPassword(false); setLoginError(''); }} 
+                        style={{ 
+                          width: '100%', 
+                          padding: '16px', 
+                          backgroundColor: 'transparent', 
+                          color: theme.text, 
+                          border: `2px solid ${theme.border}`, 
+                          borderRadius: '12px', 
+                          fontSize: '14px', 
+                          fontWeight: 600, 
+                          cursor: 'pointer',
+                          transition: 'all 0.3s'
+                        }}
+                      >
+                        ← Back to Login
+                      </button>
+                    </form>
+                  )}
                 </div>
               ) : (
-                <form onSubmit={handleForgotPassword}>
-                  <div style={{ marginBottom: '28px' }}>
-                    <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: theme.text, marginBottom: '10px' }}>
-                      Email Address
-                    </label>
-                    <input 
-                      type="email" 
-                      value={forgotEmail} 
-                      onChange={(e) => setForgotEmail(e.target.value)} 
-                      placeholder="Enter your registered email" 
-                      required 
+                /* ===== LOGIN FORM ===== */
+                <div>
+                  <h2 style={{ fontSize: '28px', fontWeight: theme.headingWeight, color: theme.text, marginBottom: '10px', fontFamily: theme.headingFont }}>
+                    Sign In
+                  </h2>
+                  <p style={{ color: theme.text, opacity: 0.5, marginBottom: '35px', fontSize: '14px' }}>
+                    Access your employee benefits portal
+                  </p>
+
+                  <form onSubmit={handleLogin}>
+                    <div style={{ marginBottom: '20px' }}>
+                      <input 
+                        id="email-input"
+                        type="text" 
+                        value={employeeId} 
+                        onChange={(e) => setEmployeeId(e.target.value)} 
+                        placeholder="Employee ID or Email" 
+                        style={{ 
+                          width: '100%', 
+                          padding: '16px 20px', 
+                          border: `2px solid ${theme.border}`, 
+                          borderRadius: '12px', 
+                          fontSize: '15px', 
+                          boxSizing: 'border-box', 
+                          backgroundColor: 'white', 
+                          transition: 'all 0.3s' 
+                        }} 
+                      />
+                    </div>
+
+                    <div style={{ marginBottom: '20px' }}>
+                      <input 
+                        type="password" 
+                        value={password} 
+                        onChange={(e) => setPassword(e.target.value)} 
+                        placeholder="Password" 
+                        style={{ 
+                          width: '100%', 
+                          padding: '16px 20px', 
+                          border: `2px solid ${theme.border}`, 
+                          borderRadius: '12px', 
+                          fontSize: '15px', 
+                          boxSizing: 'border-box', 
+                          backgroundColor: 'white', 
+                          transition: 'all 0.3s' 
+                        }} 
+                      />
+                    </div>
+
+                    {/* Remember Me & Forgot Password */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: theme.text, cursor: 'pointer', opacity: 0.7 }}>
+                        <input 
+                          type="checkbox" 
+                          checked={rememberMe} 
+                          onChange={(e) => setRememberMe(e.target.checked)} 
+                          style={{ width: '16px', height: '16px', accentColor: theme.primary, cursor: 'pointer' }} 
+                        />
+                        Remember me
+                      </label>
+                      <button 
+                        type="button" 
+                        onClick={() => { setShowForgotPassword(true); setLoginError(''); }} 
+                        style={{ background: 'none', border: 'none', color: theme.primary, fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
+
+                    {/* ReCAPTCHA */}
+                    <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'center', transform: 'scale(0.9)', transformOrigin: 'center' }}>
+                      <ReCAPTCHA 
+                        ref={recaptchaRef} 
+                        sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'} 
+                        onChange={(token) => setCaptchaToken(token)} 
+                      />
+                    </div>
+
+                    {loginError && (
+                      <div style={{ backgroundColor: '#fef2f2', color: '#991b1b', padding: '14px 18px', borderRadius: '10px', fontSize: '13px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        ⚠️ {loginError}
+                      </div>
+                    )}
+
+                    <button 
+                      type="submit" 
+                      disabled={loggingIn} 
+                      className="signin-btn"
                       style={{ 
                         width: '100%', 
-                        padding: '18px 22px', 
-                        border: `2px solid ${theme.border}`, 
-                        borderRadius: '14px', 
-                        fontSize: '15px', 
-                        boxSizing: 'border-box', 
-                        backgroundColor: theme.background, 
-                        transition: 'all 0.3s' 
-                      }} 
-                    />
-                  </div>
-
-                  {loginError && (
-                    <div style={{ 
-                      backgroundColor: '#fef2f2', 
-                      color: '#991b1b', 
-                      padding: '16px 20px', 
-                      borderRadius: '12px', 
-                      fontSize: '14px', 
-                      marginBottom: '22px', 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '12px' 
-                    }}>
-                      ⚠️ {loginError}
-                    </div>
-                  )}
-
-                  <button 
-                    type="submit" 
-                    disabled={forgotLoading} 
-                    className="login-btn"
-                    style={{ 
-                      width: '100%', 
-                      padding: '18px', 
-                      background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`, 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '14px', 
-                      fontSize: '16px', 
-                      fontWeight: 600, 
-                      cursor: forgotLoading ? 'not-allowed' : 'pointer', 
-                      opacity: forgotLoading ? 0.7 : 1, 
-                      marginBottom: '16px',
-                      transition: 'all 0.3s'
-                    }}
-                  >
-                    {forgotLoading ? 'Sending...' : 'Send Reset Link'}
-                  </button>
-
-                  <button 
-                    type="button" 
-                    onClick={() => { setShowForgotPassword(false); setLoginError(''); }} 
-                    style={{ 
-                      width: '100%', 
-                      padding: '18px', 
-                      backgroundColor: 'transparent', 
-                      color: theme.text, 
-                      border: `2px solid ${theme.border}`, 
-                      borderRadius: '14px', 
-                      fontSize: '14px', 
-                      fontWeight: 600, 
-                      cursor: 'pointer',
-                      transition: 'all 0.3s'
-                    }}
-                  >
-                    ← Back to Login
-                  </button>
-                </form>
+                        padding: '18px', 
+                        background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`, 
+                        color: 'white', 
+                        border: 'none', 
+                        borderRadius: '12px', 
+                        fontSize: '16px', 
+                        fontWeight: 600, 
+                        cursor: loggingIn ? 'not-allowed' : 'pointer', 
+                        opacity: loggingIn ? 0.7 : 1, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        gap: '10px', 
+                        boxShadow: `0 15px 35px -12px ${theme.primary}60`,
+                        transition: 'all 0.3s'
+                      }}
+                    >
+                      {loggingIn ? (
+                        <>
+                          <span style={{ width: '20px', height: '20px', border: '3px solid transparent', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                          Signing in...
+                        </>
+                      ) : 'Sign In'}
+                    </button>
+                  </form>
+                </div>
               )}
+
+              {/* Footer */}
+              <div style={{ textAlign: 'center', marginTop: '40px', color: theme.text, opacity: 0.3, fontSize: '12px' }}>
+                <p>Powered by <strong>BenefitNest</strong></p>
+              </div>
             </div>
-          ) : (
-            /* ===== LOGIN FORM ===== */
-            <div>
-              <h2 style={{ fontSize: '30px', fontWeight: theme.headingWeight, color: theme.text, marginBottom: '12px', fontFamily: theme.headingFont }}>
-                Sign In
-              </h2>
-              <p style={{ color: theme.text, opacity: 0.5, marginBottom: '40px', fontSize: '15px' }}>
-                Access your employee benefits portal
-              </p>
-
-              <form onSubmit={handleLogin}>
-                <div style={{ marginBottom: '24px' }}>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: theme.text, marginBottom: '10px' }}>
-                    Employee ID / Email
-                  </label>
-                  <input 
-                    type="text" 
-                    value={employeeId} 
-                    onChange={(e) => setEmployeeId(e.target.value)} 
-                    placeholder="Enter your employee ID or email" 
-                    style={{ 
-                      width: '100%', 
-                      padding: '18px 22px', 
-                      border: `2px solid ${theme.border}`, 
-                      borderRadius: '14px', 
-                      fontSize: '15px', 
-                      boxSizing: 'border-box', 
-                      backgroundColor: theme.background, 
-                      transition: 'all 0.3s' 
-                    }} 
-                  />
-                </div>
-
-                <div style={{ marginBottom: '24px' }}>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: theme.text, marginBottom: '10px' }}>
-                    Password
-                  </label>
-                  <input 
-                    type="password" 
-                    value={password} 
-                    onChange={(e) => setPassword(e.target.value)} 
-                    placeholder="Enter your password" 
-                    style={{ 
-                      width: '100%', 
-                      padding: '18px 22px', 
-                      border: `2px solid ${theme.border}`, 
-                      borderRadius: '14px', 
-                      fontSize: '15px', 
-                      boxSizing: 'border-box', 
-                      backgroundColor: theme.background, 
-                      transition: 'all 0.3s' 
-                    }} 
-                  />
-                </div>
-
-                {/* Remember Me & Forgot Password */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', color: theme.text, cursor: 'pointer' }}>
-                    <input 
-                      type="checkbox" 
-                      checked={rememberMe} 
-                      onChange={(e) => setRememberMe(e.target.checked)} 
-                      style={{ width: '18px', height: '18px', accentColor: theme.primary, cursor: 'pointer' }} 
-                    />
-                    Remember me
-                  </label>
-                  <button 
-                    type="button" 
-                    onClick={() => { setShowForgotPassword(true); setLoginError(''); }} 
-                    style={{ background: 'none', border: 'none', color: theme.primary, fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
-                  >
-                    Forgot password?
-                  </button>
-                </div>
-
-                {/* ReCAPTCHA */}
-                <div style={{ marginBottom: '28px', display: 'flex', justifyContent: 'center' }}>
-                  <ReCAPTCHA 
-                    ref={recaptchaRef} 
-                    sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'} 
-                    onChange={(token) => setCaptchaToken(token)} 
-                  />
-                </div>
-
-                {loginError && (
-                  <div style={{ 
-                    backgroundColor: '#fef2f2', 
-                    color: '#991b1b', 
-                    padding: '16px 20px', 
-                    borderRadius: '12px', 
-                    fontSize: '14px', 
-                    marginBottom: '22px', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '12px' 
-                  }}>
-                    ⚠️ {loginError}
-                  </div>
-                )}
-
-                <button 
-                  type="submit" 
-                  disabled={loggingIn} 
-                  className="login-btn"
-                  style={{ 
-                    width: '100%', 
-                    padding: '20px', 
-                    background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`, 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '14px', 
-                    fontSize: '16px', 
-                    fontWeight: 600, 
-                    cursor: loggingIn ? 'not-allowed' : 'pointer', 
-                    opacity: loggingIn ? 0.7 : 1, 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    gap: '12px', 
-                    boxShadow: `0 12px 35px -12px ${theme.primary}70`,
-                    transition: 'all 0.3s'
-                  }}
-                >
-                  {loggingIn ? (
-                    <>
-                      <span style={{ width: '22px', height: '22px', border: '3px solid transparent', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-                      Signing in...
-                    </>
-                  ) : 'Sign In'}
-                </button>
-              </form>
-            </div>
-          )}
-
-          {/* Footer */}
-          <div style={{ textAlign: 'center', marginTop: '45px', color: theme.text, opacity: 0.35, fontSize: '13px' }}>
-            <p>Powered by <strong style={{ opacity: 0.8 }}>BenefitNest</strong></p>
           </div>
         </div>
       </div>
