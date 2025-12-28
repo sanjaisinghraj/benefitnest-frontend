@@ -682,7 +682,7 @@ export default function ReportsAnalyticsPage() {
   useEffect(() => {
     const loadCorporates = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/admin/tenants`, { headers: getAuthHeaders() });
+        const res = await fetch(`${API_URL}/api/admin/corporates`, { headers: getAuthHeaders() });
         const data = await res.json();
         if (data.success) {
           setCorporates(data.data || []);
