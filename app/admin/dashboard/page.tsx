@@ -151,23 +151,71 @@ const AdminDashboard = () => {
       link: '/admin/hospitals',
       color: '#059669'
     },
-    // 10. Wellness & Wellbeing Programs
+    // 10. Wellness & Financial Wellbeing
     {
       title: 'Wellness & Wellbeing',
-      description: 'Configure health assessments, mental wellbeing, AI coaching, wellness partner SSO, and content tiles (newsletters, events, surveys).',
+      description: 'Health assessments, mental wellbeing, AI coaching, financial literacy, budget calculators, retirement tips, and wellness partner integrations.',
       icon: '🧘',
       link: '/admin/wellness',
       color: '#14b8a6'
     },
-    // 11. Perks, Rewards & Recognition
+    // 11. Recognition, Rewards & Perks
     {
-      title: 'Perks & Rewards',
-      description: 'Set up meal cards, vouchers, travel perks, reward points logic, redemption catalog, and peer-to-peer recognition programs.',
-      icon: '🎁',
+      title: 'Recognition & Rewards',
+      description: 'Peer-to-peer recognition wall, manager badges, points system, meal cards, vouchers, travel perks, redemption catalog, and engagement analytics.',
+      icon: '🏆',
       link: '/admin/rewards',
       color: '#f97316'
     },
-    // 12. Marketplace Configuration
+    // 12. Sales Incentives & Gamification
+    {
+      title: 'Sales Incentives',
+      description: 'Automated incentive programs for sales teams & brokers, leaderboards, gamified KPIs, contest creation, and mobile-first dashboards.',
+      icon: '🎯',
+      link: '/admin/incentives',
+      color: '#ef4444'
+    },
+    // 13. Loyalty Programs
+    {
+      title: 'Loyalty Programs',
+      description: 'Tiered loyalty for employees (Bronze/Silver/Gold), broker loyalty rewards for servicing & claims efficiency, insurer performance dashboards.',
+      icon: '⭐',
+      link: '/admin/loyalty',
+      color: '#eab308'
+    },
+    // 14. Pulse Surveys & Feedback
+    {
+      title: 'Surveys & Feedback',
+      description: 'Mood-o-meters, quick polls, anonymous feedback channels, AI sentiment analysis, and employee engagement analytics for HR.',
+      icon: '📣',
+      link: '/admin/surveys',
+      color: '#a855f7'
+    },
+    // 15. Communities & Clubs
+    {
+      title: 'Communities & Clubs',
+      description: 'Employee Resource Groups (ERGs), hobby clubs (fitness, books, travel), mentor-mentee matching, and gamified wellness communities.',
+      icon: '👋',
+      link: '/admin/communities',
+      color: '#22c55e'
+    },
+    // 16. Learning & Development
+    {
+      title: 'Learning & Development',
+      description: 'Micro-learning modules, insurance literacy, gamified skill challenges, compliance training, and LMS integrations (Workday, SAP, Darwinbox).',
+      icon: '🎓',
+      link: '/admin/learning',
+      color: '#3b82f6'
+    },
+    // 17. CSR & Volunteering
+    {
+      title: 'CSR & Volunteering',
+      description: 'Corporate Social Responsibility initiatives, employee volunteering programs, donation matching, impact tracking, and CSR dashboards.',
+      icon: '💚',
+      link: '/admin/csr',
+      color: '#16a34a'
+    },
+    // 18. Marketplace Configuration
     {
       title: 'Marketplace Settings',
       description: 'Manage vendor onboarding, pricing tiers, catalog setup, API/SSO integrations, and corporate-specific visibility rules.',
@@ -175,31 +223,23 @@ const AdminDashboard = () => {
       link: '/admin/marketplace-settings',
       color: '#7c3aed'
     },
-    // 13. Audit & Compliance Logs
+    // 19. Reports, Analytics & AI Insights
     {
-      title: 'Audit & Compliance Logs',
-      description: 'Track entity type, action, actor, IP. Immutable logs for regulatory audits with filters by tenant, date, and module.',
-      icon: '🔍',
-      link: '/admin/audit',
-      color: '#6366f1'
-    },
-    // 14. Reports & Analytics
-    {
-      title: 'Reports & Analytics',
-      description: 'Generate enrollment trends, claim ratios, premium utilization, SI distribution, engagement metrics. Export CSV, PDF, API feeds.',
+      title: 'Reports & AI Insights',
+      description: 'Claims analytics, predictive attrition, fraud detection, personalized nudges, engagement metrics, compliance alerts. Export CSV, PDF, API.',
       icon: '📊',
       link: '/admin/reports',
       color: '#ec4899'
     },
-    // 15. Compliance & Legal Setup
+    // 20. Audit & Compliance Logs
     {
-      title: 'Compliance & Legal',
-      description: 'Manage privacy policy, terms, disclaimers, consent templates, country-specific toggles, versioning, and audit trail.',
+      title: 'Audit & Compliance',
+      description: 'Immutable audit logs, privacy policy, terms & disclaimers, consent templates, GDPR/HIPAA toggles, versioning, and regulatory exports.',
       icon: '⚖️',
-      link: '/admin/compliance',
-      color: '#dc2626'
+      link: '/admin/audit',
+      color: '#6366f1'
     },
-    // 16. System Configuration
+    // 21. System Configuration
     {
       title: 'System Configuration',
       description: 'Configure email/SMS templates, notification preferences, API keys, SSO providers, and feature toggles per tenant.',
@@ -207,7 +247,7 @@ const AdminDashboard = () => {
       link: '/admin/system',
       color: '#64748b'
     },
-    // 17. Mailer & Communication Management
+    // 22. Mailer & Communication Management
     {
       title: 'Mailer & Communications',
       description: 'Configure enrollment reminders, claim alerts, custom templates per tenant, test-send logs, and delivery status tracking.',
@@ -215,7 +255,7 @@ const AdminDashboard = () => {
       link: '/admin/mailer',
       color: '#0284c7'
     },
-    // 18. Role & Permission Management
+    // 23. Role & Permission Management
     {
       title: 'Roles & Permissions',
       description: 'Define module-level permissions, create roles (Admin, Broker, HR, Insurer), configure MFA, login expiry, and OTP rules.',
@@ -223,7 +263,7 @@ const AdminDashboard = () => {
       link: '/admin/roles',
       color: '#9333ea'
     },
-    // 19. Broker & Insurer Panel Setup
+    // 24. Broker & Insurer Panel Setup
     {
       title: 'Broker & Insurer Panel',
       description: 'Enable broker dashboards for client servicing, insurer dashboards for policy/claims, controlled tenant access, partner branding.',
@@ -231,9 +271,9 @@ const AdminDashboard = () => {
       link: '/admin/partners',
       color: '#0891b2'
     },
-    // 20. Data Retention & Archival
+    // 25. Data Retention & Archival
     {
-      title: 'Data Retention & Archival',
+      title: 'Data Retention',
       description: 'Configure retention rules for claims, enrollments, logs. Set auto-archive logic and GDPR/HIPAA compliance toggles.',
       icon: '🗄️',
       link: '/admin/retention',
