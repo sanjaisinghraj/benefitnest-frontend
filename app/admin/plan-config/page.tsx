@@ -15,7 +15,9 @@ import { PaymentMethodSelector } from "../../components/PaymentMethodSelector";
 import { ProductSummaryCard } from "../../components/ProductSummaryCard";
 
 export default function PlanConfigPage() {
-  const { user, token } = useSession();
+  const { data: session } = useSession();
+  const user = session?.user;
+  const token = session?.token;
   const [planType, setPlanType] = useState("GMC");
   const [countryCode, setCountryCode] = useState("IN");
   const [corporateId, setCorporateId] = useState("");
