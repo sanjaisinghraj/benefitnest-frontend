@@ -37,6 +37,10 @@ export default function CostDashboard() {
   const { data, loading, error } = useQuery(COST_FACTS_QUERY, { variables: filters });
   const { data: alertsData } = useQuery(COST_ALERTS_QUERY, { variables: filters });
 
+  // Type assertions for GraphQL data
+  const costFacts = (data as any)?.costFacts || [];
+  const costAlerts = (alertsData as any)?.costAlerts || [];
+
   useEffect(() => {
     if (!hasRole(session, 'super-admin')) {
       // Redirect or show RBAC error
@@ -58,11 +62,19 @@ export default function CostDashboard() {
         <Select placeholder="Tenant" onChange={v => setFilters(f => ({ ...f, tenantId: v }))} style={{ width: 120 }} />
         <Select placeholder="Country" onChange={v => setFilters(f => ({ ...f, country: v }))} style={{ width: 120 }} />
         <Select placeholder="Module" onChange={v => setFilters(f => ({ ...f, module: v }))} style={{ width: 120 }} />
-        <DatePicker.RangePicker onChange={dates => setFilters(f => ({ ...f, from: dates?.[0]?.format('YYYY-MM-DD'), to: dates?.[1]?.format('YYYY-MM-DD') }))} />
+        <DatePicker.RangePicker
+          onChange={dates =>
+            setFilters(f => ({
+              ...f,
+              from: dates && dates[0] ? dates[0].format('YYYY-MM-DD') : '',
+              to: dates && dates[1] ? dates[1].format('YYYY-MM-DD') : ''
+            }))
+          }
+        />
       </div>
       {/* Cost Chart */}
       <ResponsiveContainer width="100%" height={350}>
-        <LineChart data={data?.costFacts || []}>
+        <LineChart data={costFacts}>
           <XAxis dataKey="date" />
           <YAxis />
           <Tooltip />
@@ -73,7 +85,7 @@ export default function CostDashboard() {
       </ResponsiveContainer>
       {/* Per-module Bar Chart */}
       <ResponsiveContainer width="100%" height={200}>
-        <BarChart data={data?.costFacts || []}>
+        <BarChart data={costFacts}>
           <XAxis dataKey="module" />
           <YAxis />
           <Tooltip />
@@ -83,7 +95,7 @@ export default function CostDashboard() {
       {/* Alerts */}
       <div className="mt-6">
         <h2 className="text-lg font-semibold mb-2">Cost Alerts</h2>
-        {(alertsData?.costAlerts || []).map((alert, i) => (
+        {(costAlerts as any[]).map((alert: any, i: number) => (
           <Alert key={i} message={alert.message} type="warning" showIcon className="mb-2" />
         ))}
       </div>
