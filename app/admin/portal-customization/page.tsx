@@ -48,7 +48,6 @@ const Toggle = ({ label, value, onChange, description }: any) => <div onClick={(
 // Live Preview - Matches actual [subdomain]/page.tsx login design
 const LivePreview = ({ customizations: c, corporate, previewMode, forceLoginPage = false }: any) => {
   const [consentChecked, setConsentChecked] = useState(false);
-  const [showDashboard, setShowDashboard] = useState(false);
   
   const theme = { 
     primary: c.primary_color || '#db2777', 
@@ -84,8 +83,8 @@ const LivePreview = ({ customizations: c, corporate, previewMode, forceLoginPage
     otpLogin: c.enable_otp_login !== false
   };
 
-  // Dashboard Preview (after "login")
-  if (showDashboard && !forceLoginPage) {
+  // Dashboard Preview - Show when "Dashboard" button is selected (forceLoginPage = false)
+  if (!forceLoginPage) {
     return (
       <div style={{ width: '100%', height: '100%', background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, fontFamily: theme.bodyFont, padding: '12px', overflow: 'auto' }}>
         <div style={{ backgroundColor: theme.background, borderRadius: '16px', padding: '16px', minHeight: 'calc(100% - 24px)', boxShadow: '0 10px 40px rgba(0,0,0,0.15)' }}>
@@ -99,7 +98,10 @@ const LivePreview = ({ customizations: c, corporate, previewMode, forceLoginPage
               )}
               <span style={{ fontSize: '12px', fontWeight: '700', color: theme.text, fontFamily: theme.headingFont }}>{content.title}</span>
             </div>
-            <button onClick={() => setShowDashboard(false)} style={{ padding: '4px 10px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', fontSize: '9px', fontWeight: '600', cursor: 'pointer' }}>Logout</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+              <span style={{ fontSize: '9px', color: theme.text, opacity: 0.7 }}>Online</span>
+            </div>
           </div>
           
           {/* Welcome */}
@@ -255,7 +257,6 @@ const LivePreview = ({ customizations: c, corporate, previewMode, forceLoginPage
             
             {/* Sign In Button */}
             <button 
-              onClick={() => setShowDashboard(true)}
               style={{ 
                 width: '100%', 
                 padding: '10px', 
@@ -265,7 +266,7 @@ const LivePreview = ({ customizations: c, corporate, previewMode, forceLoginPage
                 borderRadius: '8px', 
                 fontSize: '11px', 
                 fontWeight: '600', 
-                cursor: 'pointer',
+                cursor: 'default',
                 boxShadow: `0 8px 20px -8px ${theme.primary}60`,
                 marginBottom: loginVis.otpLogin ? '8px' : '0'
               }}
