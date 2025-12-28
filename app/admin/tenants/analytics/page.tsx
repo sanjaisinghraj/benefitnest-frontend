@@ -3,6 +3,10 @@ import { useEffect, useState } from "react";
 import { useSession } from "@/hooks/useSession";
 import { gql, useApolloClient } from "@apollo/client";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { saveAs } from "file-saver";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import { gql, useApolloClient } from "@apollo/client";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#A28BFE", "#FF6699"];
 
@@ -19,9 +23,16 @@ export default function TenantAnalyticsPage() {
   const [loading, setLoading] = useState(false);
   const [branding, setBranding] = useState<any>({});
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [isCorporateAdmin, setIsCorporateAdmin] = useState(false);
+  const [featureFlags, setFeatureFlags] = useState<any>({});
+  const [selectedTenant, setSelectedTenant] = useState<string>("");
+  const [flagMessage, setFlagMessage] = useState("");
+  const [exportHistory, setExportHistory] = useState<any[]>([]);
+  const client = useApolloClient();
 
   useEffect(() => {
     setIsSuperAdmin(user?.roles?.includes("super-admin"));
+    setIsCorporateAdmin(user?.roles?.includes("corporate-admin"));
     setBranding({ font: "Inter, sans-serif", background: "#fff", color: "#222" });
     fetchTenants();
     // eslint-disable-next-line
@@ -38,6 +49,105 @@ export default function TenantAnalyticsPage() {
       fetchPolicy: "network-only"
     });
     setTenants(res.data.tenantList || []);
+    if (res.data.tenantList?.length && (isSuperAdmin || isCorporateAdmin)) {
+      const tid = isSuperAdmin ? "" : user?.tenantId;
+      fetchFeatureFlags(tid || res.data.tenantList[0].id);
+    }
+
+      const fetchFeatureFlags = async (tenantId: string) => {
+        if (!tenantId) return;
+        setSelectedTenant(tenantId);
+        const res = await client.query({
+          query: gql`
+            query FeatureFlagStatus($tenantId: String!) {
+              featureFlagStatus(tenantId: $tenantId) { module enabled }
+            }
+          `,
+          variables: { tenantId },
+          fetchPolicy: "network-only"
+        });
+        setFeatureFlags(res.data.featureFlagStatus.reduce((acc: any, f: any) => { acc[f.module] = f.enabled; return acc; }, {}));
+        fetchExportHistory(tenantId);
+      };
+
+      const handleFlagToggle = async (module: string, enabled: boolean) => {
+        const mutation = enabled ? "enableFeatureFlag" : "disableFeatureFlag";
+        await client.mutate({
+          mutation: gql`
+            mutation ToggleFlag($tenantId: String!, $module: String!) {
+              ${mutation}(tenantId: $tenantId, module: $module) { module enabled }
+            }
+          `,
+          variables: { tenantId: selectedTenant, module }
+        });
+        setFlagMessage(`Feature flag for ${module} ${enabled ? "enabled" : "disabled"}.`);
+        fetchFeatureFlags(selectedTenant);
+      };
+
+      const fetchExportHistory = async (tenantId: string) => {
+        if (!tenantId) return;
+        const res = await client.query({
+          query: gql`
+            query ExportHistory($tenantId: String!) {
+              exportHistory(tenantId: $tenantId) { event payload_json ts }
+            }
+          `,
+          variables: { tenantId },
+          fetchPolicy: "network-only"
+        });
+        setExportHistory(res.data.exportHistory || []);
+      };
+
+      const handleExport = (type: string) => {
+        // Prepare data for export
+        const exportData = facts.map(f => ({ ...f, tenant: tenants.find(t => t.id === f.corporateId)?.name || f.corporateId }));
+        if (type === "csv") {
+          const csv = [Object.keys(exportData[0] || {}).join(",")].concat(exportData.map(row => Object.values(row).join(","))).join("\n");
+          const blob = new Blob([csv], { type: "text/csv" });
+          saveAs(blob, "tenant-analytics.csv");
+        } else if (type === "xlsx") {
+          const ws = XLSX.utils.json_to_sheet(exportData);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Analytics");
+          XLSX.writeFile(wb, "tenant-analytics.xlsx");
+        } else if (type === "pdf") {
+          const doc = new jsPDF();
+          doc.text("Tenant Analytics Export", 10, 10);
+          doc.text(JSON.stringify(exportData, null, 2), 10, 20);
+          doc.save("tenant-analytics.pdf");
+        }
+        // Log export to backend
+        client.mutate({
+          mutation: gql`
+            mutation LogExport($tenantId: String!, $format: String!, $filters: String!) {
+              logExport(tenantId: $tenantId, format: $format, filters: $filters) { event ts }
+            }
+          `,
+          variables: { tenantId: selectedTenant, format: type, filters: JSON.stringify({ country, planType, dateRange }) }
+        });
+        fetchExportHistory(selectedTenant);
+      };
+
+      const handleExport = (type: string) => {
+        // Prepare data for export
+        const exportData = facts.map(f => ({ ...f, tenant: tenants.find(t => t.id === f.corporateId)?.name || f.corporateId }));
+        if (type === "csv") {
+          const csv = [Object.keys(exportData[0] || {}).join(",")].concat(exportData.map(row => Object.values(row).join(","))).join("\n");
+          const blob = new Blob([csv], { type: "text/csv" });
+          saveAs(blob, "tenant-analytics.csv");
+        } else if (type === "xlsx") {
+          const ws = XLSX.utils.json_to_sheet(exportData);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Analytics");
+          XLSX.writeFile(wb, "tenant-analytics.xlsx");
+        } else if (type === "pdf") {
+          const doc = new jsPDF();
+          doc.text("Tenant Analytics Export", 10, 10);
+          doc.text(JSON.stringify(exportData, null, 2), 10, 20);
+          doc.save("tenant-analytics.pdf");
+        }
+        // Log export to ClickHouse (assume backend logs on export)
+      };
     setLoading(false);
   };
 
@@ -102,11 +212,93 @@ export default function TenantAnalyticsPage() {
     return acc;
   }, {} as Record<string, { GDPR: number; HIPAA: number; IRDAI: number; total: number }>);
 
-  if (!isSuperAdmin) return <div style={{ padding: 32 }}>Access denied.</div>;
+  if (!isSuperAdmin && !isCorporateAdmin) return <div style={{ padding: 32 }}>Access denied.</div>;
 
   return (
     <div style={{ fontFamily: branding.font, background: branding.background, color: branding.color, minHeight: '100vh', padding: 32 }}>
       <h1>Tenant Analytics Dashboard</h1>
+      <div style={{ marginBottom: 16 }}>
+        <button onClick={() => handleExport("csv")}>Export CSV</button>
+        <button onClick={() => handleExport("xlsx")} style={{ marginLeft: 8 }}>Export XLSX</button>
+        <button onClick={() => handleExport("pdf")} style={{ marginLeft: 8 }}>Export PDF</button>
+      </div>
+      {(isSuperAdmin || isCorporateAdmin) && (
+        <FeatureFlagsPanel
+          tenantId={selectedTenant}
+          featureFlags={featureFlags}
+          onToggle={handleFlagToggle}
+          isSuperAdmin={isSuperAdmin}
+          isCorporateAdmin={isCorporateAdmin}
+        />
+      )}
+      {flagMessage && <div style={{ color: "green", marginBottom: 8 }}>{flagMessage}</div>}
+      <ExportHistoryTable exportHistory={exportHistory} tenantId={selectedTenant} />
+      // FeatureFlagsPanel component (unchanged)
+      // ExportHistoryTable component
+      function ExportHistoryTable({ exportHistory, tenantId }: any) {
+        if (!exportHistory?.length) return null;
+        return (
+          <div style={{ border: "1px solid #eee", borderRadius: 8, padding: 16, marginTop: 24 }}>
+            <h3>Export History</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Format</th>
+                  <th>Filters</th>
+                  <th>User</th>
+                </tr>
+              </thead>
+              <tbody>
+                {exportHistory.map((log: any, idx: number) => {
+                  const payload = JSON.parse(log.payload_json || '{}');
+                  return (
+                    <tr key={idx}>
+                      <td>{new Date(log.ts).toLocaleString()}</td>
+                      <td>{payload.format}</td>
+                      <td>{JSON.stringify(payload.filters)}</td>
+                      <td>{payload.user || '-'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+      // FeatureFlagsPanel component
+      function FeatureFlagsPanel({ tenantId, featureFlags, onToggle, isSuperAdmin, isCorporateAdmin }: any) {
+        const modules = ["GMC", "GPA", "GTL", "Flex", "Wallet", "Wellness", "Custom"];
+        return (
+          <div style={{ border: "1px solid #eee", borderRadius: 8, padding: 16, marginBottom: 24 }}>
+            <h3>Feature Flags</h3>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  <th>Module</th>
+                  <th>Enabled</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {modules.map(m => (
+                  <tr key={m}>
+                    <td>{m}</td>
+                    <td>{featureFlags[m] ? "Yes" : "No"}</td>
+                    <td>
+                      {(isSuperAdmin || isCorporateAdmin) && (
+                        <button onClick={() => onToggle(m, !featureFlags[m])}>
+                          {featureFlags[m] ? "Disable" : "Enable"}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
       <div style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
         <input placeholder="Tenant ID" value={tenantId} onChange={e => setTenantId(e.target.value)} />
         <input placeholder="Country" value={country} onChange={e => setCountry(e.target.value)} />
