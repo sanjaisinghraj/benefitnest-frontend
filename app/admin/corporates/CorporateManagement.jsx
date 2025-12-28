@@ -240,6 +240,9 @@ const CorporateManagement = () => {
     const [showSchemaModal, setShowSchemaModal] = useState(false);
     const [showAddFieldModal, setShowAddFieldModal] = useState(false);
     const [showAIValidationModal, setShowAIValidationModal] = useState(false);
+    const [showPortalModal, setShowPortalModal] = useState(false);
+    const [portalCorporate, setPortalCorporate] = useState(null);
+    const [creatingPortal, setCreatingPortal] = useState(false);
 
     // Form state
     const [selectedCorporate, setSelectedCorporate] = useState(null);
@@ -775,35 +778,46 @@ const CorporateManagement = () => {
                 console.log('Check portal endpoint not available, proceeding with creation');
             }
 
-            // Step 2: If portal doesn't exist, prompt to create it
-            if (confirm(`Portal doesn't exist for ${corporate.corporate_legal_name}. Create it now?`)) {
-                try {
-                    const createResponse = await axios.post(`${CORPORATES_API}/${corporate.tenant_id}/create-portal`, {}, { headers: getAuthHeaders() });
-                    
-                    if (createResponse.data.success) {
-                        setToast({ message: 'Portal created successfully!', type: 'success' });
-                        const portalUrl = createResponse.data.data?.portal_url || `https://${corporate.subdomain}.benefitnest.space`;
-                        
-                        // Wait a moment for the portal to be ready, then open
-                        setTimeout(() => {
-                            window.open(portalUrl, '_blank');
-                            fetchCorporates(currentPage);
-                        }, 1000);
-                        return;
-                    } else {
-                        throw new Error(createResponse.data.message || 'Failed to create portal');
-                    }
-                } catch (createErr) {
-                    console.log('Create portal endpoint not available, trying direct URL');
-                }
-            }
-
-            // Step 3: Fallback - open the URL directly (portal may already be deployed)
-            const fallbackUrl = corporate.portal_url || `https://${corporate.subdomain}.benefitnest.space`;
-            window.open(fallbackUrl, '_blank');
+            // Step 2: If portal doesn't exist, show custom modal to create it
+            setPortalCorporate(corporate);
+            setShowPortalModal(true);
         } catch (err) {
             console.error('Portal opening error:', err);
             setToast({ message: 'Failed to open portal', type: 'error' });
+        }
+    };
+
+    const handleCreatePortal = async () => {
+        if (!portalCorporate) return;
+        
+        setCreatingPortal(true);
+        try {
+            const createResponse = await axios.post(`${CORPORATES_API}/${portalCorporate.tenant_id}/create-portal`, {}, { headers: getAuthHeaders() });
+            
+            if (createResponse.data.success) {
+                setToast({ message: 'Portal created successfully!', type: 'success' });
+                const portalUrl = createResponse.data.data?.portal_url || `https://${portalCorporate.subdomain}.benefitnest.space`;
+                
+                setShowPortalModal(false);
+                setPortalCorporate(null);
+                
+                // Wait a moment for the portal to be ready, then open
+                setTimeout(() => {
+                    window.open(portalUrl, '_blank');
+                    fetchCorporates(currentPage);
+                }, 1000);
+            } else {
+                throw new Error(createResponse.data.message || 'Failed to create portal');
+            }
+        } catch (createErr) {
+            console.log('Create portal endpoint not available, trying direct URL');
+            // Fallback - open the URL directly
+            const fallbackUrl = portalCorporate.portal_url || `https://${portalCorporate.subdomain}.benefitnest.space`;
+            window.open(fallbackUrl, '_blank');
+            setShowPortalModal(false);
+            setPortalCorporate(null);
+        } finally {
+            setCreatingPortal(false);
         }
     };
 
@@ -1395,6 +1409,69 @@ const CorporateManagement = () => {
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '16px' }}>
                     <Button variant="outline" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
                     <Button variant="danger" onClick={handleDeleteConfirm}>Delete Corporate</Button>
+                </div>
+            </Modal>
+
+            {/* Portal Creation Modal */}
+            <Modal isOpen={showPortalModal} onClose={() => { setShowPortalModal(false); setPortalCorporate(null); }} title="Create Employee Portal" icon="🌐" size="sm">
+                <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                    <div style={{ 
+                        width: '80px', 
+                        height: '80px', 
+                        margin: '0 auto 20px', 
+                        background: 'linear-gradient(135deg, #2563eb 0%, #10b981 100%)', 
+                        borderRadius: '20px', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        boxShadow: '0 10px 40px rgba(37, 99, 235, 0.3)'
+                    }}>
+                        <span style={{ fontSize: '36px' }}>🏢</span>
+                    </div>
+                    <h3 style={{ fontSize: '18px', fontWeight: '700', color: colors.gray[900], marginBottom: '8px' }}>
+                        Portal Not Found
+                    </h3>
+                    <p style={{ color: colors.gray[600], marginBottom: '16px', lineHeight: '1.6' }}>
+                        The employee portal for <strong>{portalCorporate?.corporate_legal_name}</strong> hasn't been set up yet.
+                    </p>
+                    <div style={{ 
+                        backgroundColor: colors.gray[50], 
+                        padding: '16px', 
+                        borderRadius: '12px', 
+                        marginBottom: '20px',
+                        border: `1px solid ${colors.gray[200]}`
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'center' }}>
+                            <span style={{ fontSize: '20px' }}>🔗</span>
+                            <code style={{ 
+                                backgroundColor: 'white', 
+                                padding: '8px 12px', 
+                                borderRadius: '6px', 
+                                fontSize: '13px',
+                                fontWeight: '600',
+                                color: colors.primary,
+                                border: `1px solid ${colors.gray[200]}`
+                            }}>
+                                {portalCorporate?.subdomain}.benefitnest.space
+                            </code>
+                        </div>
+                    </div>
+                    <p style={{ fontSize: '13px', color: colors.gray[500] }}>
+                        Creating the portal will enable employee self-service features including health claims, policies, and family management.
+                    </p>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '16px' }}>
+                    <Button variant="outline" onClick={() => { setShowPortalModal(false); setPortalCorporate(null); }}>
+                        Cancel
+                    </Button>
+                    <Button 
+                        variant="primary" 
+                        onClick={handleCreatePortal}
+                        loading={creatingPortal}
+                        icon="🚀"
+                    >
+                        {creatingPortal ? 'Creating Portal...' : 'Create Portal'}
+                    </Button>
                 </div>
             </Modal>
 
