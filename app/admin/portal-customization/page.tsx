@@ -124,7 +124,7 @@ export default function PortalDesignerStudio() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             {hasUnsavedChanges && <Badge variant="warning">● Unsaved</Badge>}
-            {selectedCorporate && <><Button variant="outline" size="sm" icon="👁️" onClick={() => setShowPreviewModal(true)} style={{ borderColor: 'rgba(255,255,255,0.3)', color: 'white' }}>Full Preview</Button><Button variant="ai" size="md" icon="💾" onClick={handleSave} loading={saving}>Save Design</Button></>}
+            {selectedCorporate && <><Button variant="outline" size="sm" icon="👁️" onClick={() => setShowPreviewModal(true)} style={{ borderColor: 'rgba(255,255,255,0.3)', color: 'white' }}>Full Preview ({previewType === 'login' ? 'Login' : 'Portal'})</Button><Button variant="ai" size="md" icon="💾" onClick={handleSave} loading={saving}>Save Design</Button></>}
             <div style={{ height: '30px', width: '1px', backgroundColor: 'rgba(255,255,255,0.2)' }} />
             <button onClick={handleLogout} style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5', padding: '10px 18px', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>Logout</button>
           </div>
@@ -169,30 +169,25 @@ export default function PortalDesignerStudio() {
         {selectedCorporate && (
           <div style={{ position: 'sticky', top: '90px', height: 'calc(100vh - 130px)' }}>
             <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: `1px solid ${colors.gray[200]}`, height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '12px', borderBottom: `1px solid ${colors.gray[200]}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '20px' }}>👁️</span>
-                  <div>
-                    <span style={{ fontSize: '15px', fontWeight: '700', color: colors.gray[900] }}>Live Preview</span>
-                    <div style={{ fontSize: '11px', color: colors.gray[500] }}>Changes appear instantly</div>
-                  </div>
+              {/* Title Row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                <span style={{ fontSize: '20px' }}>👁️</span>
+                <div>
+                  <span style={{ fontSize: '15px', fontWeight: '700', color: colors.gray[900] }}>Live Preview</span>
+                  <div style={{ fontSize: '11px', color: colors.gray[500] }}>Changes appear instantly</div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                  {/* Toggle for Login/Main Portal Preview */}
-                  <div style={{ marginBottom: '4px', display: 'flex', gap: '6px', alignItems: 'center' }}>
-                    <span style={{ fontSize: '12px', color: colors.gray[700], fontWeight: 600 }}>Preview:</span>
-                    <Button size="xs" variant={previewType === 'main' ? 'primary' : 'outline'} onClick={() => setPreviewType('main')}>Main Portal</Button>
-                    <Button size="xs" variant={previewType === 'login' ? 'primary' : 'outline'} onClick={() => setPreviewType('login')}>Login Page</Button>
-                  </div>
-                  {/* Mini/Full/Expand Buttons (only for Main Portal) */}
-                  {previewType === 'main' && (
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <Button size="xs" variant={previewMode === 'mini' ? 'primary' : 'outline'} onClick={() => setPreviewMode('mini')}>Mini</Button>
-                      <Button size="xs" variant={previewMode === 'full' ? 'primary' : 'outline'} onClick={() => setPreviewMode('full')}>Full</Button>
-                      <Button size="xs" variant="outline" onClick={() => setShowPreviewModal(true)}>↗ Expand</Button>
-                    </div>
-                  )}
-                </div>
+              </div>
+              {/* Preview Type Toggle Row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <span style={{ fontSize: '12px', color: colors.gray[600], fontWeight: 600 }}>Preview:</span>
+                <Button size="xs" variant={previewType === 'main' ? 'primary' : 'outline'} onClick={() => setPreviewType('main')}>Main Portal</Button>
+                <Button size="xs" variant={previewType === 'login' ? 'primary' : 'outline'} onClick={() => setPreviewType('login')}>Login Page</Button>
+              </div>
+              {/* Size Controls Row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', paddingBottom: '12px', borderBottom: `1px solid ${colors.gray[200]}` }}>
+                <Button size="xs" variant={previewMode === 'mini' ? 'primary' : 'outline'} onClick={() => setPreviewMode('mini')}>Mini</Button>
+                <Button size="xs" variant={previewMode === 'full' ? 'primary' : 'outline'} onClick={() => setPreviewMode('full')}>Full</Button>
+                <Button size="xs" variant="outline" onClick={() => setShowPreviewModal(true)}>↗ Expand</Button>
               </div>
               <div style={{ flex: 1, borderRadius: '12px', overflow: 'hidden', border: `1px solid ${colors.gray[200]}`, backgroundColor: colors.gray[100] }}>
                 <div style={{ backgroundColor: colors.gray[200], padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -206,11 +201,7 @@ export default function PortalDesignerStudio() {
                   </div>
                 </div>
                 <div style={{ height: 'calc(100% - 34px)', overflow: 'hidden' }}>
-                  {previewType === 'main' ? (
-                    <LivePreview customizations={customizations} corporate={selectedCorporate} previewMode={previewMode} />
-                  ) : (
-                    <LivePreview customizations={customizations} corporate={selectedCorporate} previewMode="full" forceLoginPage={true} />
-                  )}
+                  <LivePreview customizations={customizations} corporate={selectedCorporate} previewMode={previewMode} forceLoginPage={previewType === 'login'} />
                 </div>
               </div>
             </div>
@@ -219,7 +210,7 @@ export default function PortalDesignerStudio() {
       </main>
 
       {/* Preview Modal */}
-      <Modal isOpen={showPreviewModal} onClose={() => setShowPreviewModal(false)} title="Full Portal Preview" icon="🖥️" size="xl"><div style={{ height: '70vh', borderRadius: '12px', overflow: 'hidden', border: `1px solid ${colors.gray[200]}` }}><LivePreview customizations={customizations} corporate={selectedCorporate} previewMode="full" /></div><div style={{ marginTop: '20px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}><Button variant="outline" onClick={() => setShowPreviewModal(false)}>Close</Button><Button variant="primary" onClick={() => window.open(`https://${selectedCorporate?.subdomain}.benefitnest.space`, '_blank')}>🔗 Open Live Portal</Button></div></Modal>
+      <Modal isOpen={showPreviewModal} onClose={() => setShowPreviewModal(false)} title={previewType === 'login' ? 'Login Page Preview' : 'Main Portal Preview'} icon="🖥️" size="xl"><div style={{ height: '70vh', borderRadius: '12px', overflow: 'hidden', border: `1px solid ${colors.gray[200]}` }}><LivePreview customizations={customizations} corporate={selectedCorporate} previewMode="full" forceLoginPage={previewType === 'login'} /></div><div style={{ marginTop: '20px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}><Button variant="outline" onClick={() => setShowPreviewModal(false)}>Close</Button><Button variant="primary" onClick={() => window.open(`https://${selectedCorporate?.subdomain}.benefitnest.space`, '_blank')}>🔗 Open Live Portal</Button></div></Modal>
 
       {/* AI Modal */}
       <Modal isOpen={showAiModal} onClose={() => !aiLoading && setShowAiModal(false)} title="AI Brand Discovery" icon="🤖" size="md"><div style={{ padding: '20px 0' }}><div style={{ textAlign: 'center', marginBottom: '24px' }}><div style={{ width: '80px', height: '80px', margin: '0 auto 16px', background: 'linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px', animation: aiLoading ? 'pulse 1.5s ease-in-out infinite' : 'none', boxShadow: '0 10px 40px rgba(99, 102, 241, 0.4)' }}>🤖</div><h3 style={{ fontSize: '18px', fontWeight: '700', color: colors.gray[900], marginBottom: '8px' }}>{aiLoading ? 'Discovering Brand...' : 'Discovery Complete!'}</h3><p style={{ fontSize: '13px', color: colors.gray[500] }}>{aiLoading ? 'Analyzing company profile and brand guidelines' : 'Brand settings have been applied'}</p></div><div style={{ backgroundColor: colors.gray[900], borderRadius: '12px', padding: '16px', maxHeight: '250px', overflowY: 'auto', fontFamily: 'Monaco, Consolas, monospace', fontSize: '12px' }}>{aiLogs.map((log, i) => <div key={i} style={{ color: log.startsWith('✅') ? '#10b981' : log.startsWith('❌') ? '#ef4444' : '#9ca3af', marginBottom: '8px', opacity: i === aiLogs.length - 1 ? 1 : 0.7 }}>{log}</div>)}{aiLoading && <div style={{ color: '#6366f1', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '12px', height: '12px', border: '2px solid transparent', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />Processing...</div>}</div>{!aiLoading && <div style={{ marginTop: '20px', textAlign: 'center' }}><Button variant="primary" onClick={() => setShowAiModal(false)}>Done</Button></div>}</div></Modal>
