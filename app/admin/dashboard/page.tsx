@@ -172,7 +172,7 @@ const AdminDashboard = () => {
       title: 'Marketplace Settings',
       description: 'Manage vendor onboarding, pricing tiers, catalog setup, API/SSO integrations, and corporate-specific visibility rules.',
       icon: '🛒',
-      link: '/admin/marketplace',
+      link: '/admin/marketplace-settings',
       color: '#7c3aed'
     },
     // 13. Audit & Compliance Logs
