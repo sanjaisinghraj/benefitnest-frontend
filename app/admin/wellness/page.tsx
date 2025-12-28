@@ -156,7 +156,7 @@ export default function WellnessAdminPage() {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/api/corporates`, {
+      const res = await fetch(`${API_URL}/api/admin/corporates`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
