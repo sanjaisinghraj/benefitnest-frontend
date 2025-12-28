@@ -140,6 +140,12 @@ export default function WellnessAdminPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [activeTab, setActiveTab] = useState<'modules' | 'ai' | 'privacy'>('modules');
 
+  // Auth helper - same as CorporateManagement
+  const getToken = () => {
+    if (typeof window === 'undefined') return null;
+    return document.cookie.split('; ').find(row => row.startsWith('admin_token='))?.split('=')[1] || localStorage.getItem('admin_token');
+  };
+
   // Fetch corporates on mount
   useEffect(() => {
     fetchCorporates();
@@ -155,7 +161,7 @@ export default function WellnessAdminPage() {
   const fetchCorporates = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await fetch(`${API_URL}/api/admin/corporates`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -173,7 +179,7 @@ export default function WellnessAdminPage() {
   const fetchWellnessConfig = async (tenantId: string) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await fetch(`${API_URL}/api/wellness/config/${tenantId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -200,7 +206,7 @@ export default function WellnessAdminPage() {
 
     try {
       setSaving(true);
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await fetch(`${API_URL}/api/wellness/config`, {
         method: 'POST',
         headers: {
