@@ -766,16 +766,22 @@ const CorporateManagement = () => {
         try {
             // Step 1: Try to check if portal exists
             try {
+                console.log(`[PORTAL] Checking portal for: ${corporate.tenant_id}`);
                 const response = await axios.get(`${CORPORATES_API}/${corporate.tenant_id}/check-portal`, { headers: getAuthHeaders() });
+                
+                console.log(`[PORTAL] Check response:`, response.data);
                 
                 if (response.data.success && response.data.data.portal_exists) {
                     // Portal exists, open it
                     const portalUrl = response.data.data.portal_url || `https://${corporate.subdomain}.benefitnest.space`;
+                    console.log(`[PORTAL] Opening portal URL: ${portalUrl}`);
                     window.open(portalUrl, '_blank');
                     return;
+                } else {
+                    console.log(`[PORTAL] Portal does not exist, showing creation modal`);
                 }
             } catch (checkErr) {
-                console.log('Check portal endpoint not available, proceeding with creation');
+                console.error('[PORTAL] Check portal error:', checkErr);
             }
 
             // Step 2: If portal doesn't exist, show custom modal to create it
