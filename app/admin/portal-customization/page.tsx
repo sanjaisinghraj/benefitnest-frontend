@@ -67,29 +67,75 @@ const LivePreview = ({ customizations: c, corporate, previewMode, forceLoginPage
   };
   const features = [{ icon: '🏥', title: 'Health', desc: 'Medical coverage' }, { icon: '🦷', title: 'Dental', desc: 'Full plans' }, { icon: '💰', title: '401(k)', desc: 'Matching' }, { icon: '🏖️', title: 'PTO', desc: 'Time off' }, { icon: '👨‍👩‍👧‍👦', title: 'Life', desc: 'Protection' }, { icon: '🎓', title: 'Education', desc: 'Tuition' }];
   const faqs = [{ q: 'How do I enroll?', a: 'During open enrollment or after a qualifying event.' }, { q: 'When can I change?', a: 'Open enrollment or qualifying event.' }, { q: 'How to add dependent?', a: 'Profile settings > Manage Dependents.' }];
-  const isMini = previewMode === 'mini';
 
-  if ((!isLoggedIn && previewMode === 'full') || forceLoginPage) {
-    return <div style={{ width: '100%', height: '100%', display: 'flex', fontFamily: theme.bodyFont }}><div style={{ flex: 1, background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px', color: 'white', position: 'relative' }}><div style={{ position: 'absolute', inset: 0, opacity: 0.1, backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23fff'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E")` }} /><div style={{ position: 'relative', textAlign: 'center' }}>{theme.logoUrl ? <img src={theme.logoUrl} alt="Logo" style={{ maxWidth: theme.logoWidth, maxHeight: theme.logoHeight, marginBottom: '24px' }} onError={(e: any) => { e.target.style.display = 'none'; }} /> : <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏢</div>}<h1 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px', fontFamily: theme.headingFont }}>{content.title}</h1><p style={{ fontSize: '14px', opacity: 0.9 }}>{content.tagline}</p><div style={{ marginTop: '32px', display: 'flex', gap: '16px' }}>{['🏥 Health', '📋 Claims', '👨‍👩‍👧 Family'].map((item, i) => <div key={i} style={{ textAlign: 'center' }}><div style={{ fontSize: '24px' }}>{item.split(' ')[0]}</div><div style={{ fontSize: '11px', opacity: 0.8 }}>{item.split(' ')[1]}</div></div>)}</div></div></div>
-    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px', backgroundColor: theme.background }}>
-      <div style={{ width: '100%', maxWidth: '320px' }}>
-        <div style={{ backgroundColor: 'white', padding: '32px', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)', border: `1px solid ${theme.border}` }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '700', color: theme.text, marginBottom: '8px', textAlign: 'center', fontFamily: theme.headingFont }}>Welcome Back</h2>
-          <p style={{ fontSize: '13px', color: theme.text, opacity: 0.6, textAlign: 'center', marginBottom: '24px' }}>Sign in to access your benefits</p>
-          {loginVis.loginMethodSelector && <div style={{ marginBottom: '16px' }}><label style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: theme.text, marginBottom: '4px' }}>Login With</label><select style={{ width: '100%', padding: '10px', border: `1px solid ${theme.border}`, borderRadius: '8px', fontSize: '13px' }}><option>Email</option><option>Mobile</option><option>Employee ID</option></select></div>}
-          <div style={{ marginBottom: '16px' }}><label style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: theme.text, marginBottom: '4px' }}>Email</label><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter email" style={{ width: '100%', padding: '10px', border: `1px solid ${theme.border}`, borderRadius: '8px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} /></div>
-          <div style={{ marginBottom: '16px' }}><label style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: theme.text, marginBottom: '4px' }}>Password</label><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter password" style={{ width: '100%', padding: '10px', border: `1px solid ${theme.border}`, borderRadius: '8px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} /></div>
-          {(loginVis.rememberMe || loginVis.forgotPassword) && <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', fontSize: '11px' }}>{loginVis.rememberMe && <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: theme.text, opacity: 0.7 }}><input type="checkbox" style={{ accentColor: theme.primary }} />Remember me</label>}{loginVis.forgotPassword && <a href="#" style={{ color: theme.primary, textDecoration: 'none', fontWeight: '600' }}>Forgot password?</a>}</div>}
-          {loginVis.consent && <div style={{ marginBottom: '16px', padding: '10px', backgroundColor: `${theme.primary}08`, borderRadius: '8px', border: `1px solid ${theme.primary}20` }}><label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '11px', color: theme.text, cursor: 'pointer' }}><input type="checkbox" checked={consentChecked} onChange={(e) => setConsentChecked(e.target.checked)} style={{ accentColor: theme.primary, marginTop: '2px' }} /><span>I agree to the {loginVis.privacy && <a href="#" style={{ color: theme.primary, fontWeight: '600' }}>Privacy Policy</a>}{loginVis.privacy && loginVis.terms && ' and '}{loginVis.terms && <a href="#" style={{ color: theme.primary, fontWeight: '600' }}>Terms & Conditions</a>}{loginVis.disclaimer && <>, <a href="#" style={{ color: theme.primary, fontWeight: '600' }}>Disclaimer</a></>}</span></label></div>}
-          <button onClick={() => setIsLoggedIn(true)} style={{ width: '100%', padding: '12px', background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>Sign In</button>
-          {loginVis.otpLogin && <button style={{ width: '100%', padding: '10px', marginTop: '10px', background: 'transparent', color: theme.primary, border: `1px solid ${theme.primary}`, borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>📱 Login with OTP</button>}
+  // Login Page Preview - Compact single-column design for preview panel
+  if (forceLoginPage) {
+    return (
+      <div style={{ width: '100%', height: '100%', background: `linear-gradient(135deg, ${theme.primary}15, ${theme.secondary}15)`, fontFamily: theme.bodyFont, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', overflow: 'auto' }}>
+        <div style={{ width: '100%', maxWidth: '340px' }}>
+          {/* Company Header */}
+          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+            {theme.logoUrl ? (
+              <img src={theme.logoUrl} alt="Logo" style={{ maxWidth: Math.min(theme.logoWidth, 80), maxHeight: Math.min(theme.logoHeight, 40), marginBottom: '8px' }} onError={(e: any) => { e.target.style.display = 'none'; }} />
+            ) : (
+              <div style={{ fontSize: '28px', marginBottom: '4px' }}>🏢</div>
+            )}
+            <h1 style={{ fontSize: '16px', fontWeight: '700', color: theme.primary, margin: '0 0 2px 0', fontFamily: theme.headingFont }}>{content.title}</h1>
+            <p style={{ fontSize: '11px', color: theme.text, opacity: 0.6, margin: 0 }}>{content.tagline}</p>
+          </div>
+          
+          {/* Login Card */}
+          <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '14px', boxShadow: '0 8px 30px rgba(0,0,0,0.08)', border: `1px solid ${theme.border}` }}>
+            <h2 style={{ fontSize: '16px', fontWeight: '700', color: theme.text, marginBottom: '4px', textAlign: 'center', fontFamily: theme.headingFont }}>Sign In</h2>
+            <p style={{ fontSize: '11px', color: theme.text, opacity: 0.5, textAlign: 'center', marginBottom: '16px' }}>Access your benefits portal</p>
+            
+            {loginVis.loginMethodSelector && (
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '10px', fontWeight: '600', color: theme.text, marginBottom: '3px' }}>Login With</label>
+                <select style={{ width: '100%', padding: '8px', border: `1px solid ${theme.border}`, borderRadius: '6px', fontSize: '12px', outline: 'none', boxSizing: 'border-box' }}>
+                  <option>Email</option><option>Mobile</option><option>Employee ID</option>
+                </select>
+              </div>
+            )}
+            
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', fontSize: '10px', fontWeight: '600', color: theme.text, marginBottom: '3px' }}>Email</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter email" style={{ width: '100%', padding: '8px', border: `1px solid ${theme.border}`, borderRadius: '6px', fontSize: '12px', outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+            
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', fontSize: '10px', fontWeight: '600', color: theme.text, marginBottom: '3px' }}>Password</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter password" style={{ width: '100%', padding: '8px', border: `1px solid ${theme.border}`, borderRadius: '6px', fontSize: '12px', outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+            
+            {(loginVis.rememberMe || loginVis.forgotPassword) && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', fontSize: '10px' }}>
+                {loginVis.rememberMe && <label style={{ display: 'flex', alignItems: 'center', gap: '4px', color: theme.text, opacity: 0.7, cursor: 'pointer' }}><input type="checkbox" style={{ accentColor: theme.primary, width: '12px', height: '12px' }} />Remember me</label>}
+                {loginVis.forgotPassword && <a href="#" style={{ color: theme.primary, textDecoration: 'none', fontWeight: '600' }}>Forgot password?</a>}
+              </div>
+            )}
+            
+            {loginVis.consent && (
+              <div style={{ marginBottom: '12px', padding: '8px', backgroundColor: `${theme.primary}08`, borderRadius: '6px', border: `1px solid ${theme.primary}15` }}>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '10px', color: theme.text, cursor: 'pointer' }}>
+                  <input type="checkbox" checked={consentChecked} onChange={(e) => setConsentChecked(e.target.checked)} style={{ accentColor: theme.primary, marginTop: '1px', width: '12px', height: '12px' }} />
+                  <span>I agree to the {loginVis.privacy && <a href="#" style={{ color: theme.primary, fontWeight: '600' }}>Privacy Policy</a>}{loginVis.privacy && loginVis.terms && ' and '}{loginVis.terms && <a href="#" style={{ color: theme.primary, fontWeight: '600' }}>Terms</a>}{loginVis.disclaimer && <>, <a href="#" style={{ color: theme.primary, fontWeight: '600' }}>Disclaimer</a></>}</span>
+                </label>
+              </div>
+            )}
+            
+            {/* Buttons - Side by Side */}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={() => setIsLoggedIn(true)} style={{ flex: 1, padding: '10px', background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, color: 'white', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>Sign In</button>
+              {loginVis.otpLogin && <button style={{ flex: 1, padding: '10px', background: 'transparent', color: theme.primary, border: `1px solid ${theme.primary}`, borderRadius: '6px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}>📱 OTP</button>}
+            </div>
+          </div>
         </div>
-        <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '10px', color: theme.text, opacity: 0.5 }}>Powered by <strong>BenefitNest</strong></div>
       </div>
-    </div></div>;
+    );
   }
 
-  return <div style={{ width: '100%', height: '100%', backgroundColor: theme.background, fontFamily: theme.bodyFont, fontSize: isMini ? '12px' : '14px', color: theme.text, overflow: 'auto' }}>{vis.header && <div style={{ background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, padding: isMini ? '10px 14px' : '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>{theme.logoUrl ? <img src={theme.logoUrl} alt="Logo" style={{ height: isMini ? '20px' : '32px' }} onError={(e: any) => { e.target.style.display = 'none'; }} /> : <div style={{ width: isMini ? '20px' : '32px', height: isMini ? '20px' : '32px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMini ? '12px' : '16px' }}>🏢</div>}<span style={{ color: 'white', fontWeight: '700', fontSize: isMini ? '11px' : '15px', fontFamily: theme.headingFont }}>{content.title}</span></div><div style={{ display: 'flex', gap: '8px' }}>{['Home', 'Benefits', 'Contact'].map((item, i) => <span key={i} style={{ color: 'white', fontSize: isMini ? '9px' : '12px', opacity: 0.9 }}>{item}</span>)}</div></div>}{vis.hero && <div style={{ background: content.heroBgImage ? `linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.5)), url(${content.heroBgImage}) center/cover` : `linear-gradient(135deg, ${theme.primary}15, ${theme.secondary}15)`, padding: isMini ? '20px 14px' : '40px 32px', textAlign: 'center' }}><h1 style={{ fontSize: isMini ? '16px' : '28px', fontWeight: '700', color: content.heroBgImage ? 'white' : theme.primary, marginBottom: '8px', fontFamily: theme.headingFont }}>{content.heroHeadline}</h1><p style={{ fontSize: isMini ? '10px' : '14px', color: content.heroBgImage ? 'white' : theme.text, opacity: 0.7, marginBottom: '16px' }}>{content.heroSubheadline}</p>{content.heroCtaText && <button style={{ backgroundColor: theme.primary, color: 'white', border: 'none', borderRadius: '6px', padding: isMini ? '6px 12px' : '10px 20px', fontSize: isMini ? '10px' : '13px', fontWeight: '600' }}>{content.heroCtaText}</button>}</div>}{vis.features && <div style={{ padding: isMini ? '14px' : '28px' }}><h2 style={{ fontSize: isMini ? '12px' : '18px', fontWeight: '700', marginBottom: '14px', color: theme.primary, fontFamily: theme.headingFont }}>Your Benefits</h2><div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: isMini ? '6px' : '12px' }}>{features.map((f, i) => <div key={i} style={{ backgroundColor: colors.gray[50], padding: isMini ? '10px' : '16px', borderRadius: '8px', textAlign: 'center', border: `1px solid ${theme.border}` }}><div style={{ fontSize: isMini ? '18px' : '28px', marginBottom: '6px' }}>{f.icon}</div><div style={{ fontSize: isMini ? '9px' : '12px', fontWeight: '600', color: theme.primary }}>{f.title}</div>{!isMini && <div style={{ fontSize: '10px', color: theme.text, opacity: 0.6, marginTop: '2px' }}>{f.desc}</div>}</div>)}</div></div>}{vis.faq && !isMini && <div style={{ padding: '28px', backgroundColor: colors.gray[50] }}><h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px', color: theme.primary, fontFamily: theme.headingFont }}>FAQs</h2><div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>{faqs.map((faq, i) => <div key={i} style={{ backgroundColor: 'white', padding: '14px', borderRadius: '8px', border: `1px solid ${theme.border}` }}><div style={{ fontWeight: '600', color: theme.text, marginBottom: '6px', fontSize: '13px' }}>{faq.q}</div><div style={{ fontSize: '12px', color: theme.text, opacity: 0.7 }}>{faq.a}</div></div>)}</div></div>}{vis.contact && !isMini && <div style={{ padding: '28px' }}><h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px', color: theme.primary, fontFamily: theme.headingFont }}>Contact HR</h2><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}><div style={{ padding: '16px', backgroundColor: `${theme.primary}10`, borderRadius: '8px', border: `1px solid ${theme.primary}30` }}><div style={{ fontSize: '11px', color: theme.text, opacity: 0.6, marginBottom: '4px' }}>EMAIL</div><div style={{ fontSize: '13px', fontWeight: '600', color: theme.primary }}>{corporate?.contact_details?.email || 'hr@company.com'}</div></div><div style={{ padding: '16px', backgroundColor: `${theme.secondary}10`, borderRadius: '8px', border: `1px solid ${theme.secondary}30` }}><div style={{ fontSize: '11px', color: theme.text, opacity: 0.6, marginBottom: '4px' }}>PHONE</div><div style={{ fontSize: '13px', fontWeight: '600', color: theme.secondary }}>{corporate?.contact_details?.phone || '+1 555-123-4567'}</div></div></div></div>}{vis.footer && <div style={{ padding: isMini ? '10px' : '16px', borderTop: `1px solid ${theme.border}`, textAlign: 'center', backgroundColor: colors.gray[50] }}><span style={{ fontSize: isMini ? '8px' : '11px', color: theme.text, opacity: 0.5 }}>© {new Date().getFullYear()} {content.title} • Powered by BenefitNest</span></div>}</div>;
+  return <div style={{ width: '100%', height: '100%', backgroundColor: theme.background, fontFamily: theme.bodyFont, fontSize: '12px', color: theme.text, overflow: 'auto' }}>{vis.header && <div style={{ background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>{theme.logoUrl ? <img src={theme.logoUrl} alt="Logo" style={{ height: '20px' }} onError={(e: any) => { e.target.style.display = 'none'; }} /> : <div style={{ width: '20px', height: '20px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px' }}>🏢</div>}<span style={{ color: 'white', fontWeight: '700', fontSize: '11px', fontFamily: theme.headingFont }}>{content.title}</span></div><div style={{ display: 'flex', gap: '8px' }}>{['Home', 'Benefits', 'Contact'].map((item, i) => <span key={i} style={{ color: 'white', fontSize: '9px', opacity: 0.9 }}>{item}</span>)}</div></div>}{vis.hero && <div style={{ background: content.heroBgImage ? `linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.5)), url(${content.heroBgImage}) center/cover` : `linear-gradient(135deg, ${theme.primary}15, ${theme.secondary}15)`, padding: '16px 14px', textAlign: 'center' }}><h1 style={{ fontSize: '14px', fontWeight: '700', color: content.heroBgImage ? 'white' : theme.primary, marginBottom: '4px', fontFamily: theme.headingFont }}>{content.heroHeadline}</h1><p style={{ fontSize: '10px', color: content.heroBgImage ? 'white' : theme.text, opacity: 0.7, marginBottom: '10px' }}>{content.heroSubheadline}</p>{content.heroCtaText && <button style={{ backgroundColor: theme.primary, color: 'white', border: 'none', borderRadius: '4px', padding: '5px 12px', fontSize: '9px', fontWeight: '600' }}>{content.heroCtaText}</button>}</div>}{vis.features && <div style={{ padding: '12px' }}><h2 style={{ fontSize: '11px', fontWeight: '700', marginBottom: '10px', color: theme.primary, fontFamily: theme.headingFont }}>Your Benefits</h2><div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>{features.map((f, i) => <div key={i} style={{ backgroundColor: colors.gray[50], padding: '8px', borderRadius: '6px', textAlign: 'center', border: `1px solid ${theme.border}` }}><div style={{ fontSize: '16px', marginBottom: '3px' }}>{f.icon}</div><div style={{ fontSize: '9px', fontWeight: '600', color: theme.primary }}>{f.title}</div></div>)}</div></div>}{vis.faq && <div style={{ padding: '12px', backgroundColor: colors.gray[50] }}><h2 style={{ fontSize: '11px', fontWeight: '700', marginBottom: '8px', color: theme.primary, fontFamily: theme.headingFont }}>FAQs</h2><div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>{faqs.slice(0, 2).map((faq, i) => <div key={i} style={{ backgroundColor: 'white', padding: '8px', borderRadius: '6px', border: `1px solid ${theme.border}` }}><div style={{ fontWeight: '600', color: theme.text, marginBottom: '2px', fontSize: '10px' }}>{faq.q}</div><div style={{ fontSize: '9px', color: theme.text, opacity: 0.7 }}>{faq.a}</div></div>)}</div></div>}{vis.contact && <div style={{ padding: '12px' }}><h2 style={{ fontSize: '11px', fontWeight: '700', marginBottom: '8px', color: theme.primary, fontFamily: theme.headingFont }}>Contact HR</h2><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}><div style={{ padding: '10px', backgroundColor: `${theme.primary}10`, borderRadius: '6px', border: `1px solid ${theme.primary}20` }}><div style={{ fontSize: '9px', color: theme.text, opacity: 0.6, marginBottom: '2px' }}>EMAIL</div><div style={{ fontSize: '10px', fontWeight: '600', color: theme.primary }}>{corporate?.contact_details?.email || 'hr@company.com'}</div></div><div style={{ padding: '10px', backgroundColor: `${theme.secondary}10`, borderRadius: '6px', border: `1px solid ${theme.secondary}20` }}><div style={{ fontSize: '9px', color: theme.text, opacity: 0.6, marginBottom: '2px' }}>PHONE</div><div style={{ fontSize: '10px', fontWeight: '600', color: theme.secondary }}>{corporate?.contact_details?.phone || '+1 555-1234'}</div></div></div></div>}{vis.footer && <div style={{ padding: '8px', borderTop: `1px solid ${theme.border}`, textAlign: 'center', backgroundColor: colors.gray[50] }}><span style={{ fontSize: '8px', color: theme.text, opacity: 0.5 }}>© {new Date().getFullYear()} {content.title} • BenefitNest</span></div>}</div>;
 };
 
 // Main Component
@@ -324,7 +370,7 @@ export default function PortalDesignerStudio() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             {hasUnsavedChanges && <Badge variant="warning">● Unsaved</Badge>}
-            {selectedCorporate && <><Button variant="outline" size="sm" icon="👁️" onClick={() => setShowPreviewModal(true)}>Full Preview ({previewType === 'login' ? 'Login' : 'Portal'})</Button><Button variant="ai" size="md" icon="💾" onClick={handleSave} loading={saving}>Save Design</Button></>}
+            {selectedCorporate && <Button variant="ai" size="md" icon="💾" onClick={handleSave} loading={saving}>Save Design</Button>}
             <div style={{ height: '30px', width: '1px', backgroundColor: colors.gray[200] }} />
             {/* User Profile Dropdown */}
             <div style={{ position: 'relative' }}>
@@ -351,8 +397,8 @@ export default function PortalDesignerStudio() {
       {showProfileMenu && <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setShowProfileMenu(false)} />}
 
       {/* Main */}
-      <main style={{ maxWidth: '1800px', margin: '0 auto', padding: '24px', display: 'grid', gridTemplateColumns: selectedCorporate ? '1fr 420px' : '1fr', gap: '24px' }}>
-        <div>
+      <main style={{ padding: '24px', paddingRight: '0', display: 'grid', gridTemplateColumns: selectedCorporate ? '1fr 420px' : '1fr', gap: '16px' }}>
+        <div style={{ paddingRight: selectedCorporate ? '0' : '24px' }}>
           {/* Search Card */}
           <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '24px', marginBottom: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: `1px solid ${colors.gray[200]}` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}><div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>🏢</div><div><h2 style={{ fontSize: '18px', fontWeight: '700', margin: 0 }}>Select Company</h2><p style={{ fontSize: '13px', color: colors.gray[500], margin: 0 }}>Search by name or subdomain</p></div></div>
@@ -387,7 +433,7 @@ export default function PortalDesignerStudio() {
         {/* Live Preview Panel */}
         {selectedCorporate && (
           <div style={{ position: 'sticky', top: '90px', height: 'calc(100vh - 130px)' }}>
-            <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: `1px solid ${colors.gray[200]}`, height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ backgroundColor: 'white', borderRadius: '20px 0 0 20px', padding: '16px', paddingRight: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', borderLeft: `1px solid ${colors.gray[200]}`, borderTop: `1px solid ${colors.gray[200]}`, borderBottom: `1px solid ${colors.gray[200]}`, height: '100%', display: 'flex', flexDirection: 'column' }}>
               {/* Title Row */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
                 <span style={{ fontSize: '20px' }}>👁️</span>
@@ -399,16 +445,14 @@ export default function PortalDesignerStudio() {
               {/* Preview Type Toggle Row */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                 <span style={{ fontSize: '12px', color: colors.gray[600], fontWeight: 600 }}>Preview:</span>
-                <Button size="xs" variant={previewType === 'main' ? 'primary' : 'outline'} onClick={() => setPreviewType('main')}>Main Portal</Button>
+                <Button size="xs" variant={previewType === 'main' ? 'primary' : 'outline'} onClick={() => setPreviewType('main')}>Dashboard</Button>
                 <Button size="xs" variant={previewType === 'login' ? 'primary' : 'outline'} onClick={() => setPreviewType('login')}>Login Page</Button>
               </div>
-              {/* Size Controls Row */}
+              {/* Expand Button Row */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', paddingBottom: '12px', borderBottom: `1px solid ${colors.gray[200]}` }}>
-                <Button size="xs" variant={previewMode === 'mini' ? 'primary' : 'outline'} onClick={() => setPreviewMode('mini')}>Mini</Button>
-                <Button size="xs" variant={previewMode === 'full' ? 'primary' : 'outline'} onClick={() => setPreviewMode('full')}>Full</Button>
                 <Button size="xs" variant="outline" onClick={() => setShowPreviewModal(true)}>↗ Expand</Button>
               </div>
-              <div style={{ flex: 1, borderRadius: '12px', overflow: 'hidden', border: `1px solid ${colors.gray[200]}`, backgroundColor: colors.gray[100] }}>
+              <div style={{ flex: 1, borderRadius: '12px 0 0 12px', overflow: 'hidden', border: `1px solid ${colors.gray[200]}`, borderRight: 'none', backgroundColor: colors.gray[100] }}>
                 <div style={{ backgroundColor: colors.gray[200], padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <div style={{ display: 'flex', gap: '6px' }}>
                     <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
