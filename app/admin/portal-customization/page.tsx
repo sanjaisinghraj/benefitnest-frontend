@@ -45,16 +45,34 @@ const ColorPicker = ({ label, value, onChange }: any) => { const [show, setShow]
 const FontSelector = ({ label, value, onChange }: any) => { const [isOpen, setIsOpen] = useState(false); const [search, setSearch] = useState(''); const filtered = useMemo(() => search ? FONTS.filter(f => f.name.toLowerCase().includes(search.toLowerCase())) : FONTS, [search]); return <div style={{ marginBottom: '16px', position: 'relative' }}>{label && <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: colors.gray[700] }}>{label}</label>}<div onClick={() => setIsOpen(!isOpen)} style={{ padding: '12px 14px', border: `2px solid ${isOpen ? colors.primary : colors.gray[200]}`, borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'white' }}><span style={{ fontFamily: value || 'inherit', fontSize: '14px' }}>{value || 'Select font...'}</span><span style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: colors.gray[400] }}>▼</span></div>{isOpen && <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', border: `2px solid ${colors.gray[200]}`, borderRadius: '12px', boxShadow: '0 10px 40px rgba(0,0,0,0.15)', zIndex: 100, marginTop: '4px', maxHeight: '280px', overflow: 'hidden' }}><div style={{ padding: '10px', borderBottom: `1px solid ${colors.gray[100]}` }}><input type="text" placeholder="🔍 Search fonts..." value={search} onChange={(e) => setSearch(e.target.value)} onClick={(e) => e.stopPropagation()} style={{ width: '100%', padding: '10px', border: `1px solid ${colors.gray[200]}`, borderRadius: '8px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} /></div><div style={{ maxHeight: '200px', overflowY: 'auto' }}>{filtered.map(font => <div key={font.name} onClick={() => { onChange(font.name); setIsOpen(false); setSearch(''); }} style={{ padding: '12px 16px', cursor: 'pointer', borderBottom: `1px solid ${colors.gray[50]}`, backgroundColor: value === font.name ? colors.primaryLight : 'white' }} onMouseEnter={(e) => { if (value !== font.name) e.currentTarget.style.backgroundColor = colors.gray[50]; }} onMouseLeave={(e) => { if (value !== font.name) e.currentTarget.style.backgroundColor = 'white'; }}><div style={{ fontFamily: font.name, fontSize: '15px', fontWeight: '600', marginBottom: '2px' }}>{font.name}</div><div style={{ fontSize: '11px', color: colors.gray[500] }}>{font.cat} • {font.mood}</div></div>)}</div></div>}</div>; };
 const Toggle = ({ label, value, onChange, description }: any) => <div onClick={() => onChange(!value)} style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '14px 16px', backgroundColor: value ? colors.primaryLight : colors.gray[50], borderRadius: '12px', cursor: 'pointer', border: `2px solid ${value ? colors.primary : 'transparent'}`, marginBottom: '10px' }}><div style={{ width: '48px', height: '26px', borderRadius: '13px', backgroundColor: value ? colors.primary : colors.gray[300], position: 'relative', flexShrink: 0 }}><div style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: 'white', position: 'absolute', top: '2px', left: value ? '24px' : '2px', transition: 'all 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} /></div><div><div style={{ fontSize: '14px', fontWeight: '600', color: colors.gray[800] }}>{label}</div>{description && <div style={{ fontSize: '12px', color: colors.gray[500], marginTop: '2px' }}>{description}</div>}</div></div>;
 
-// Live Preview
+// Live Preview - Matches actual [subdomain]/page.tsx login design
 const LivePreview = ({ customizations: c, corporate, previewMode, forceLoginPage = false }: any) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [consentChecked, setConsentChecked] = useState(false);
-  const theme = { primary: c.primary_color || '#6366f1', secondary: c.secondary_color || '#8b5cf6', accent: c.accent_color || '#f59e0b', background: c.background_color || '#ffffff', text: c.text_color || '#111827', border: c.border_color || '#e5e7eb', headingFont: c.heading_font_family || 'Inter', bodyFont: c.body_font_family || 'Open Sans', logoUrl: c.logo_url || corporate?.logo_url, logoWidth: c.logo_width || 120, logoHeight: c.logo_height || 50 };
-  const content = { title: c.portal_title || corporate?.corporate_legal_name || 'Benefits Portal', tagline: c.portal_tagline || 'Employee Benefits Hub', heroHeadline: c.hero_headline || 'Welcome to Your Benefits', heroSubheadline: c.hero_subheadline || 'Everything you need in one place', heroCtaText: c.hero_cta_button_text || 'Get Started', heroBgImage: c.hero_background_image_url };
-  const vis = { header: c.show_header !== false, hero: c.show_hero_section !== false, features: c.show_features_section !== false, faq: c.show_faq_section !== false, contact: c.show_contact_section !== false, footer: c.show_footer !== false };
-  // Login page toggles
+  const [showDashboard, setShowDashboard] = useState(false);
+  
+  const theme = { 
+    primary: c.primary_color || '#db2777', 
+    secondary: c.secondary_color || '#9333ea', 
+    accent: c.accent_color || '#f59e0b', 
+    background: c.background_color || '#ffffff', 
+    text: c.text_color || '#111827', 
+    border: c.border_color || '#e5e7eb', 
+    headingFont: c.heading_font_family || 'Segoe UI', 
+    bodyFont: c.body_font_family || 'Segoe UI', 
+    logoUrl: c.logo_url || corporate?.logo_url, 
+    logoWidth: c.logo_width || 150, 
+    logoHeight: c.logo_height || 50,
+    headingWeight: c.font_weight_heading || 700
+  };
+  
+  const content = { 
+    title: c.portal_title || corporate?.corporate_legal_name || 'Employee Portal', 
+    tagline: c.portal_tagline || 'To keep connected with us please login with your personal info',
+    heroHeadline: c.hero_headline || 'Welcome to Your Benefits',
+    heroSubheadline: c.hero_subheadline || 'Everything you need in one place',
+    heroCtaText: c.hero_cta_button_text || 'Get Started'
+  };
+  
   const loginVis = { 
     consent: c.show_consent_checkbox !== false, 
     privacy: c.show_privacy_link !== false, 
@@ -65,77 +83,226 @@ const LivePreview = ({ customizations: c, corporate, previewMode, forceLoginPage
     loginMethodSelector: c.show_login_method_selector !== false,
     otpLogin: c.enable_otp_login !== false
   };
-  const features = [{ icon: '🏥', title: 'Health', desc: 'Medical coverage' }, { icon: '🦷', title: 'Dental', desc: 'Full plans' }, { icon: '💰', title: '401(k)', desc: 'Matching' }, { icon: '🏖️', title: 'PTO', desc: 'Time off' }, { icon: '👨‍👩‍👧‍👦', title: 'Life', desc: 'Protection' }, { icon: '🎓', title: 'Education', desc: 'Tuition' }];
-  const faqs = [{ q: 'How do I enroll?', a: 'During open enrollment or after a qualifying event.' }, { q: 'When can I change?', a: 'Open enrollment or qualifying event.' }, { q: 'How to add dependent?', a: 'Profile settings > Manage Dependents.' }];
 
-  // Login Page Preview - Compact single-column design for preview panel
-  if (forceLoginPage) {
+  // Dashboard Preview (after "login")
+  if (showDashboard && !forceLoginPage) {
     return (
-      <div style={{ width: '100%', height: '100%', background: `linear-gradient(135deg, ${theme.primary}15, ${theme.secondary}15)`, fontFamily: theme.bodyFont, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', overflow: 'auto' }}>
-        <div style={{ width: '100%', maxWidth: '340px' }}>
-          {/* Company Header */}
-          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-            {theme.logoUrl ? (
-              <img src={theme.logoUrl} alt="Logo" style={{ maxWidth: Math.min(theme.logoWidth, 80), maxHeight: Math.min(theme.logoHeight, 40), marginBottom: '8px' }} onError={(e: any) => { e.target.style.display = 'none'; }} />
-            ) : (
-              <div style={{ fontSize: '28px', marginBottom: '4px' }}>🏢</div>
-            )}
-            <h1 style={{ fontSize: '16px', fontWeight: '700', color: theme.primary, margin: '0 0 2px 0', fontFamily: theme.headingFont }}>{content.title}</h1>
-            <p style={{ fontSize: '11px', color: theme.text, opacity: 0.6, margin: 0 }}>{content.tagline}</p>
+      <div style={{ width: '100%', height: '100%', background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, fontFamily: theme.bodyFont, padding: '12px', overflow: 'auto' }}>
+        <div style={{ backgroundColor: theme.background, borderRadius: '16px', padding: '16px', minHeight: 'calc(100% - 24px)', boxShadow: '0 10px 40px rgba(0,0,0,0.15)' }}>
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', paddingBottom: '12px', borderBottom: `1px solid ${theme.border}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {theme.logoUrl ? (
+                <img src={theme.logoUrl} alt="Logo" style={{ maxHeight: '24px', objectFit: 'contain' }} onError={(e: any) => { e.target.style.display = 'none'; }} />
+              ) : (
+                <div style={{ width: '28px', height: '28px', background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '12px' }}>🏢</div>
+              )}
+              <span style={{ fontSize: '12px', fontWeight: '700', color: theme.text, fontFamily: theme.headingFont }}>{content.title}</span>
+            </div>
+            <button onClick={() => setShowDashboard(false)} style={{ padding: '4px 10px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', fontSize: '9px', fontWeight: '600', cursor: 'pointer' }}>Logout</button>
           </div>
           
-          {/* Login Card */}
-          <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '14px', boxShadow: '0 8px 30px rgba(0,0,0,0.08)', border: `1px solid ${theme.border}` }}>
-            <h2 style={{ fontSize: '16px', fontWeight: '700', color: theme.text, marginBottom: '4px', textAlign: 'center', fontFamily: theme.headingFont }}>Sign In</h2>
-            <p style={{ fontSize: '11px', color: theme.text, opacity: 0.5, textAlign: 'center', marginBottom: '16px' }}>Access your benefits portal</p>
-            
-            {loginVis.loginMethodSelector && (
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', fontSize: '10px', fontWeight: '600', color: theme.text, marginBottom: '3px' }}>Login With</label>
-                <select style={{ width: '100%', padding: '8px', border: `1px solid ${theme.border}`, borderRadius: '6px', fontSize: '12px', outline: 'none', boxSizing: 'border-box' }}>
-                  <option>Email</option><option>Mobile</option><option>Employee ID</option>
-                </select>
+          {/* Welcome */}
+          <div style={{ marginBottom: '16px' }}>
+            <h2 style={{ fontSize: '14px', fontWeight: theme.headingWeight, color: theme.text, margin: '0 0 4px 0', fontFamily: theme.headingFont }}>👋 Welcome back!</h2>
+            <p style={{ fontSize: '10px', color: theme.text, opacity: 0.6, margin: 0 }}>Here&apos;s your benefits overview</p>
+          </div>
+          
+          {/* Feature Tiles */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+            {[
+              { icon: '🧘', title: 'Wellness', color: '#10b981' },
+              { icon: '🛍️', title: 'Marketplace', color: '#6366f1' },
+              { icon: '🏥', title: 'Health Plans', color: '#0891b2' },
+              { icon: '📋', title: 'Claims', color: '#f59e0b' }
+            ].map((tile, i) => (
+              <div key={i} style={{ padding: '12px', borderRadius: '10px', background: `${tile.color}10`, border: `1px solid ${tile.color}30`, textAlign: 'center' }}>
+                <div style={{ fontSize: '20px', marginBottom: '4px' }}>{tile.icon}</div>
+                <div style={{ fontSize: '10px', fontWeight: '600', color: tile.color }}>{tile.title}</div>
               </div>
-            )}
-            
-            <div style={{ marginBottom: '12px' }}>
-              <label style={{ display: 'block', fontSize: '10px', fontWeight: '600', color: theme.text, marginBottom: '3px' }}>Email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter email" style={{ width: '100%', padding: '8px', border: `1px solid ${theme.border}`, borderRadius: '6px', fontSize: '12px', outline: 'none', boxSizing: 'border-box' }} />
-            </div>
-            
-            <div style={{ marginBottom: '12px' }}>
-              <label style={{ display: 'block', fontSize: '10px', fontWeight: '600', color: theme.text, marginBottom: '3px' }}>Password</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter password" style={{ width: '100%', padding: '8px', border: `1px solid ${theme.border}`, borderRadius: '6px', fontSize: '12px', outline: 'none', boxSizing: 'border-box' }} />
-            </div>
-            
-            {(loginVis.rememberMe || loginVis.forgotPassword) && (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', fontSize: '10px' }}>
-                {loginVis.rememberMe && <label style={{ display: 'flex', alignItems: 'center', gap: '4px', color: theme.text, opacity: 0.7, cursor: 'pointer' }}><input type="checkbox" style={{ accentColor: theme.primary, width: '12px', height: '12px' }} />Remember me</label>}
-                {loginVis.forgotPassword && <a href="#" style={{ color: theme.primary, textDecoration: 'none', fontWeight: '600' }}>Forgot password?</a>}
-              </div>
-            )}
-            
-            {loginVis.consent && (
-              <div style={{ marginBottom: '12px', padding: '8px', backgroundColor: `${theme.primary}08`, borderRadius: '6px', border: `1px solid ${theme.primary}15` }}>
-                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '10px', color: theme.text, cursor: 'pointer' }}>
-                  <input type="checkbox" checked={consentChecked} onChange={(e) => setConsentChecked(e.target.checked)} style={{ accentColor: theme.primary, marginTop: '1px', width: '12px', height: '12px' }} />
-                  <span>I agree to the {loginVis.privacy && <a href="#" style={{ color: theme.primary, fontWeight: '600' }}>Privacy Policy</a>}{loginVis.privacy && loginVis.terms && ' and '}{loginVis.terms && <a href="#" style={{ color: theme.primary, fontWeight: '600' }}>Terms</a>}{loginVis.disclaimer && <>, <a href="#" style={{ color: theme.primary, fontWeight: '600' }}>Disclaimer</a></>}</span>
-                </label>
-              </div>
-            )}
-            
-            {/* Buttons - Side by Side */}
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => setIsLoggedIn(true)} style={{ flex: 1, padding: '10px', background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, color: 'white', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>Sign In</button>
-              {loginVis.otpLogin && <button style={{ flex: 1, padding: '10px', background: 'transparent', color: theme.primary, border: `1px solid ${theme.primary}`, borderRadius: '6px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}>📱 OTP</button>}
-            </div>
+            ))}
           </div>
         </div>
       </div>
     );
   }
 
-  return <div style={{ width: '100%', height: '100%', backgroundColor: theme.background, fontFamily: theme.bodyFont, fontSize: '12px', color: theme.text, overflow: 'auto' }}>{vis.header && <div style={{ background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>{theme.logoUrl ? <img src={theme.logoUrl} alt="Logo" style={{ height: '20px' }} onError={(e: any) => { e.target.style.display = 'none'; }} /> : <div style={{ width: '20px', height: '20px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px' }}>🏢</div>}<span style={{ color: 'white', fontWeight: '700', fontSize: '11px', fontFamily: theme.headingFont }}>{content.title}</span></div><div style={{ display: 'flex', gap: '8px' }}>{['Home', 'Benefits', 'Contact'].map((item, i) => <span key={i} style={{ color: 'white', fontSize: '9px', opacity: 0.9 }}>{item}</span>)}</div></div>}{vis.hero && <div style={{ background: content.heroBgImage ? `linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.5)), url(${content.heroBgImage}) center/cover` : `linear-gradient(135deg, ${theme.primary}15, ${theme.secondary}15)`, padding: '16px 14px', textAlign: 'center' }}><h1 style={{ fontSize: '14px', fontWeight: '700', color: content.heroBgImage ? 'white' : theme.primary, marginBottom: '4px', fontFamily: theme.headingFont }}>{content.heroHeadline}</h1><p style={{ fontSize: '10px', color: content.heroBgImage ? 'white' : theme.text, opacity: 0.7, marginBottom: '10px' }}>{content.heroSubheadline}</p>{content.heroCtaText && <button style={{ backgroundColor: theme.primary, color: 'white', border: 'none', borderRadius: '4px', padding: '5px 12px', fontSize: '9px', fontWeight: '600' }}>{content.heroCtaText}</button>}</div>}{vis.features && <div style={{ padding: '12px' }}><h2 style={{ fontSize: '11px', fontWeight: '700', marginBottom: '10px', color: theme.primary, fontFamily: theme.headingFont }}>Your Benefits</h2><div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>{features.map((f, i) => <div key={i} style={{ backgroundColor: colors.gray[50], padding: '8px', borderRadius: '6px', textAlign: 'center', border: `1px solid ${theme.border}` }}><div style={{ fontSize: '16px', marginBottom: '3px' }}>{f.icon}</div><div style={{ fontSize: '9px', fontWeight: '600', color: theme.primary }}>{f.title}</div></div>)}</div></div>}{vis.faq && <div style={{ padding: '12px', backgroundColor: colors.gray[50] }}><h2 style={{ fontSize: '11px', fontWeight: '700', marginBottom: '8px', color: theme.primary, fontFamily: theme.headingFont }}>FAQs</h2><div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>{faqs.slice(0, 2).map((faq, i) => <div key={i} style={{ backgroundColor: 'white', padding: '8px', borderRadius: '6px', border: `1px solid ${theme.border}` }}><div style={{ fontWeight: '600', color: theme.text, marginBottom: '2px', fontSize: '10px' }}>{faq.q}</div><div style={{ fontSize: '9px', color: theme.text, opacity: 0.7 }}>{faq.a}</div></div>)}</div></div>}{vis.contact && <div style={{ padding: '12px' }}><h2 style={{ fontSize: '11px', fontWeight: '700', marginBottom: '8px', color: theme.primary, fontFamily: theme.headingFont }}>Contact HR</h2><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}><div style={{ padding: '10px', backgroundColor: `${theme.primary}10`, borderRadius: '6px', border: `1px solid ${theme.primary}20` }}><div style={{ fontSize: '9px', color: theme.text, opacity: 0.6, marginBottom: '2px' }}>EMAIL</div><div style={{ fontSize: '10px', fontWeight: '600', color: theme.primary }}>{corporate?.contact_details?.email || 'hr@company.com'}</div></div><div style={{ padding: '10px', backgroundColor: `${theme.secondary}10`, borderRadius: '6px', border: `1px solid ${theme.secondary}20` }}><div style={{ fontSize: '9px', color: theme.text, opacity: 0.6, marginBottom: '2px' }}>PHONE</div><div style={{ fontSize: '10px', fontWeight: '600', color: theme.secondary }}>{corporate?.contact_details?.phone || '+1 555-1234'}</div></div></div></div>}{vis.footer && <div style={{ padding: '8px', borderTop: `1px solid ${theme.border}`, textAlign: 'center', backgroundColor: colors.gray[50] }}><span style={{ fontSize: '8px', color: theme.text, opacity: 0.5 }}>© {new Date().getFullYear()} {content.title} • BenefitNest</span></div>}</div>;
+  // Login Page Preview - Two-panel design matching actual portal
+  return (
+    <div style={{ 
+      width: '100%', 
+      height: '100%', 
+      background: `linear-gradient(135deg, ${theme.primary}15, ${theme.secondary}15)`, 
+      fontFamily: theme.bodyFont, 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      padding: '8px', 
+      overflow: 'hidden' 
+    }}>
+      {/* Main Container - Two Panel Layout */}
+      <div style={{ 
+        width: '100%', 
+        maxWidth: '100%',
+        height: '100%',
+        display: 'flex', 
+        borderRadius: '16px', 
+        overflow: 'hidden', 
+        boxShadow: '0 20px 50px rgba(0,0,0,0.2)',
+        backgroundColor: 'white'
+      }}>
+        {/* Left Panel - Gradient with Welcome */}
+        <div style={{ 
+          width: '40%', 
+          background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, 
+          position: 'relative', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          padding: '16px 12px',
+          overflow: 'hidden'
+        }}>
+          {/* Decorative Elements */}
+          <div style={{ position: 'absolute', top: '-30px', left: '-30px', width: '100px', height: '100px', background: 'rgba(255,255,255,0.08)', borderRadius: '60% 40% 30% 70%' }} />
+          <div style={{ position: 'absolute', bottom: '10%', left: '5%', width: '40px', height: '40px', border: '2px solid rgba(255,255,255,0.15)', borderRadius: '50%' }} />
+          
+          {/* Content */}
+          <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', color: 'white' }}>
+            {theme.logoUrl ? (
+              <img src={theme.logoUrl} alt="Logo" style={{ maxWidth: '60px', maxHeight: '30px', marginBottom: '12px', objectFit: 'contain' }} onError={(e: any) => { e.target.style.display = 'none'; }} />
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px', justifyContent: 'center' }}>
+                <div style={{ width: '24px', height: '24px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px' }}>🏢</div>
+              </div>
+            )}
+            <h1 style={{ fontSize: '16px', fontWeight: theme.headingWeight, marginBottom: '6px', fontFamily: theme.headingFont, lineHeight: 1.2 }}>Welcome Back</h1>
+            <p style={{ fontSize: '9px', opacity: 0.85, lineHeight: 1.4, maxWidth: '120px', margin: '0 auto' }}>{content.tagline}</p>
+          </div>
+        </div>
+
+        {/* Right Panel - Login Form */}
+        <div style={{ 
+          flex: 1, 
+          backgroundColor: '#f8f4ff', 
+          position: 'relative', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          justifyContent: 'center', 
+          padding: '16px 14px',
+          overflow: 'auto'
+        }}>
+          {/* Decorative confetti */}
+          <div style={{ position: 'absolute', top: '10%', right: '15%', width: '6px', height: '6px', backgroundColor: theme.primary, opacity: 0.3, borderRadius: '1px', transform: 'rotate(45deg)' }} />
+          <div style={{ position: 'absolute', bottom: '20%', left: '10%', width: '8px', height: '8px', backgroundColor: theme.secondary, opacity: 0.2, borderRadius: '50%' }} />
+          
+          <div style={{ position: 'relative', zIndex: 10 }}>
+            <h2 style={{ fontSize: '14px', fontWeight: theme.headingWeight, color: theme.text, marginBottom: '4px', fontFamily: theme.headingFont }}>Sign In</h2>
+            <p style={{ fontSize: '9px', color: theme.text, opacity: 0.5, marginBottom: '12px' }}>Access your employee benefits portal</p>
+            
+            {/* Login Method Selector */}
+            {loginVis.loginMethodSelector && (
+              <div style={{ marginBottom: '10px' }}>
+                <label style={{ display: 'block', fontSize: '8px', fontWeight: '600', color: theme.text, marginBottom: '3px', opacity: 0.7 }}>Login With</label>
+                <select style={{ width: '100%', padding: '8px 10px', border: `1.5px solid ${theme.border}`, borderRadius: '8px', fontSize: '10px', backgroundColor: 'white', cursor: 'pointer', color: theme.text }}>
+                  <option>Registered Email</option>
+                  <option>Mobile Number</option>
+                  <option>Employee ID</option>
+                </select>
+              </div>
+            )}
+            
+            {/* Email Input */}
+            <div style={{ marginBottom: '10px' }}>
+              <input type="email" placeholder="Enter your email" style={{ width: '100%', padding: '10px 12px', border: `1.5px solid ${theme.border}`, borderRadius: '8px', fontSize: '10px', boxSizing: 'border-box', backgroundColor: 'white' }} />
+            </div>
+            
+            {/* Password Input */}
+            <div style={{ marginBottom: '10px' }}>
+              <input type="password" placeholder="Password" style={{ width: '100%', padding: '10px 12px', border: `1.5px solid ${theme.border}`, borderRadius: '8px', fontSize: '10px', boxSizing: 'border-box', backgroundColor: 'white' }} />
+            </div>
+            
+            {/* Remember Me & Forgot Password */}
+            {(loginVis.rememberMe || loginVis.forgotPassword) && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px', fontSize: '8px' }}>
+                {loginVis.rememberMe && (
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '4px', color: theme.text, opacity: 0.7, cursor: 'pointer' }}>
+                    <input type="checkbox" style={{ accentColor: theme.primary, width: '10px', height: '10px' }} />
+                    Remember me
+                  </label>
+                )}
+                {loginVis.forgotPassword && (
+                  <span style={{ color: theme.primary, fontWeight: '600', cursor: 'pointer' }}>Forgot password?</span>
+                )}
+              </div>
+            )}
+            
+            {/* Consent Checkbox */}
+            {loginVis.consent && (
+              <div style={{ marginBottom: '10px', padding: '8px', backgroundColor: `${theme.primary}08`, borderRadius: '8px', border: `1px solid ${theme.primary}15` }}>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '8px', color: theme.text, cursor: 'pointer' }}>
+                  <input type="checkbox" checked={consentChecked} onChange={(e) => setConsentChecked(e.target.checked)} style={{ accentColor: theme.primary, marginTop: '1px', width: '10px', height: '10px', flexShrink: 0 }} />
+                  <span style={{ lineHeight: 1.4 }}>
+                    I agree to the{' '}
+                    {loginVis.privacy && <span style={{ color: theme.primary, fontWeight: '600' }}>Privacy Policy</span>}
+                    {loginVis.privacy && loginVis.terms && ', '}
+                    {loginVis.terms && <span style={{ color: theme.primary, fontWeight: '600' }}>Terms & Conditions</span>}
+                    {loginVis.disclaimer && <> and <span style={{ color: theme.primary, fontWeight: '600' }}>Disclaimer</span></>}
+                  </span>
+                </label>
+              </div>
+            )}
+            
+            {/* Sign In Button */}
+            <button 
+              onClick={() => setShowDashboard(true)}
+              style={{ 
+                width: '100%', 
+                padding: '10px', 
+                background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '8px', 
+                fontSize: '11px', 
+                fontWeight: '600', 
+                cursor: 'pointer',
+                boxShadow: `0 8px 20px -8px ${theme.primary}60`,
+                marginBottom: loginVis.otpLogin ? '8px' : '0'
+              }}
+            >
+              Sign In
+            </button>
+            
+            {/* OTP Login Button */}
+            {loginVis.otpLogin && (
+              <button style={{ 
+                width: '100%', 
+                padding: '8px', 
+                background: 'transparent', 
+                color: theme.primary, 
+                border: `1.5px solid ${theme.primary}40`, 
+                borderRadius: '8px', 
+                fontSize: '9px', 
+                fontWeight: '600', 
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '4px'
+              }}>
+                📱 Sign in with OTP
+              </button>
+            )}
+            
+            {/* Footer */}
+            <div style={{ textAlign: 'center', marginTop: '12px', paddingTop: '10px', borderTop: `1px solid ${theme.border}` }}>
+              <p style={{ color: theme.text, opacity: 0.3, fontSize: '7px', margin: 0 }}>Powered by <strong>BenefitNest</strong></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 // Main Component
