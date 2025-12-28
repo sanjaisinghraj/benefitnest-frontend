@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import ReCAPTCHA from 'react-google-recaptcha';
+import MarketplacePage from '../components/marketplace/MarketplacePage';
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://benefitnest-backend.onrender.com';
 
@@ -521,27 +522,6 @@ export default function PortalPage() {
             }}>
               {theme.tagline}
             </p>
-
-            {/* Sign In Button - Ghost Style */}
-            <button 
-              className="outline-btn"
-              onClick={() => document.getElementById('email-input')?.focus()}
-              style={{ 
-                padding: '16px 50px', 
-                backgroundColor: 'transparent', 
-                color: 'white', 
-                border: '2px solid rgba(255,255,255,0.5)', 
-                borderRadius: '50px', 
-                fontSize: '14px', 
-                fontWeight: 600, 
-                cursor: 'pointer', 
-                transition: 'all 0.3s', 
-                letterSpacing: '2px',
-                textTransform: 'uppercase'
-              }}
-            >
-              SIGN IN
-            </button>
           </div>
         </div>
 
@@ -900,33 +880,18 @@ export default function PortalPage() {
                           {compliancePolicies?.consent_checkbox_text || (
                             <>
                               I agree to the{' '}
-                              {loginSettings.showPrivacy && <button type="button" onClick={() => setShowPrivacyModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
-                                Privacy Policy
-                              </button>}
-                              {loginSettings.showPrivacy && loginSettings.showTerms && ' and '}
-                              {loginSettings.showTerms && <button type="button" onClick={() => setShowTermsModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
-                                Terms & Conditions
-                              </button>}
-                              {loginSettings.showDisclaimer && <>, <button type="button" onClick={() => setShowDisclaimerModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
-                                Disclaimer
-                              </button></>}
+                              <button type="button" onClick={() => setShowTermsModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                                Terms & Conditions & Disclaimer
+                              </button>
                             </>
                           )}
                         </span>
                       </label>
                       {compliancePolicies?.consent_checkbox_text && (
                         <div style={{ marginTop: '6px', marginLeft: '28px', fontSize: '12px' }}>
-                          {loginSettings.showPrivacy && <button type="button" onClick={() => setShowPrivacyModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 500, cursor: 'pointer', padding: 0, textDecoration: 'underline', marginRight: '12px' }}>
-                            Privacy Policy
-                          </button>}
-                          {loginSettings.showTerms && <button type="button" onClick={() => setShowTermsModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 500, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
-                            Terms & Conditions
-                          </button>}
-                          {compliancePolicies?.dpa_required && (
-                            <button type="button" onClick={() => setShowDpaModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 500, cursor: 'pointer', padding: 0, textDecoration: 'underline', marginLeft: '12px' }}>
-                              DPA
-                            </button>
-                          )}
+                          <button type="button" onClick={() => setShowTermsModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 500, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                            Terms & Conditions & Disclaimer
+                          </button>
                         </div>
                       )}
                       <button 
@@ -1035,30 +1000,8 @@ export default function PortalPage() {
                 </div>
               )}
 
-              {/* Footer with Legal Links */}
+              {/* Footer */}
               <div style={{ textAlign: 'center', marginTop: '30px', paddingTop: '20px', borderTop: `1px solid ${theme.border}` }}>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '12px', flexWrap: 'wrap' }}>
-                  {loginSettings.showPrivacy && (
-                    <button onClick={() => setShowPrivacyModal(true)} style={{ background: 'none', border: 'none', color: theme.text, opacity: 0.6, fontSize: '12px', cursor: 'pointer', transition: 'opacity 0.2s' }}>
-                      {compliancePolicies?.privacy_policy_title || 'Privacy Policy'}
-                    </button>
-                  )}
-                  {loginSettings.showTerms && (
-                    <button onClick={() => setShowTermsModal(true)} style={{ background: 'none', border: 'none', color: theme.text, opacity: 0.6, fontSize: '12px', cursor: 'pointer', transition: 'opacity 0.2s' }}>
-                      {compliancePolicies?.terms_conditions_title || 'Terms & Conditions'}
-                    </button>
-                  )}
-                  {loginSettings.showDisclaimer && (
-                    <button onClick={() => setShowDisclaimerModal(true)} style={{ background: 'none', border: 'none', color: theme.text, opacity: 0.6, fontSize: '12px', cursor: 'pointer', transition: 'opacity 0.2s' }}>
-                      {compliancePolicies?.disclaimer_title || 'Disclaimer'}
-                    </button>
-                  )}
-                  {compliancePolicies?.dpa_required && (
-                    <button onClick={() => setShowDpaModal(true)} style={{ background: 'none', border: 'none', color: theme.text, opacity: 0.6, fontSize: '12px', cursor: 'pointer', transition: 'opacity 0.2s' }}>
-                      {compliancePolicies?.dpa_title || 'DPA'}
-                    </button>
-                  )}
-                </div>
                 <p style={{ color: theme.text, opacity: 0.3, fontSize: '11px', margin: 0 }}>
                   Powered by <strong>BenefitNest</strong> • v2.1
                 </p>
@@ -1169,6 +1112,26 @@ export default function PortalPage() {
 // ============================================
 // PORTAL DASHBOARD (After Login)
 // ============================================
+interface MarketplaceSettings {
+  marketplace_enabled?: boolean;
+  marketplace_title?: string;
+  show_wallet?: boolean;
+  initial_wallet_balance?: number;
+  wallet_currency?: string;
+  [key: string]: any;
+}
+
+interface WellnessSettings {
+  wellness_enabled?: boolean;
+  show_health_risk_assessment?: boolean;
+  show_ai_wellness_coach?: boolean;
+  show_fitness_tracker?: boolean;
+  show_mental_health?: boolean;
+  show_nutrition_guide?: boolean;
+  show_sleep_tracker?: boolean;
+  [key: string]: any;
+}
+
 interface PortalDashboardProps { 
   config: PortalConfig; 
   customizations: Customizations | null; 
@@ -1177,9 +1140,182 @@ interface PortalDashboardProps {
 }
 
 function PortalDashboard({ config, customizations, theme, onLogout }: PortalDashboardProps) {
+  const [activeView, setActiveView] = useState<'dashboard' | 'wellness' | 'marketplace'>('dashboard');
   const [activeTab, setActiveTab] = useState<'overview' | 'features' | 'contact'>('overview');
+  const [marketplaceSettings, setMarketplaceSettings] = useState<MarketplaceSettings | null>(null);
+  const [wellnessSettings, setWellnessSettings] = useState<WellnessSettings | null>(null);
   const finalConfig = useMemo(() => customizations ? { ...config, ...customizations } : config, [config, customizations]);
 
+  // Fetch feature settings
+  useEffect(() => {
+    const fetchFeatureSettings = async () => {
+      try {
+        // Fetch marketplace settings
+        const marketplaceRes = await fetch(`${API_URL}/api/portal/marketplace-settings/${config.subdomain}`);
+        if (marketplaceRes.ok) {
+          const data = await marketplaceRes.json();
+          if (data.success) setMarketplaceSettings(data.data);
+        }
+      } catch (err) {
+        console.log('Marketplace settings not available');
+      }
+      
+      try {
+        // Fetch wellness settings
+        const wellnessRes = await fetch(`${API_URL}/api/portal/wellness-settings/${config.subdomain}`);
+        if (wellnessRes.ok) {
+          const data = await wellnessRes.json();
+          if (data.success) setWellnessSettings(data.data);
+        }
+      } catch (err) {
+        console.log('Wellness settings not available');
+      }
+    };
+    
+    fetchFeatureSettings();
+  }, [config.subdomain]);
+
+  // Check if features are enabled
+  const isMarketplaceEnabled = marketplaceSettings?.marketplace_enabled !== false;
+  const isWellnessEnabled = wellnessSettings?.wellness_enabled !== false;
+
+  // Feature tiles for main dashboard
+  const featureTiles = useMemo(() => {
+    const tiles = [];
+    
+    if (isWellnessEnabled) {
+      tiles.push({
+        id: 'wellness',
+        icon: '🧘',
+        title: 'Wellness & Well-Being',
+        desc: 'Health assessments, fitness tracking, mental health support',
+        color: '#10b981',
+        gradient: 'linear-gradient(135deg, #10b981, #059669)',
+      });
+    }
+    
+    if (isMarketplaceEnabled) {
+      tiles.push({
+        id: 'marketplace',
+        icon: '🛍️',
+        title: 'Employee Marketplace',
+        desc: `Shop with your benefits wallet (${marketplaceSettings?.wallet_currency || '₹'}${(marketplaceSettings?.initial_wallet_balance || 5000).toLocaleString()})`,
+        color: '#6366f1',
+        gradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+      });
+    }
+    
+    return tiles;
+  }, [isWellnessEnabled, isMarketplaceEnabled, marketplaceSettings]);
+
+  // Render Marketplace View
+  if (activeView === 'marketplace' && isMarketplaceEnabled) {
+    return (
+      <MarketplacePage
+        settings={marketplaceSettings || {}}
+        theme={theme}
+        companyName={config.company_name}
+        onBack={() => setActiveView('dashboard')}
+        isPreview={false}
+      />
+    );
+  }
+
+  // Render Wellness View
+  if (activeView === 'wellness' && isWellnessEnabled) {
+    return (
+      <div style={{ 
+        minHeight: '100vh', 
+        background: `linear-gradient(135deg, #10b981 0%, #059669 100%)`, 
+        padding: '25px', 
+        fontFamily: theme.bodyFont 
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ 
+            backgroundColor: theme.background, 
+            borderRadius: '24px', 
+            padding: '40px', 
+            boxShadow: '0 25px 60px rgba(0,0,0,0.15)', 
+            color: theme.text 
+          }}>
+            {/* Back Button */}
+            <button 
+              onClick={() => setActiveView('dashboard')} 
+              style={{ 
+                display: 'flex', alignItems: 'center', gap: '8px',
+                padding: '12px 20px', backgroundColor: '#f3f4f6', color: '#374151', 
+                border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: 600, 
+                cursor: 'pointer', marginBottom: '24px' 
+              }}
+            >
+              ← Back to Dashboard
+            </button>
+            
+            {/* Wellness Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
+              <div style={{ 
+                width: '64px', height: '64px', borderRadius: '16px', 
+                background: 'linear-gradient(135deg, #10b981, #059669)', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px' 
+              }}>🧘</div>
+              <div>
+                <h1 style={{ fontSize: '28px', fontWeight: 700, margin: 0, color: '#10b981' }}>Wellness & Well-Being</h1>
+                <p style={{ fontSize: '14px', color: theme.text, opacity: 0.6, margin: '4px 0 0 0' }}>Your holistic health and wellness center</p>
+              </div>
+            </div>
+            
+            {/* Wellness Tiles */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+              {wellnessSettings?.show_health_risk_assessment !== false && (
+                <div style={{ padding: '24px', border: '1px solid #e5e7eb', borderRadius: '16px', cursor: 'pointer', transition: 'all 0.3s', backgroundColor: 'white' }}>
+                  <div style={{ fontSize: '40px', marginBottom: '12px' }}>📊</div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#111827', margin: '0 0 8px 0' }}>Health Risk Assessment</h3>
+                  <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>Complete your health questionnaire and get personalized insights</p>
+                </div>
+              )}
+              {wellnessSettings?.show_ai_wellness_coach !== false && (
+                <div style={{ padding: '24px', border: '1px solid #e5e7eb', borderRadius: '16px', cursor: 'pointer', transition: 'all 0.3s', backgroundColor: 'white' }}>
+                  <div style={{ fontSize: '40px', marginBottom: '12px' }}>🤖</div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#111827', margin: '0 0 8px 0' }}>AI Wellness Coach</h3>
+                  <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>Get personalized health advice from our AI-powered coach</p>
+                </div>
+              )}
+              {wellnessSettings?.show_fitness_tracker !== false && (
+                <div style={{ padding: '24px', border: '1px solid #e5e7eb', borderRadius: '16px', cursor: 'pointer', transition: 'all 0.3s', backgroundColor: 'white' }}>
+                  <div style={{ fontSize: '40px', marginBottom: '12px' }}>🏃</div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#111827', margin: '0 0 8px 0' }}>Fitness Tracker</h3>
+                  <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>Track your steps, workouts, and fitness goals</p>
+                </div>
+              )}
+              {wellnessSettings?.show_mental_health !== false && (
+                <div style={{ padding: '24px', border: '1px solid #e5e7eb', borderRadius: '16px', cursor: 'pointer', transition: 'all 0.3s', backgroundColor: 'white' }}>
+                  <div style={{ fontSize: '40px', marginBottom: '12px' }}>🧠</div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#111827', margin: '0 0 8px 0' }}>Mental Health</h3>
+                  <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>Meditation guides, stress management, and EAP resources</p>
+                </div>
+              )}
+              {wellnessSettings?.show_nutrition_guide !== false && (
+                <div style={{ padding: '24px', border: '1px solid #e5e7eb', borderRadius: '16px', cursor: 'pointer', transition: 'all 0.3s', backgroundColor: 'white' }}>
+                  <div style={{ fontSize: '40px', marginBottom: '12px' }}>🥗</div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#111827', margin: '0 0 8px 0' }}>Nutrition Guide</h3>
+                  <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>Meal plans, calorie tracking, and nutritional advice</p>
+                </div>
+              )}
+              {wellnessSettings?.show_sleep_tracker !== false && (
+                <div style={{ padding: '24px', border: '1px solid #e5e7eb', borderRadius: '16px', cursor: 'pointer', transition: 'all 0.3s', backgroundColor: 'white' }}>
+                  <div style={{ fontSize: '40px', marginBottom: '12px' }}>😴</div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#111827', margin: '0 0 8px 0' }}>Sleep Tracker</h3>
+                  <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>Monitor sleep patterns and improve sleep quality</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Main Dashboard View
   return (
     <div style={{ 
       minHeight: '100vh', 
@@ -1191,6 +1327,7 @@ function PortalDashboard({ config, customizations, theme, onLogout }: PortalDash
         * { font-family: ${theme.bodyFont}, sans-serif; } 
         h1, h2, h3, h4, h5, h6 { font-family: ${theme.headingFont}, sans-serif; font-weight: ${theme.headingWeight}; } 
         .feature-card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.1) !important; }
+        .feature-tile:hover { transform: translateY(-8px); box-shadow: 0 20px 50px rgba(0,0,0,0.2) !important; }
         ${theme.customCss}
       `}</style>
 
@@ -1260,6 +1397,58 @@ function PortalDashboard({ config, customizations, theme, onLogout }: PortalDash
               >
                 Logout
               </button>
+            </div>
+          )}
+
+          {/* Feature Tiles - Main Services */}
+          {featureTiles.length > 0 && (
+            <div style={{ marginBottom: '40px' }}>
+              <h2 style={{ 
+                fontSize: '20px', 
+                fontWeight: 700, 
+                marginBottom: '20px', 
+                color: theme.text,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
+              }}>
+                <span>🚀</span> Your Benefits & Services
+              </h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+                {featureTiles.map((tile) => (
+                  <div 
+                    key={tile.id}
+                    className="feature-tile"
+                    onClick={() => setActiveView(tile.id as any)}
+                    style={{ 
+                      padding: '28px', 
+                      background: tile.gradient,
+                      borderRadius: '20px', 
+                      cursor: 'pointer', 
+                      transition: 'all 0.3s',
+                      color: 'white',
+                      boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+                    }}
+                  >
+                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>{tile.icon}</div>
+                    <h3 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 8px 0' }}>{tile.title}</h3>
+                    <p style={{ fontSize: '14px', margin: 0, opacity: 0.9 }}>{tile.desc}</p>
+                    <div style={{ 
+                      marginTop: '20px', 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      gap: '8px',
+                      padding: '10px 20px',
+                      backgroundColor: 'rgba(255,255,255,0.2)',
+                      borderRadius: '10px',
+                      fontSize: '14px',
+                      fontWeight: 600
+                    }}>
+                      Explore →
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
