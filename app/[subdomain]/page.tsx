@@ -103,8 +103,8 @@ export default function PortalPage() {
 
   const theme = useMemo(() => {
     // Priority: customizations > portalConfig > defaults
-    const c = customizations || {};
-    const p = portalConfig || {};
+    const c: Customizations = customizations || {};
+    const p: Partial<PortalConfig> = portalConfig || {};
     console.log('[Portal] Building theme - customizations:', c);
     console.log('[Portal] Building theme - portalConfig:', p);
     
