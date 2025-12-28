@@ -1,2 +1,3 @@
 // Placeholder for RBAC utility
-export function hasRole() { return true; }
+// Use the real RBAC utility from ../../utils/rbac.ts
+export { hasRole } from '../../utils/rbac';
