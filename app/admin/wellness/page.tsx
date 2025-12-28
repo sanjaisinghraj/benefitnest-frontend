@@ -133,7 +133,7 @@ export default function WellnessAdminPage() {
   const router = useRouter();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [corporates, setCorporates] = useState<Corporate[]>([]);
-  const [selectedCorporate, setSelectedCorporate] = useState<string>('');
+  const [selectedCorporates, setSelectedCorporates] = useState<string[]>([]);
   const [config, setConfig] = useState<WellnessConfig>(defaultConfig);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -151,12 +151,15 @@ export default function WellnessAdminPage() {
     fetchCorporates();
   }, []);
 
-  // Fetch config when corporate changes
+  // Fetch config when corporates selection changes (use first selected for preview)
   useEffect(() => {
-    if (selectedCorporate) {
-      fetchWellnessConfig(selectedCorporate);
+    if (selectedCorporates.length === 1) {
+      fetchWellnessConfig(selectedCorporates[0]);
+    } else if (selectedCorporates.length > 1) {
+      // Multiple selected - reset to default config for bulk update
+      setConfig(defaultConfig);
     }
-  }, [selectedCorporate]);
+  }, [selectedCorporates]);
 
   const fetchCorporates = async () => {
     try {
@@ -204,27 +207,37 @@ export default function WellnessAdminPage() {
   };
 
   const handleSave = async () => {
-    if (!selectedCorporate) {
-      setMessage({ type: 'error', text: 'Please select a corporate first' });
+    if (selectedCorporates.length === 0) {
+      setMessage({ type: 'error', text: 'Please select at least one corporate' });
       return;
     }
 
     try {
       setSaving(true);
       const token = getToken();
-      const res = await fetch(`${API_URL}/api/wellness/config`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ ...config, tenant_id: selectedCorporate })
-      });
+      
+      // Save to all selected corporates
+      const results = await Promise.all(
+        selectedCorporates.map(async (tenantId) => {
+          const res = await fetch(`${API_URL}/api/wellness/config`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ ...config, tenant_id: tenantId })
+          });
+          return { tenantId, success: res.ok };
+        })
+      );
 
-      if (res.ok) {
-        setMessage({ type: 'success', text: 'Wellness configuration saved successfully!' });
+      const successCount = results.filter(r => r.success).length;
+      const failCount = results.filter(r => !r.success).length;
+
+      if (failCount === 0) {
+        setMessage({ type: 'success', text: `Wellness configuration saved for ${successCount} corporate(s)!` });
       } else {
-        throw new Error('Failed to save');
+        setMessage({ type: 'error', text: `Saved ${successCount}, failed ${failCount} corporate(s)` });
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Failed to save wellness configuration' });
@@ -332,7 +345,7 @@ export default function WellnessAdminPage() {
               </button>
               <button
                 onClick={handleSave}
-                disabled={saving || !selectedCorporate}
+                disabled={saving || selectedCorporates.length === 0}
                 className="px-6 py-2.5 bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-medium rounded-lg hover:from-teal-600 hover:to-cyan-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {saving ? (
@@ -363,26 +376,76 @@ export default function WellnessAdminPage() {
       )}
 
       <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* Corporate Selector */}
+        {/* Corporate Selector - Multi Select */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select Corporate
-          </label>
-          <select
-            value={selectedCorporate}
-            onChange={(e) => setSelectedCorporate(e.target.value)}
-            className="w-full md:w-96 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white"
-          >
-            <option value="">-- Choose a corporate --</option>
+          <div className="flex items-center justify-between mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Select Corporates ({selectedCorporates.length} selected)
+            </label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSelectedCorporates(corporates.map(c => c.tenant_id))}
+                className="px-3 py-1 text-xs font-medium text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-md transition-colors"
+              >
+                Select All
+              </button>
+              <button
+                onClick={() => setSelectedCorporates([])}
+                className="px-3 py-1 text-xs font-medium text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
+              >
+                Clear All
+              </button>
+            </div>
+          </div>
+          <div className="border border-gray-200 rounded-lg max-h-60 overflow-y-auto">
             {corporates.map((corp) => (
-              <option key={corp.tenant_id} value={corp.tenant_id}>
-                {corp.corporate_legal_name || corp.subdomain} ({corp.subdomain})
-              </option>
+              <label
+                key={corp.tenant_id}
+                className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0 ${
+                  selectedCorporates.includes(corp.tenant_id) ? 'bg-teal-50' : ''
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedCorporates.includes(corp.tenant_id)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedCorporates(prev => [...prev, corp.tenant_id]);
+                    } else {
+                      setSelectedCorporates(prev => prev.filter(id => id !== corp.tenant_id));
+                    }
+                  }}
+                  className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
+                />
+                <div className="flex-1">
+                  <span className="font-medium text-gray-900">
+                    {corp.corporate_legal_name || corp.subdomain}
+                  </span>
+                  <span className="ml-2 text-sm text-gray-500">({corp.subdomain})</span>
+                </div>
+                <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                  corp.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                }`}>
+                  {corp.status}
+                </span>
+              </label>
             ))}
-          </select>
+            {corporates.length === 0 && (
+              <div className="px-4 py-8 text-center text-gray-500">
+                {loading ? 'Loading corporates...' : 'No corporates found'}
+              </div>
+            )}
+          </div>
+          {selectedCorporates.length > 1 && (
+            <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-sm text-amber-700">
+                ⚠️ <strong>Bulk Update Mode:</strong> Changes will be applied to all {selectedCorporates.length} selected corporates.
+              </p>
+            </div>
+          )}
         </div>
 
-        {selectedCorporate && (
+        {selectedCorporates.length > 0 && (
           <>
             {/* Master Toggle */}
             <div className="bg-gradient-to-r from-teal-500 to-cyan-500 rounded-xl shadow-lg p-6 mb-6 text-white">
@@ -678,11 +741,11 @@ export default function WellnessAdminPage() {
           </>
         )}
 
-        {!selectedCorporate && (
+        {selectedCorporates.length === 0 && (
           <div className="text-center py-16 bg-white rounded-xl border-2 border-dashed border-gray-300">
             <div className="text-6xl mb-4">🏢</div>
-            <h3 className="text-xl font-semibold text-gray-700">Select a Corporate</h3>
-            <p className="text-gray-500 mt-2">Choose a corporate from the dropdown above to configure wellness settings</p>
+            <h3 className="text-xl font-semibold text-gray-700">Select Corporates</h3>
+            <p className="text-gray-500 mt-2">Choose one or more corporates from the list above to configure wellness settings</p>
           </div>
         )}
       </main>
