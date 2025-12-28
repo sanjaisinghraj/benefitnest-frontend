@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 const AdminDashboard = () => {
   const router = useRouter();
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
@@ -80,11 +81,18 @@ const AdminDashboard = () => {
       icon: '📝',
       link: '/admin/audit',
       color: '#6366f1'
+    },
+    {
+      title: 'Wellness Portal',
+      description: 'Configure wellness modules, health assessments, mental wellbeing, habit tracking and AI-assisted coaching per corporate.',
+      icon: '🧘',
+      link: '/admin/wellness',
+      color: '#14b8a6'
     }
   ];
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
       <header style={{
         backgroundColor: 'white',
@@ -114,57 +122,99 @@ const AdminDashboard = () => {
                 }}
               />
             </div>
-
-            {/* Back Button */}
-            <button
-              onClick={handleBack}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#f3f4f6',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontSize: '14px',
-                color: '#374151',
-                fontWeight: '500',
-                transition: 'all 0.2s'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-            >
-              <span>←</span> Back
-            </button>
           </div>
 
-          {/* Logout Button */}
-          <button
-            onClick={handleLogout}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#ef4444',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '600',
-              transition: 'all 0.2s',
-              boxShadow: '0 1px 3px rgba(239, 68, 68, 0.3)'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = '#dc2626';
-              e.currentTarget.style.transform = 'translateY(-1px)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = '#ef4444';
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}
-          >
-            Logout
-          </button>
+          {/* Right Side - Profile and Logout */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {/* User Profile Dropdown */}
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 12px',
+                  backgroundColor: '#f3f4f6',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#374151'
+                }}
+              >
+                <span style={{ fontSize: '20px' }}>👤</span>
+                <span>Admin</span>
+                <span style={{ fontSize: '12px' }}>▼</span>
+              </button>
+              
+              {showProfileMenu && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  marginTop: '8px',
+                  backgroundColor: 'white',
+                  borderRadius: '8px',
+                  boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+                  border: '1px solid #e5e7eb',
+                  minWidth: '180px',
+                  zIndex: 100
+                }}>
+                  <div style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb' }}>
+                    <div style={{ fontSize: '14px', fontWeight: '600', color: '#111827' }}>Administrator</div>
+                    <div style={{ fontSize: '12px', color: '#6b7280' }}>admin@benefitnest.com</div>
+                  </div>
+                  <div style={{ padding: '8px' }}>
+                    <button
+                      onClick={() => { setShowProfileMenu(false); router.push('/admin/profile'); }}
+                      style={{ width: '100%', padding: '10px 12px', textAlign: 'left', backgroundColor: 'transparent', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', color: '#374151', display: 'flex', alignItems: 'center', gap: '8px' }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <span>👤</span> My Profile
+                    </button>
+                    <button
+                      onClick={() => { setShowProfileMenu(false); router.push('/admin/settings'); }}
+                      style={{ width: '100%', padding: '10px 12px', textAlign: 'left', backgroundColor: 'transparent', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', color: '#374151', display: 'flex', alignItems: 'center', gap: '8px' }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <span>⚙️</span> Settings
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#ef4444',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '600',
+                transition: 'all 0.2s',
+                boxShadow: '0 1px 3px rgba(239, 68, 68, 0.3)'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = '#dc2626';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = '#ef4444';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 
@@ -270,24 +320,31 @@ const AdminDashboard = () => {
             </div>
           ))}
         </div>
-
-        {/* Footer Note */}
-        <div style={{
-          marginTop: '60px',
-          padding: '20px',
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          border: '1px solid #e5e7eb',
-          textAlign: 'center'
-        }}>
-          <p style={{
-            fontSize: '13px',
-            color: '#6b7280'
-          }}>
-            Internal system · Actions are logged · Role-based access enforced
-          </p>
-        </div>
       </main>
+
+      {/* Footer */}
+      <footer style={{
+        marginTop: 'auto',
+        padding: '20px 24px',
+        backgroundColor: 'white',
+        borderTop: '1px solid #e5e7eb',
+        textAlign: 'center'
+      }}>
+        <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '4px' }}>
+          © {new Date().getFullYear()} BenefitNest. All rights reserved.
+        </p>
+        <p style={{ fontSize: '12px', color: '#9ca3af' }}>
+          Developed by Sanjai & Aaryam
+        </p>
+      </footer>
+
+      {/* Click outside to close profile menu */}
+      {showProfileMenu && (
+        <div 
+          style={{ position: 'fixed', inset: 0, zIndex: 40 }} 
+          onClick={() => setShowProfileMenu(false)} 
+        />
+      )}
     </div>
   );
 };

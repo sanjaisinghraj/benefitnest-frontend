@@ -84,11 +84,17 @@ export default function PortalPage() {
         const response = await fetch(`${API_URL}/api/portal/config/${subdomain}`);
         if (!response.ok) throw new Error(`Portal not found: ${subdomain}`);
         const result = await response.json();
+        console.log('[Portal] API Response:', result);
         if (result.success && result.data) {
           setPortalConfig(result.data);
-          setCustomizations(result.data.customizations || null);
+          // Check both nested customizations and root-level properties
+          const customData = result.data.customizations || result.data;
+          console.log('[Portal] Customizations:', customData);
+          console.log('[Portal] Primary color from API:', customData?.primary_color);
+          setCustomizations(customData);
         } else throw new Error('Invalid portal data');
       } catch (err: any) {
+        console.error('[Portal] Error:', err);
         setError(err.message || 'Failed to load portal');
       } finally { setLoading(false); }
     };
@@ -96,10 +102,15 @@ export default function PortalPage() {
   }, [subdomain]);
 
   const theme = useMemo(() => {
+    // Priority: customizations > portalConfig > defaults
     const c = customizations || {};
-    return {
-      primary: c.primary_color || portalConfig?.primary_color || '#db2777',
-      secondary: c.secondary_color || portalConfig?.secondary_color || '#9333ea',
+    const p = portalConfig || {};
+    console.log('[Portal] Building theme - customizations:', c);
+    console.log('[Portal] Building theme - portalConfig:', p);
+    
+    const builtTheme = {
+      primary: c.primary_color || p.primary_color || '#db2777',
+      secondary: c.secondary_color || p.secondary_color || '#9333ea',
       accent: c.accent_color || '#f59e0b',
       background: c.background_color || '#ffffff',
       text: c.text_color || '#111827',
@@ -110,13 +121,15 @@ export default function PortalPage() {
       bodySize: c.body_font_size || 16,
       headingWeight: c.font_weight_heading || 700,
       lineHeight: c.line_height_multiplier || 1.6,
-      logoUrl: c.logo_url || portalConfig?.logo_url,
+      logoUrl: c.logo_url || p.logo_url,
       logoWidth: c.logo_width || 150,
       logoHeight: c.logo_height || 50,
-      portalTitle: c.portal_title || portalConfig?.company_name || 'Employee Portal',
+      portalTitle: c.portal_title || p.company_name || 'Employee Portal',
       tagline: c.portal_tagline || 'To keep connected with us please login with your personal info',
       customCss: c.custom_css || '',
     };
+    console.log('[Portal] Built theme:', builtTheme);
+    return builtTheme;
   }, [customizations, portalConfig]);
 
   const handleLogin = async (e: React.FormEvent) => {

@@ -68,6 +68,7 @@ export default function PortalDesignerStudio() {
     // Preview type: 'login' or 'main'
     const [previewType, setPreviewType] = useState<'login' | 'main'>('main');
   const router = useRouter();
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [corporates, setCorporates] = useState<Corporate[]>([]);
   const [selectedCorporate, setSelectedCorporate] = useState<Corporate | null>(null);
   const [customizations, setCustomizations] = useState<Customizations>({});
@@ -113,23 +114,43 @@ export default function PortalDesignerStudio() {
   const tabs = [{ id: 'branding', label: 'Branding', icon: '🎨' }, { id: 'typography', label: 'Typography', icon: '📝' }, { id: 'content', label: 'Content', icon: '✍️' }, { id: 'layout', label: 'Layout', icon: '📐' }, { id: 'components', label: 'Components', icon: '🧩' }, { id: 'advanced', label: 'Advanced', icon: '⚙️' }];
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <header style={{ background: 'linear-gradient(135deg, #1e1b4b, #312e81, #4c1d95)', color: 'white', position: 'sticky', top: 0, zIndex: 50, boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
+      <header style={{ background: 'white', borderBottom: `1px solid ${colors.gray[200]}`, position: 'sticky', top: 0, zIndex: 50, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
         <div style={{ maxWidth: '1800px', margin: '0 auto', padding: '14px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <button onClick={() => router.push('/admin/dashboard')} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>← Dashboard</button>
-            <div style={{ height: '30px', width: '1px', backgroundColor: 'rgba(255,255,255,0.2)' }} />
-            <div><h1 style={{ fontSize: '22px', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}><span style={{ fontSize: '28px' }}>🎨</span> Portal Designer Studio</h1><p style={{ fontSize: '12px', opacity: 0.8, margin: 0, marginTop: '2px' }}>AI-Powered Brand Discovery</p></div>
+            <img src="/images/marketing/logo.png" alt="BenefitNest" style={{ height: '40px', objectFit: 'contain' }} onError={(e: any) => { e.target.style.display = 'none'; }} />
+            <button onClick={() => router.push('/admin/dashboard')} style={{ background: colors.gray[100], border: 'none', color: colors.gray[700], padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>← Dashboard</button>
+            <div style={{ height: '30px', width: '1px', backgroundColor: colors.gray[200] }} />
+            <div><h1 style={{ fontSize: '22px', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '10px', color: colors.gray[900] }}><span style={{ fontSize: '28px' }}>🎨</span> Portal Designer Studio</h1><p style={{ fontSize: '12px', color: colors.gray[500], margin: 0, marginTop: '2px' }}>AI-Powered Brand Discovery</p></div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             {hasUnsavedChanges && <Badge variant="warning">● Unsaved</Badge>}
-            {selectedCorporate && <><Button variant="outline" size="sm" icon="👁️" onClick={() => setShowPreviewModal(true)} style={{ borderColor: 'rgba(255,255,255,0.3)', color: 'white' }}>Full Preview ({previewType === 'login' ? 'Login' : 'Portal'})</Button><Button variant="ai" size="md" icon="💾" onClick={handleSave} loading={saving}>Save Design</Button></>}
-            <div style={{ height: '30px', width: '1px', backgroundColor: 'rgba(255,255,255,0.2)' }} />
-            <button onClick={handleLogout} style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5', padding: '10px 18px', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>Logout</button>
+            {selectedCorporate && <><Button variant="outline" size="sm" icon="👁️" onClick={() => setShowPreviewModal(true)}>Full Preview ({previewType === 'login' ? 'Login' : 'Portal'})</Button><Button variant="ai" size="md" icon="💾" onClick={handleSave} loading={saving}>Save Design</Button></>}
+            <div style={{ height: '30px', width: '1px', backgroundColor: colors.gray[200] }} />
+            {/* User Profile Dropdown */}
+            <div style={{ position: 'relative' }}>
+              <button onClick={() => setShowProfileMenu(!showProfileMenu)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: colors.gray[100], border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: colors.gray[700] }}>
+                <span style={{ fontSize: '20px' }}>👤</span><span>Admin</span><span style={{ fontSize: '12px' }}>▼</span>
+              </button>
+              {showProfileMenu && (
+                <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '8px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 10px 40px rgba(0,0,0,0.15)', border: `1px solid ${colors.gray[200]}`, minWidth: '180px', zIndex: 200 }}>
+                  <div style={{ padding: '12px 16px', borderBottom: `1px solid ${colors.gray[200]}` }}>
+                    <div style={{ fontSize: '14px', fontWeight: '600', color: colors.gray[900] }}>Administrator</div>
+                    <div style={{ fontSize: '12px', color: colors.gray[500] }}>admin@benefitnest.com</div>
+                  </div>
+                  <div style={{ padding: '8px' }}>
+                    <button onClick={() => { setShowProfileMenu(false); router.push('/admin/profile'); }} style={{ width: '100%', padding: '10px 12px', textAlign: 'left', backgroundColor: 'transparent', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', color: colors.gray[700], display: 'flex', alignItems: 'center', gap: '8px' }}>👤 My Profile</button>
+                    <button onClick={() => { setShowProfileMenu(false); router.push('/admin/settings'); }} style={{ width: '100%', padding: '10px 12px', textAlign: 'left', backgroundColor: 'transparent', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', color: colors.gray[700], display: 'flex', alignItems: 'center', gap: '8px' }}>⚙️ Settings</button>
+                  </div>
+                </div>
+              )}
+            </div>
+            <button onClick={handleLogout} style={{ background: '#ef4444', border: 'none', color: 'white', padding: '10px 18px', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>Logout</button>
           </div>
         </div>
       </header>
+      {showProfileMenu && <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setShowProfileMenu(false)} />}
 
       {/* Main */}
       <main style={{ maxWidth: '1800px', margin: '0 auto', padding: '24px', display: 'grid', gridTemplateColumns: selectedCorporate ? '1fr 420px' : '1fr', gap: '24px' }}>
@@ -217,6 +238,12 @@ export default function PortalDesignerStudio() {
 
       {/* Toast */}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+      {/* Footer */}
+      <footer style={{ marginTop: 'auto', padding: '20px 24px', backgroundColor: 'white', borderTop: `1px solid ${colors.gray[200]}`, textAlign: 'center' }}>
+        <p style={{ fontSize: '13px', color: colors.gray[500], marginBottom: '4px' }}>© {new Date().getFullYear()} BenefitNest. All rights reserved.</p>
+        <p style={{ fontSize: '12px', color: colors.gray[400] }}>Developed by Sanjai & Aaryam</p>
+      </footer>
 
       {/* Styles */}
       <style>{`@keyframes spin { to { transform: rotate(360deg); } } @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } } * { box-sizing: border-box; } input:focus, select:focus, textarea:focus { border-color: ${colors.primary} !important; } ::-webkit-scrollbar { width: 8px; height: 8px; } ::-webkit-scrollbar-track { background: ${colors.gray[100]}; border-radius: 4px; } ::-webkit-scrollbar-thumb { background: ${colors.gray[300]}; border-radius: 4px; }`}</style>
