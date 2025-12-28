@@ -25,6 +25,7 @@ const INDUSTRY_AI: Record<string, { c: { p: string; s: string; a: string }; f: {
 
 interface Corporate { tenant_id: string; corporate_legal_name: string; subdomain: string; primary_color?: string; secondary_color?: string; status?: string; industry_type?: string; contact_details?: { email?: string; phone?: string }; logo_url?: string; }
 interface Customizations { [key: string]: any; }
+interface Tester { id: string; email: string; password_hash: string; display_name?: string; is_active: boolean; created_at: string; }
 
 const getToken = () => { if (typeof window === 'undefined') return null; return document.cookie.split('; ').find(r => r.startsWith('admin_token='))?.split('=')[1] || localStorage.getItem('admin_token'); };
 const getAuthHeaders = () => ({ Authorization: `Bearer ${getToken()}` });
@@ -86,6 +87,13 @@ export default function PortalDesignerStudio() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiLogs, setAiLogs] = useState<string[]>([]);
   const [showAiModal, setShowAiModal] = useState(false);
+  const [showTesterModal, setShowTesterModal] = useState(false);
+  const [testers, setTesters] = useState<Tester[]>([]);
+  const [loadingTesters, setLoadingTesters] = useState(false);
+  const [newTesterEmail, setNewTesterEmail] = useState('');
+  const [newTesterPassword, setNewTesterPassword] = useState('');
+  const [newTesterName, setNewTesterName] = useState('');
+  const [addingTester, setAddingTester] = useState(false);
 
   useEffect(() => { fetchCorporates(); }, []);
   useEffect(() => { if (selectedCorporate) setHasUnsavedChanges(JSON.stringify(customizations) !== JSON.stringify(originalCustomizations)); }, [customizations, originalCustomizations, selectedCorporate]);
@@ -107,6 +115,66 @@ export default function PortalDesignerStudio() {
 
   const handleLogout = () => { localStorage.removeItem('admin_token'); document.cookie = 'admin_token=; path=/; max-age=0'; window.location.href = 'https://www.benefitnest.space'; };
   const showToast = (message: string, type: string) => setToast({ message, type });
+  
+  const fetchTesters = async (tenantId: string) => {
+    try {
+      setLoadingTesters(true);
+      const res = await axios.get(`${API_URL}/api/admin/corporates/${tenantId}/testers`, { headers: getAuthHeaders() });
+      if (res.data.success) {
+        setTesters(res.data.data || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch testers:', err);
+      setTesters([]);
+    } finally {
+      setLoadingTesters(false);
+    }
+  };
+  
+  const handleAddTester = async () => {
+    if (!selectedCorporate || !newTesterEmail || !newTesterPassword) {
+      showToast('Email and password are required', 'error');
+      return;
+    }
+    try {
+      setAddingTester(true);
+      const res = await axios.post(`${API_URL}/api/admin/corporates/${selectedCorporate.tenant_id}/testers`, {
+        email: newTesterEmail,
+        password: newTesterPassword,
+        display_name: newTesterName || newTesterEmail.split('@')[0]
+      }, { headers: getAuthHeaders() });
+      
+      if (res.data.success) {
+        showToast('Tester added successfully!', 'success');
+        setNewTesterEmail('');
+        setNewTesterPassword('');
+        setNewTesterName('');
+        fetchTesters(selectedCorporate.tenant_id);
+      }
+    } catch (err: any) {
+      showToast(err.response?.data?.message || 'Failed to add tester', 'error');
+    } finally {
+      setAddingTester(false);
+    }
+  };
+  
+  const handleDeleteTester = async (testerId: string) => {
+    if (!selectedCorporate || !confirm('Delete this tester?')) return;
+    try {
+      await axios.delete(`${API_URL}/api/admin/corporates/${selectedCorporate.tenant_id}/testers/${testerId}`, { headers: getAuthHeaders() });
+      showToast('Tester deleted', 'success');
+      fetchTesters(selectedCorporate.tenant_id);
+    } catch (err) {
+      showToast('Failed to delete tester', 'error');
+    }
+  };
+  
+  const handleVisitLive = () => {
+    if (!selectedCorporate) return;
+    fetchTesters(selectedCorporate.tenant_id);
+    setShowTesterModal(true);
+  };
+  
   const updateCustomization = (key: string, value: any) => setCustomizations(prev => ({ ...prev, [key]: value }));
   const filteredCorporates = useMemo(() => searchQuery.trim() ? corporates.filter(c => c.corporate_legal_name.toLowerCase().includes(searchQuery.toLowerCase()) || c.subdomain.toLowerCase().includes(searchQuery.toLowerCase())) : [], [corporates, searchQuery]);
   const paginatedCorporates = useMemo(() => { const start = (currentPage - 1) * itemsPerPage; return filteredCorporates.slice(start, start + itemsPerPage); }, [filteredCorporates, currentPage]);
@@ -160,7 +228,7 @@ export default function PortalDesignerStudio() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}><div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>🏢</div><div><h2 style={{ fontSize: '18px', fontWeight: '700', margin: 0 }}>Select Company</h2><p style={{ fontSize: '13px', color: colors.gray[500], margin: 0 }}>Search by name or subdomain</p></div></div>
             <div style={{ position: 'relative' }}><span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '18px' }}>🔍</span><input type="text" placeholder="Type company name to search..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} style={{ width: '100%', padding: '16px 16px 16px 48px', border: `2px solid ${colors.gray[200]}`, borderRadius: '14px', fontSize: '15px', outline: 'none', boxSizing: 'border-box' }} /></div>
             {searchQuery && <div style={{ marginTop: '20px' }}>{loading ? <div style={{ textAlign: 'center', padding: '40px', color: colors.gray[500] }}>Loading...</div> : filteredCorporates.length === 0 ? <div style={{ textAlign: 'center', padding: '40px', color: colors.gray[500] }}><div style={{ fontSize: '40px', marginBottom: '12px' }}>🔍</div>No companies found</div> : <><div style={{ fontSize: '13px', color: colors.gray[500], marginBottom: '12px' }}>Found {filteredCorporates.length} compan{filteredCorporates.length === 1 ? 'y' : 'ies'}</div><div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>{paginatedCorporates.map(corp => <div key={corp.tenant_id} onClick={() => handleCorporateSelect(corp)} style={{ padding: '16px 20px', border: `2px solid ${selectedCorporate?.tenant_id === corp.tenant_id ? colors.primary : colors.gray[200]}`, borderRadius: '14px', cursor: 'pointer', backgroundColor: selectedCorporate?.tenant_id === corp.tenant_id ? colors.primaryLight : 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}><div style={{ width: '44px', height: '44px', borderRadius: '12px', background: `linear-gradient(135deg, ${corp.primary_color || colors.primary}, ${corp.secondary_color || colors.secondary})`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '700', fontSize: '16px' }}>{corp.corporate_legal_name.charAt(0)}</div><div><div style={{ fontWeight: '600', fontSize: '15px' }}>{corp.corporate_legal_name}</div><div style={{ fontSize: '12px', color: colors.gray[500] }}>🌐 {corp.subdomain}.benefitnest.space</div></div></div><Badge variant={corp.status === 'ACTIVE' ? 'success' : 'warning'}>{corp.status || 'UNKNOWN'}</Badge></div>)}</div>{totalPages > 1 && <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginTop: '20px' }}><button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ padding: '10px 16px', border: `1px solid ${colors.gray[200]}`, borderRadius: '10px', backgroundColor: 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.5 : 1, fontSize: '13px' }}>← Previous</button><span style={{ fontSize: '13px', color: colors.gray[600] }}>Page {currentPage} of {totalPages}</span><button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} style={{ padding: '10px 16px', border: `1px solid ${colors.gray[200]}`, borderRadius: '10px', backgroundColor: 'white', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', opacity: currentPage === totalPages ? 0.5 : 1, fontSize: '13px' }}>Next →</button></div>}</>}</div>}
-            {selectedCorporate && <div style={{ marginTop: '20px', padding: '20px', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', borderRadius: '16px', color: 'white' }}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div><div style={{ fontSize: '11px', opacity: 0.8, marginBottom: '4px', textTransform: 'uppercase' }}>Now Editing</div><div style={{ fontSize: '18px', fontWeight: '700' }}>{selectedCorporate.corporate_legal_name}</div><div style={{ fontSize: '12px', opacity: 0.9, marginTop: '4px' }}>🌐 {selectedCorporate.subdomain}.benefitnest.space</div></div><Button variant="outline" size="sm" onClick={() => window.open(`https://${selectedCorporate.subdomain}.benefitnest.space`, '_blank')} style={{ borderColor: 'rgba(255,255,255,0.3)', color: 'white' }}>🔗 Visit Live</Button></div></div>}
+            {selectedCorporate && <div style={{ marginTop: '20px', padding: '20px', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', borderRadius: '16px', color: 'white' }}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div><div style={{ fontSize: '11px', opacity: 0.8, marginBottom: '4px', textTransform: 'uppercase' }}>Now Editing</div><div style={{ fontSize: '18px', fontWeight: '700' }}>{selectedCorporate.corporate_legal_name}</div><div style={{ fontSize: '12px', opacity: 0.9, marginTop: '4px' }}>🌐 {selectedCorporate.subdomain}.benefitnest.space</div></div><Button variant="outline" size="sm" onClick={handleVisitLive} style={{ borderColor: 'rgba(255,255,255,0.3)', color: 'white' }}>🔗 Visit Live</Button></div></div>}
           </div>
 
           {/* Design Controls */}
@@ -235,6 +303,179 @@ export default function PortalDesignerStudio() {
 
       {/* AI Modal */}
       <Modal isOpen={showAiModal} onClose={() => !aiLoading && setShowAiModal(false)} title="AI Brand Discovery" icon="🤖" size="md"><div style={{ padding: '20px 0' }}><div style={{ textAlign: 'center', marginBottom: '24px' }}><div style={{ width: '80px', height: '80px', margin: '0 auto 16px', background: 'linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px', animation: aiLoading ? 'pulse 1.5s ease-in-out infinite' : 'none', boxShadow: '0 10px 40px rgba(99, 102, 241, 0.4)' }}>🤖</div><h3 style={{ fontSize: '18px', fontWeight: '700', color: colors.gray[900], marginBottom: '8px' }}>{aiLoading ? 'Discovering Brand...' : 'Discovery Complete!'}</h3><p style={{ fontSize: '13px', color: colors.gray[500] }}>{aiLoading ? 'Analyzing company profile and brand guidelines' : 'Brand settings have been applied'}</p></div><div style={{ backgroundColor: colors.gray[900], borderRadius: '12px', padding: '16px', maxHeight: '250px', overflowY: 'auto', fontFamily: 'Monaco, Consolas, monospace', fontSize: '12px' }}>{aiLogs.map((log, i) => <div key={i} style={{ color: log.startsWith('✅') ? '#10b981' : log.startsWith('❌') ? '#ef4444' : '#9ca3af', marginBottom: '8px', opacity: i === aiLogs.length - 1 ? 1 : 0.7 }}>{log}</div>)}{aiLoading && <div style={{ color: '#6366f1', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '12px', height: '12px', border: '2px solid transparent', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />Processing...</div>}</div>{!aiLoading && <div style={{ marginTop: '20px', textAlign: 'center' }}><Button variant="primary" onClick={() => setShowAiModal(false)}>Done</Button></div>}</div></Modal>
+
+      {/* Portal Tester Modal */}
+      <Modal isOpen={showTesterModal} onClose={() => setShowTesterModal(false)} title="Portal Test Users" icon="🧪" size="lg">
+        <div>
+          {/* Portal URL Banner */}
+          <div style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', borderRadius: '16px', padding: '20px', marginBottom: '24px', color: 'white' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <div style={{ fontSize: '12px', opacity: 0.8, marginBottom: '4px' }}>PORTAL URL</div>
+                <div style={{ fontSize: '16px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>🌐</span>
+                  <code style={{ backgroundColor: 'rgba(255,255,255,0.2)', padding: '6px 12px', borderRadius: '8px' }}>
+                    {selectedCorporate?.subdomain}.benefitnest.space
+                  </code>
+                </div>
+              </div>
+              <Button variant="outline" size="md" onClick={() => window.open(`https://${selectedCorporate?.subdomain}.benefitnest.space`, '_blank')} style={{ borderColor: 'rgba(255,255,255,0.4)', color: 'white' }}>
+                🚀 Open Portal
+              </Button>
+            </div>
+          </div>
+
+          {/* Add New Tester */}
+          <div style={{ backgroundColor: colors.gray[50], borderRadius: '16px', padding: '20px', marginBottom: '24px', border: `2px dashed ${colors.gray[300]}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+              <span style={{ fontSize: '24px' }}>➕</span>
+              <h3 style={{ fontSize: '16px', fontWeight: '700', margin: 0, color: colors.gray[800] }}>Add Test User</h3>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', color: colors.gray[600] }}>Email *</label>
+                <input 
+                  type="email" 
+                  value={newTesterEmail} 
+                  onChange={(e) => setNewTesterEmail(e.target.value)} 
+                  placeholder="test@company.com"
+                  style={{ width: '100%', padding: '12px', border: `2px solid ${colors.gray[200]}`, borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', color: colors.gray[600] }}>Password *</label>
+                <input 
+                  type="text" 
+                  value={newTesterPassword} 
+                  onChange={(e) => setNewTesterPassword(e.target.value)} 
+                  placeholder="test123"
+                  style={{ width: '100%', padding: '12px', border: `2px solid ${colors.gray[200]}`, borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '6px', color: colors.gray[600] }}>Display Name</label>
+                <input 
+                  type="text" 
+                  value={newTesterName} 
+                  onChange={(e) => setNewTesterName(e.target.value)} 
+                  placeholder="John Doe"
+                  style={{ width: '100%', padding: '12px', border: `2px solid ${colors.gray[200]}`, borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+            </div>
+            <div style={{ marginTop: '16px', textAlign: 'right' }}>
+              <Button variant="success" size="md" icon="💾" onClick={handleAddTester} loading={addingTester}>
+                Save Tester
+              </Button>
+            </div>
+          </div>
+
+          {/* Existing Testers */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+              <span style={{ fontSize: '24px' }}>👥</span>
+              <h3 style={{ fontSize: '16px', fontWeight: '700', margin: 0, color: colors.gray[800] }}>
+                Test Users ({testers.length})
+              </h3>
+            </div>
+            
+            {loadingTesters ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: colors.gray[500] }}>
+                <div style={{ fontSize: '32px', marginBottom: '12px' }}>⏳</div>
+                Loading testers...
+              </div>
+            ) : testers.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px', backgroundColor: colors.gray[50], borderRadius: '12px', color: colors.gray[500] }}>
+                <div style={{ fontSize: '40px', marginBottom: '12px' }}>🧪</div>
+                <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>No test users yet</div>
+                <div style={{ fontSize: '12px' }}>Add your first test user above to start testing the portal</div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {testers.map((tester) => (
+                  <div key={tester.id} style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    padding: '16px 20px', 
+                    backgroundColor: 'white', 
+                    borderRadius: '12px', 
+                    border: `1px solid ${colors.gray[200]}`,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.04)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <div style={{ 
+                        width: '44px', 
+                        height: '44px', 
+                        borderRadius: '12px', 
+                        background: 'linear-gradient(135deg, #10b981, #059669)', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        color: 'white', 
+                        fontWeight: '700',
+                        fontSize: '18px'
+                      }}>
+                        {tester.display_name?.charAt(0).toUpperCase() || tester.email.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: '600', fontSize: '14px', color: colors.gray[800] }}>
+                          {tester.display_name || tester.email.split('@')[0]}
+                        </div>
+                        <div style={{ fontSize: '12px', color: colors.gray[500] }}>{tester.email}</div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div style={{ 
+                        backgroundColor: colors.gray[100], 
+                        padding: '8px 14px', 
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}>
+                        <span style={{ fontSize: '12px', color: colors.gray[500] }}>Password:</span>
+                        <code style={{ fontSize: '13px', fontWeight: '600', color: colors.primary }}>{tester.password_hash}</code>
+                      </div>
+                      <button 
+                        onClick={() => handleDeleteTester(tester.id)}
+                        style={{ 
+                          width: '36px', 
+                          height: '36px', 
+                          borderRadius: '8px', 
+                          border: 'none', 
+                          backgroundColor: colors.dangerLight, 
+                          color: colors.danger,
+                          cursor: 'pointer',
+                          fontSize: '16px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Footer Actions */}
+          <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: `1px solid ${colors.gray[200]}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: '12px', color: colors.gray[500] }}>
+              💡 Testers can login at the portal with their email and password
+            </div>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <Button variant="outline" onClick={() => setShowTesterModal(false)}>Close</Button>
+              <Button variant="primary" icon="🚀" onClick={() => window.open(`https://${selectedCorporate?.subdomain}.benefitnest.space`, '_blank')}>
+                Visit Portal Now
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Modal>
 
       {/* Toast */}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
