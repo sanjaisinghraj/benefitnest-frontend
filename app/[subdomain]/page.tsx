@@ -44,6 +44,20 @@ interface PortalConfig {
 
 interface Customizations { [key: string]: any; }
 
+interface CompliancePolicies {
+  privacy_policy_title: string;
+  privacy_policy_content: string;
+  terms_conditions_title: string;
+  terms_conditions_content: string;
+  disclaimer_title: string;
+  disclaimer_content: string;
+  consent_checkbox_text: string;
+  consent_details_content: string;
+  dpa_required?: boolean;
+  dpa_title?: string;
+  dpa_content?: string;
+}
+
 export default function PortalPage() {
   const params = useParams();
   const subdomain = params?.subdomain as string;
@@ -65,6 +79,20 @@ export default function PortalPage() {
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotSuccess, setForgotSuccess] = useState(false);
+  
+  // New states for enhanced login
+  const [loginMethod, setLoginMethod] = useState<'email' | 'mobile' | 'userid' | 'employeeid'>('email');
+  const [consentChecked, setConsentChecked] = useState(false);
+  const [showConsentDetails, setShowConsentDetails] = useState(false);
+  const [showOtpLogin, setShowOtpLogin] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showDisclaimerModal, setShowDisclaimerModal] = useState(false);
+  const [showDpaModal, setShowDpaModal] = useState(false);
+  const [compliancePolicies, setCompliancePolicies] = useState<CompliancePolicies | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('portal_token');
@@ -92,6 +120,20 @@ export default function PortalPage() {
           console.log('[Portal] Customizations:', customData);
           console.log('[Portal] Primary color from API:', customData?.primary_color);
           setCustomizations(customData);
+          
+          // Fetch compliance policies
+          try {
+            const policiesResponse = await fetch(`${API_URL}/api/portal/compliance-policies/${subdomain}`);
+            if (policiesResponse.ok) {
+              const policiesResult = await policiesResponse.json();
+              if (policiesResult.success && policiesResult.data) {
+                setCompliancePolicies(policiesResult.data);
+                console.log('[Portal] Compliance policies loaded');
+              }
+            }
+          } catch (policyErr) {
+            console.warn('[Portal] Could not load compliance policies:', policyErr);
+          }
         } else throw new Error('Invalid portal data');
       } catch (err: any) {
         console.error('[Portal] Error:', err);
@@ -135,12 +177,13 @@ export default function PortalPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
-    if (!employeeId || !password) { setLoginError('Please enter Employee ID and Password'); return; }
+    if (!employeeId || !password) { setLoginError('Please enter your credentials'); return; }
+    if (!consentChecked) { setLoginError('Please accept the terms and conditions to continue'); return; }
     setLoggingIn(true);
     try {
       const response = await fetch(`${API_URL}/api/portal/login`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tenant_id: portalConfig?.tenant_id, subdomain: portalConfig?.subdomain, employee_id: employeeId, password, rememberMe, captchaToken })
+        body: JSON.stringify({ tenant_id: portalConfig?.tenant_id, subdomain: portalConfig?.subdomain, employee_id: employeeId, password, rememberMe, captchaToken, login_method: loginMethod })
       });
       const data = await response.json();
       if (data.success) {
@@ -175,6 +218,64 @@ export default function PortalPage() {
     localStorage.removeItem('portal_tenant');
     document.cookie = 'portal_token=; path=/; max-age=0';
     setIsLoggedIn(false);
+  };
+
+  const handleSendOtp = async () => {
+    if (!employeeId) { setLoginError('Please enter your login ID first'); return; }
+    setSendingOtp(true);
+    setLoginError('');
+    try {
+      const response = await fetch(`${API_URL}/api/portal/send-otp`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenant_id: portalConfig?.tenant_id, login_id: employeeId, login_method: loginMethod })
+      });
+      const data = await response.json();
+      if (data.success) { setOtpSent(true); } 
+      else { setLoginError(data.message || 'Failed to send OTP'); }
+    } catch { setLoginError('Failed to send OTP. Please try again.'); }
+    finally { setSendingOtp(false); }
+  };
+
+  const handleOtpLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!employeeId || !otp) { setLoginError('Please enter your ID and OTP'); return; }
+    if (!consentChecked) { setLoginError('Please accept the terms and conditions to continue'); return; }
+    setLoggingIn(true);
+    setLoginError('');
+    try {
+      const response = await fetch(`${API_URL}/api/portal/verify-otp-login`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenant_id: portalConfig?.tenant_id, subdomain: portalConfig?.subdomain, login_id: employeeId, login_method: loginMethod, otp })
+      });
+      const data = await response.json();
+      if (data.success) {
+        localStorage.setItem('portal_token', data.token);
+        localStorage.setItem('portal_user', JSON.stringify(data.user));
+        localStorage.setItem('portal_tenant', JSON.stringify(portalConfig));
+        setIsLoggedIn(true);
+      } else { setLoginError(data.message || 'Invalid OTP'); }
+    } catch { setLoginError('Login failed. Please try again.'); }
+    finally { setLoggingIn(false); }
+  };
+
+  const getLoginMethodLabel = () => {
+    switch(loginMethod) {
+      case 'email': return 'Registered Email';
+      case 'mobile': return 'Mobile Number';
+      case 'userid': return 'User ID';
+      case 'employeeid': return 'Employee ID';
+      default: return 'Employee ID';
+    }
+  };
+
+  const getLoginMethodPlaceholder = () => {
+    switch(loginMethod) {
+      case 'email': return 'Enter your registered email';
+      case 'mobile': return 'Enter your mobile number';
+      case 'userid': return 'Enter your user ID';
+      case 'employeeid': return 'Enter your employee ID';
+      default: return 'Enter your employee ID';
+    }
   };
 
   // Loading State
@@ -596,20 +697,51 @@ export default function PortalPage() {
                 /* ===== LOGIN FORM ===== */
                 <div>
                   <h2 style={{ fontSize: '28px', fontWeight: theme.headingWeight, color: theme.text, marginBottom: '10px', fontFamily: theme.headingFont }}>
-                    Sign In
+                    {showOtpLogin ? 'Sign In with OTP' : 'Sign In'}
                   </h2>
-                  <p style={{ color: theme.text, opacity: 0.5, marginBottom: '35px', fontSize: '14px' }}>
+                  <p style={{ color: theme.text, opacity: 0.5, marginBottom: '30px', fontSize: '14px' }}>
                     Access your employee benefits portal
                   </p>
 
-                  <form onSubmit={handleLogin}>
+                  {/* Login Method Selector */}
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{ display: 'block', fontSize: '13px', color: theme.text, opacity: 0.7, marginBottom: '8px', fontWeight: 500 }}>
+                      Login With
+                    </label>
+                    <select
+                      value={loginMethod}
+                      onChange={(e) => setLoginMethod(e.target.value as any)}
+                      style={{
+                        width: '100%',
+                        padding: '14px 16px',
+                        border: `2px solid ${theme.border}`,
+                        borderRadius: '12px',
+                        fontSize: '14px',
+                        backgroundColor: 'white',
+                        cursor: 'pointer',
+                        color: theme.text,
+                        appearance: 'none',
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'right 14px center',
+                        transition: 'all 0.3s'
+                      }}
+                    >
+                      <option value="email">Registered Email</option>
+                      <option value="mobile">Mobile Number</option>
+                      <option value="userid">User ID</option>
+                      <option value="employeeid">Employee ID</option>
+                    </select>
+                  </div>
+
+                  <form onSubmit={showOtpLogin ? handleOtpLogin : handleLogin}>
                     <div style={{ marginBottom: '20px' }}>
                       <input 
-                        id="email-input"
-                        type="text" 
+                        id="login-input"
+                        type={loginMethod === 'email' ? 'email' : 'text'} 
                         value={employeeId} 
                         onChange={(e) => setEmployeeId(e.target.value)} 
-                        placeholder="Employee ID or Email" 
+                        placeholder={getLoginMethodPlaceholder()} 
                         style={{ 
                           width: '100%', 
                           padding: '16px 20px', 
@@ -623,53 +755,185 @@ export default function PortalPage() {
                       />
                     </div>
 
-                    <div style={{ marginBottom: '20px' }}>
-                      <input 
-                        type="password" 
-                        value={password} 
-                        onChange={(e) => setPassword(e.target.value)} 
-                        placeholder="Password" 
-                        style={{ 
-                          width: '100%', 
-                          padding: '16px 20px', 
-                          border: `2px solid ${theme.border}`, 
-                          borderRadius: '12px', 
-                          fontSize: '15px', 
-                          boxSizing: 'border-box', 
-                          backgroundColor: 'white', 
-                          transition: 'all 0.3s' 
-                        }} 
-                      />
-                    </div>
+                    {showOtpLogin ? (
+                      /* OTP Input Section */
+                      <div style={{ marginBottom: '20px' }}>
+                        {!otpSent ? (
+                          <button
+                            type="button"
+                            onClick={handleSendOtp}
+                            disabled={sendingOtp || !employeeId}
+                            style={{
+                              width: '100%',
+                              padding: '16px',
+                              background: `linear-gradient(135deg, ${theme.secondary} 0%, ${theme.primary} 100%)`,
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '12px',
+                              fontSize: '14px',
+                              fontWeight: 600,
+                              cursor: sendingOtp || !employeeId ? 'not-allowed' : 'pointer',
+                              opacity: sendingOtp || !employeeId ? 0.7 : 1,
+                              transition: 'all 0.3s'
+                            }}
+                          >
+                            {sendingOtp ? 'Sending OTP...' : '📱 Send OTP'}
+                          </button>
+                        ) : (
+                          <div>
+                            <p style={{ fontSize: '13px', color: theme.primary, marginBottom: '12px', fontWeight: 500 }}>
+                              ✅ OTP sent! Check your {loginMethod === 'email' ? 'email' : 'phone'}
+                            </p>
+                            <input
+                              type="text"
+                              value={otp}
+                              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                              placeholder="Enter 6-digit OTP"
+                              maxLength={6}
+                              style={{
+                                width: '100%',
+                                padding: '16px 20px',
+                                border: `2px solid ${theme.border}`,
+                                borderRadius: '12px',
+                                fontSize: '18px',
+                                boxSizing: 'border-box',
+                                backgroundColor: 'white',
+                                textAlign: 'center',
+                                letterSpacing: '8px',
+                                fontWeight: 600,
+                                transition: 'all 0.3s'
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => { setOtpSent(false); setOtp(''); handleSendOtp(); }}
+                              style={{ background: 'none', border: 'none', color: theme.primary, fontSize: '12px', cursor: 'pointer', marginTop: '8px' }}
+                            >
+                              Resend OTP
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      /* Password Input */
+                      <div style={{ marginBottom: '20px' }}>
+                        <input 
+                          type="password" 
+                          value={password} 
+                          onChange={(e) => setPassword(e.target.value)} 
+                          placeholder="Password" 
+                          style={{ 
+                            width: '100%', 
+                            padding: '16px 20px', 
+                            border: `2px solid ${theme.border}`, 
+                            borderRadius: '12px', 
+                            fontSize: '15px', 
+                            boxSizing: 'border-box', 
+                            backgroundColor: 'white', 
+                            transition: 'all 0.3s' 
+                          }} 
+                        />
+                      </div>
+                    )}
 
                     {/* Remember Me & Forgot Password */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: theme.text, cursor: 'pointer', opacity: 0.7 }}>
+                    {!showOtpLogin && (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: theme.text, cursor: 'pointer', opacity: 0.7 }}>
+                          <input 
+                            type="checkbox" 
+                            checked={rememberMe} 
+                            onChange={(e) => setRememberMe(e.target.checked)} 
+                            style={{ width: '16px', height: '16px', accentColor: theme.primary, cursor: 'pointer' }} 
+                          />
+                          Remember me
+                        </label>
+                        <button 
+                          type="button" 
+                          onClick={() => { setShowForgotPassword(true); setLoginError(''); }} 
+                          style={{ background: 'none', border: 'none', color: theme.primary, fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          Forgot password?
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Consent Checkbox */}
+                    <div style={{ marginBottom: '20px', padding: '14px', backgroundColor: `${theme.primary}08`, borderRadius: '12px', border: `1px solid ${theme.primary}20` }}>
+                      <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '13px', color: theme.text, cursor: 'pointer' }}>
                         <input 
                           type="checkbox" 
-                          checked={rememberMe} 
-                          onChange={(e) => setRememberMe(e.target.checked)} 
-                          style={{ width: '16px', height: '16px', accentColor: theme.primary, cursor: 'pointer' }} 
+                          checked={consentChecked} 
+                          onChange={(e) => setConsentChecked(e.target.checked)} 
+                          style={{ width: '18px', height: '18px', accentColor: theme.primary, cursor: 'pointer', marginTop: '2px', flexShrink: 0 }} 
                         />
-                        Remember me
+                        <span>
+                          {compliancePolicies?.consent_checkbox_text || (
+                            <>
+                              I agree to the{' '}
+                              <button type="button" onClick={() => setShowPrivacyModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                                Privacy Policy
+                              </button>
+                              {' '}and{' '}
+                              <button type="button" onClick={() => setShowTermsModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                                Terms & Conditions
+                              </button>
+                            </>
+                          )}
+                        </span>
                       </label>
+                      {compliancePolicies?.consent_checkbox_text && (
+                        <div style={{ marginTop: '6px', marginLeft: '28px', fontSize: '12px' }}>
+                          <button type="button" onClick={() => setShowPrivacyModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 500, cursor: 'pointer', padding: 0, textDecoration: 'underline', marginRight: '12px' }}>
+                            Privacy Policy
+                          </button>
+                          <button type="button" onClick={() => setShowTermsModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 500, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                            Terms & Conditions
+                          </button>
+                          {compliancePolicies?.dpa_required && (
+                            <button type="button" onClick={() => setShowDpaModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 500, cursor: 'pointer', padding: 0, textDecoration: 'underline', marginLeft: '12px' }}>
+                              DPA
+                            </button>
+                          )}
+                        </div>
+                      )}
                       <button 
                         type="button" 
-                        onClick={() => { setShowForgotPassword(true); setLoginError(''); }} 
-                        style={{ background: 'none', border: 'none', color: theme.primary, fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+                        onClick={() => setShowConsentDetails(!showConsentDetails)}
+                        style={{ background: 'none', border: 'none', color: theme.primary, fontSize: '12px', cursor: 'pointer', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}
                       >
-                        Forgot password?
+                        {showConsentDetails ? '▲ Hide details' : '▼ Show details'}
                       </button>
+                      {showConsentDetails && (
+                        <div style={{ marginTop: '12px', padding: '12px', backgroundColor: 'white', borderRadius: '8px', fontSize: '12px', lineHeight: '1.6', color: theme.text, opacity: 0.8 }}>
+                          {compliancePolicies?.consent_details_content ? (
+                            <div dangerouslySetInnerHTML={{ __html: compliancePolicies.consent_details_content }} />
+                          ) : (
+                            <>
+                              <p style={{ margin: '0 0 8px 0' }}><strong>By signing in, you acknowledge and agree that:</strong></p>
+                              <ul style={{ margin: 0, paddingLeft: '18px' }}>
+                                <li>Your personal data will be processed in accordance with our Privacy Policy</li>
+                                <li>We may collect usage data to improve our services</li>
+                                <li>Your employer may have access to certain benefits-related information</li>
+                                <li>You consent to receive notifications related to your benefits</li>
+                                <li>All activities are logged for security and audit purposes</li>
+                              </ul>
+                            </>
+                          )}
+                        </div>
+                      )}
                     </div>
 
-                    {/* ReCAPTCHA */}
-                    <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'center', transform: 'scale(0.9)', transformOrigin: 'center' }}>
-                      <ReCAPTCHA 
-                        ref={recaptchaRef} 
-                        sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'} 
-                        onChange={(token) => setCaptchaToken(token)} 
-                      />
-                    </div>
+                    {/* ReCAPTCHA - only for password login */}
+                    {!showOtpLogin && (
+                      <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'center', transform: 'scale(0.85)', transformOrigin: 'center' }}>
+                        <ReCAPTCHA 
+                          ref={recaptchaRef} 
+                          sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'} 
+                          onChange={(token) => setCaptchaToken(token)} 
+                        />
+                      </div>
+                    )}
 
                     {loginError && (
                       <div style={{ backgroundColor: '#fef2f2', color: '#991b1b', padding: '14px 18px', borderRadius: '10px', fontSize: '13px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -679,7 +943,7 @@ export default function PortalPage() {
 
                     <button 
                       type="submit" 
-                      disabled={loggingIn} 
+                      disabled={loggingIn || !consentChecked || (showOtpLogin && (!otpSent || otp.length !== 6))} 
                       className="signin-btn"
                       style={{ 
                         width: '100%', 
@@ -690,8 +954,8 @@ export default function PortalPage() {
                         borderRadius: '12px', 
                         fontSize: '16px', 
                         fontWeight: 600, 
-                        cursor: loggingIn ? 'not-allowed' : 'pointer', 
-                        opacity: loggingIn ? 0.7 : 1, 
+                        cursor: (loggingIn || !consentChecked) ? 'not-allowed' : 'pointer', 
+                        opacity: (loggingIn || !consentChecked) ? 0.7 : 1, 
                         display: 'flex', 
                         alignItems: 'center', 
                         justifyContent: 'center', 
@@ -707,16 +971,154 @@ export default function PortalPage() {
                         </>
                       ) : 'Sign In'}
                     </button>
+
+                    {/* Toggle OTP / Password Login */}
+                    <button
+                      type="button"
+                      onClick={() => { setShowOtpLogin(!showOtpLogin); setOtpSent(false); setOtp(''); setLoginError(''); }}
+                      style={{
+                        width: '100%',
+                        marginTop: '12px',
+                        padding: '14px',
+                        background: 'transparent',
+                        color: theme.primary,
+                        border: `2px solid ${theme.primary}40`,
+                        borderRadius: '12px',
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        transition: 'all 0.3s'
+                      }}
+                    >
+                      {showOtpLogin ? '🔐 Sign in with Password' : '📱 Sign in with OTP'}
+                    </button>
                   </form>
                 </div>
               )}
 
-              {/* Footer */}
-              <div style={{ textAlign: 'center', marginTop: '40px', color: theme.text, opacity: 0.3, fontSize: '12px' }}>
-                <p>Powered by <strong>BenefitNest</strong></p>
+              {/* Footer with Legal Links */}
+              <div style={{ textAlign: 'center', marginTop: '30px', paddingTop: '20px', borderTop: `1px solid ${theme.border}` }}>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                  <button onClick={() => setShowPrivacyModal(true)} style={{ background: 'none', border: 'none', color: theme.text, opacity: 0.6, fontSize: '12px', cursor: 'pointer', transition: 'opacity 0.2s' }}>
+                    {compliancePolicies?.privacy_policy_title || 'Privacy Policy'}
+                  </button>
+                  <button onClick={() => setShowTermsModal(true)} style={{ background: 'none', border: 'none', color: theme.text, opacity: 0.6, fontSize: '12px', cursor: 'pointer', transition: 'opacity 0.2s' }}>
+                    {compliancePolicies?.terms_conditions_title || 'Terms & Conditions'}
+                  </button>
+                  <button onClick={() => setShowDisclaimerModal(true)} style={{ background: 'none', border: 'none', color: theme.text, opacity: 0.6, fontSize: '12px', cursor: 'pointer', transition: 'opacity 0.2s' }}>
+                    {compliancePolicies?.disclaimer_title || 'Disclaimer'}
+                  </button>
+                  {compliancePolicies?.dpa_required && (
+                    <button onClick={() => setShowDpaModal(true)} style={{ background: 'none', border: 'none', color: theme.text, opacity: 0.6, fontSize: '12px', cursor: 'pointer', transition: 'opacity 0.2s' }}>
+                      {compliancePolicies?.dpa_title || 'DPA'}
+                    </button>
+                  )}
+                </div>
+                <p style={{ color: theme.text, opacity: 0.3, fontSize: '11px', margin: 0 }}>
+                  Powered by <strong>BenefitNest</strong>
+                </p>
               </div>
             </div>
           </div>
+
+          {/* Privacy Policy Modal */}
+          {showPrivacyModal && (
+            <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }}>
+              <div style={{ backgroundColor: 'white', borderRadius: '20px', maxWidth: '700px', width: '100%', maxHeight: '80vh', overflow: 'hidden', boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
+                <div style={{ padding: '24px 28px', borderBottom: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ margin: 0, fontSize: '20px', color: theme.text }}>🔒 {compliancePolicies?.privacy_policy_title || 'Privacy Policy'}</h3>
+                  <button onClick={() => setShowPrivacyModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: theme.text, opacity: 0.5 }}>×</button>
+                </div>
+                <div style={{ padding: '28px', overflowY: 'auto', maxHeight: 'calc(80vh - 80px)', fontSize: '14px', lineHeight: '1.8', color: theme.text }}>
+                  {compliancePolicies?.privacy_policy_content ? (
+                    <div dangerouslySetInnerHTML={{ __html: compliancePolicies.privacy_policy_content }} />
+                  ) : (
+                    <>
+                      <p><strong>Effective Date:</strong> January 1, 2024</p>
+                      <h4>1. Information We Collect</h4>
+                      <p>We collect personal information that you provide directly to us, including but not limited to: name, email address, employee ID, contact information, and benefits-related data.</p>
+                      <h4>2. How We Use Your Information</h4>
+                      <p>We use the information we collect to: provide and maintain our services, process your benefits elections, communicate with you about your benefits, and comply with legal obligations.</p>
+                      <h4>3. Contact Us</h4>
+                      <p>If you have any questions about this Privacy Policy, please contact us at privacy@benefitnest.space</p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Terms & Conditions Modal */}
+          {showTermsModal && (
+            <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }}>
+              <div style={{ backgroundColor: 'white', borderRadius: '20px', maxWidth: '700px', width: '100%', maxHeight: '80vh', overflow: 'hidden', boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
+                <div style={{ padding: '24px 28px', borderBottom: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ margin: 0, fontSize: '20px', color: theme.text }}>📜 {compliancePolicies?.terms_conditions_title || 'Terms & Conditions'}</h3>
+                  <button onClick={() => setShowTermsModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: theme.text, opacity: 0.5 }}>×</button>
+                </div>
+                <div style={{ padding: '28px', overflowY: 'auto', maxHeight: 'calc(80vh - 80px)', fontSize: '14px', lineHeight: '1.8', color: theme.text }}>
+                  {compliancePolicies?.terms_conditions_content ? (
+                    <div dangerouslySetInnerHTML={{ __html: compliancePolicies.terms_conditions_content }} />
+                  ) : (
+                    <>
+                      <p><strong>Last Updated:</strong> January 1, 2024</p>
+                      <h4>1. Acceptance of Terms</h4>
+                      <p>By accessing and using this Employee Benefits Portal, you accept and agree to be bound by these Terms and Conditions.</p>
+                      <h4>2. User Account</h4>
+                      <p>You are responsible for maintaining the confidentiality of your login credentials.</p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Disclaimer Modal */}
+          {showDisclaimerModal && (
+            <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }}>
+              <div style={{ backgroundColor: 'white', borderRadius: '20px', maxWidth: '700px', width: '100%', maxHeight: '80vh', overflow: 'hidden', boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
+                <div style={{ padding: '24px 28px', borderBottom: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ margin: 0, fontSize: '20px', color: theme.text }}>⚠️ {compliancePolicies?.disclaimer_title || 'Disclaimer'}</h3>
+                  <button onClick={() => setShowDisclaimerModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: theme.text, opacity: 0.5 }}>×</button>
+                </div>
+                <div style={{ padding: '28px', overflowY: 'auto', maxHeight: 'calc(80vh - 80px)', fontSize: '14px', lineHeight: '1.8', color: theme.text }}>
+                  {compliancePolicies?.disclaimer_content ? (
+                    <div dangerouslySetInnerHTML={{ __html: compliancePolicies.disclaimer_content }} />
+                  ) : (
+                    <>
+                      <h4>General Disclaimer</h4>
+                      <p>The information provided on this Employee Benefits Portal is for general informational purposes only.</p>
+                      <h4>Not Professional Advice</h4>
+                      <p>The content on this portal does not constitute professional financial, legal, medical, or tax advice.</p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* DPA Modal (for GDPR countries) */}
+          {showDpaModal && compliancePolicies?.dpa_required && (
+            <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }}>
+              <div style={{ backgroundColor: 'white', borderRadius: '20px', maxWidth: '700px', width: '100%', maxHeight: '80vh', overflow: 'hidden', boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
+                <div style={{ padding: '24px 28px', borderBottom: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ margin: 0, fontSize: '20px', color: theme.text }}>📋 {compliancePolicies?.dpa_title || 'Data Processing Agreement'}</h3>
+                  <button onClick={() => setShowDpaModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: theme.text, opacity: 0.5 }}>×</button>
+                </div>
+                <div style={{ padding: '28px', overflowY: 'auto', maxHeight: 'calc(80vh - 80px)', fontSize: '14px', lineHeight: '1.8', color: theme.text }}>
+                  {compliancePolicies?.dpa_content ? (
+                    <div dangerouslySetInnerHTML={{ __html: compliancePolicies.dpa_content }} />
+                  ) : (
+                    <p>Data Processing Agreement content not available.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
