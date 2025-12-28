@@ -1060,7 +1060,7 @@ export default function PortalPage() {
                   )}
                 </div>
                 <p style={{ color: theme.text, opacity: 0.3, fontSize: '11px', margin: 0 }}>
-                  Powered by <strong>BenefitNest</strong>
+                  Powered by <strong>BenefitNest</strong> • v2.1
                 </p>
               </div>
             </div>
