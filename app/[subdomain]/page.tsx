@@ -174,11 +174,27 @@ export default function PortalPage() {
     return builtTheme;
   }, [customizations, portalConfig]);
 
+  // Login page visibility settings from customizations
+  const loginSettings = useMemo(() => {
+    const c: Customizations = customizations || {};
+    return {
+      showConsent: c.show_consent_checkbox !== false,
+      showPrivacy: c.show_privacy_link !== false,
+      showTerms: c.show_terms_link !== false,
+      showDisclaimer: c.show_disclaimer_link !== false,
+      showRememberMe: c.show_remember_me !== false,
+      showForgotPassword: c.show_forgot_password !== false,
+      showLoginMethodSelector: c.show_login_method_selector !== false,
+      enableOtpLogin: c.enable_otp_login !== false,
+    };
+  }, [customizations]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
     if (!employeeId || !password) { setLoginError('Please enter your credentials'); return; }
-    if (!consentChecked) { setLoginError('Please accept the terms and conditions to continue'); return; }
+    // Only require consent if consent checkbox is enabled
+    if (loginSettings.showConsent && !consentChecked) { setLoginError('Please accept the terms and conditions to continue'); return; }
     setLoggingIn(true);
     try {
       const response = await fetch(`${API_URL}/api/portal/login`, {
@@ -837,8 +853,9 @@ export default function PortalPage() {
                     )}
 
                     {/* Remember Me & Forgot Password */}
-                    {!showOtpLogin && (
+                    {!showOtpLogin && (loginSettings.showRememberMe || loginSettings.showForgotPassword) && (
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                        {loginSettings.showRememberMe && (
                         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: theme.text, cursor: 'pointer', opacity: 0.7 }}>
                           <input 
                             type="checkbox" 
@@ -848,6 +865,8 @@ export default function PortalPage() {
                           />
                           Remember me
                         </label>
+                        )}
+                        {loginSettings.showForgotPassword && (
                         <button 
                           type="button" 
                           onClick={() => { setShowForgotPassword(true); setLoginError(''); }} 
@@ -855,10 +874,12 @@ export default function PortalPage() {
                         >
                           Forgot password?
                         </button>
+                        )}
                       </div>
                     )}
 
                     {/* Consent Checkbox */}
+                    {loginSettings.showConsent && (
                     <div style={{ marginBottom: '20px', padding: '14px', backgroundColor: `${theme.primary}08`, borderRadius: '12px', border: `1px solid ${theme.primary}20` }}>
                       <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '13px', color: theme.text, cursor: 'pointer' }}>
                         <input 
@@ -871,25 +892,28 @@ export default function PortalPage() {
                           {compliancePolicies?.consent_checkbox_text || (
                             <>
                               I agree to the{' '}
-                              <button type="button" onClick={() => setShowPrivacyModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                              {loginSettings.showPrivacy && <button type="button" onClick={() => setShowPrivacyModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
                                 Privacy Policy
-                              </button>
-                              {' '}and{' '}
-                              <button type="button" onClick={() => setShowTermsModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                              </button>}
+                              {loginSettings.showPrivacy && loginSettings.showTerms && ' and '}
+                              {loginSettings.showTerms && <button type="button" onClick={() => setShowTermsModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
                                 Terms & Conditions
-                              </button>
+                              </button>}
+                              {loginSettings.showDisclaimer && <>, <button type="button" onClick={() => setShowDisclaimerModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                                Disclaimer
+                              </button></>}
                             </>
                           )}
                         </span>
                       </label>
                       {compliancePolicies?.consent_checkbox_text && (
                         <div style={{ marginTop: '6px', marginLeft: '28px', fontSize: '12px' }}>
-                          <button type="button" onClick={() => setShowPrivacyModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 500, cursor: 'pointer', padding: 0, textDecoration: 'underline', marginRight: '12px' }}>
+                          {loginSettings.showPrivacy && <button type="button" onClick={() => setShowPrivacyModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 500, cursor: 'pointer', padding: 0, textDecoration: 'underline', marginRight: '12px' }}>
                             Privacy Policy
-                          </button>
-                          <button type="button" onClick={() => setShowTermsModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 500, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                          </button>}
+                          {loginSettings.showTerms && <button type="button" onClick={() => setShowTermsModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 500, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
                             Terms & Conditions
-                          </button>
+                          </button>}
                           {compliancePolicies?.dpa_required && (
                             <button type="button" onClick={() => setShowDpaModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 500, cursor: 'pointer', padding: 0, textDecoration: 'underline', marginLeft: '12px' }}>
                               DPA
@@ -923,6 +947,7 @@ export default function PortalPage() {
                         </div>
                       )}
                     </div>
+                    )}
 
                     {/* ReCAPTCHA - only for password login */}
                     {!showOtpLogin && (
@@ -943,7 +968,7 @@ export default function PortalPage() {
 
                     <button 
                       type="submit" 
-                      disabled={loggingIn || !consentChecked || (showOtpLogin && (!otpSent || otp.length !== 6))} 
+                      disabled={loggingIn || (loginSettings.showConsent && !consentChecked) || (showOtpLogin && (!otpSent || otp.length !== 6))} 
                       className="signin-btn"
                       style={{ 
                         width: '100%', 
@@ -954,8 +979,8 @@ export default function PortalPage() {
                         borderRadius: '12px', 
                         fontSize: '16px', 
                         fontWeight: 600, 
-                        cursor: (loggingIn || !consentChecked) ? 'not-allowed' : 'pointer', 
-                        opacity: (loggingIn || !consentChecked) ? 0.7 : 1, 
+                        cursor: (loggingIn || (loginSettings.showConsent && !consentChecked)) ? 'not-allowed' : 'pointer', 
+                        opacity: (loggingIn || (loginSettings.showConsent && !consentChecked)) ? 0.7 : 1, 
                         display: 'flex', 
                         alignItems: 'center', 
                         justifyContent: 'center', 
@@ -972,30 +997,32 @@ export default function PortalPage() {
                       ) : 'Sign In'}
                     </button>
 
-                    {/* Toggle OTP / Password Login */}
-                    <button
-                      type="button"
-                      onClick={() => { setShowOtpLogin(!showOtpLogin); setOtpSent(false); setOtp(''); setLoginError(''); }}
-                      style={{
-                        width: '100%',
-                        marginTop: '12px',
-                        padding: '14px',
-                        background: 'transparent',
-                        color: theme.primary,
-                        border: `2px solid ${theme.primary}40`,
-                        borderRadius: '12px',
-                        fontSize: '14px',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        transition: 'all 0.3s'
-                      }}
-                    >
-                      {showOtpLogin ? '🔐 Sign in with Password' : '📱 Sign in with OTP'}
-                    </button>
+                    {/* Toggle OTP / Password Login - Only show if OTP login is enabled */}
+                    {loginSettings.enableOtpLogin && (
+                      <button
+                        type="button"
+                        onClick={() => { setShowOtpLogin(!showOtpLogin); setOtpSent(false); setOtp(''); setLoginError(''); }}
+                        style={{
+                          width: '100%',
+                          marginTop: '12px',
+                          padding: '14px',
+                          background: 'transparent',
+                          color: theme.primary,
+                          border: `2px solid ${theme.primary}40`,
+                          borderRadius: '12px',
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px',
+                          transition: 'all 0.3s'
+                        }}
+                      >
+                        {showOtpLogin ? '🔐 Sign in with Password' : '📱 Sign in with OTP'}
+                      </button>
+                    )}
                   </form>
                 </div>
               )}
@@ -1003,15 +1030,21 @@ export default function PortalPage() {
               {/* Footer with Legal Links */}
               <div style={{ textAlign: 'center', marginTop: '30px', paddingTop: '20px', borderTop: `1px solid ${theme.border}` }}>
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '12px', flexWrap: 'wrap' }}>
-                  <button onClick={() => setShowPrivacyModal(true)} style={{ background: 'none', border: 'none', color: theme.text, opacity: 0.6, fontSize: '12px', cursor: 'pointer', transition: 'opacity 0.2s' }}>
-                    {compliancePolicies?.privacy_policy_title || 'Privacy Policy'}
-                  </button>
-                  <button onClick={() => setShowTermsModal(true)} style={{ background: 'none', border: 'none', color: theme.text, opacity: 0.6, fontSize: '12px', cursor: 'pointer', transition: 'opacity 0.2s' }}>
-                    {compliancePolicies?.terms_conditions_title || 'Terms & Conditions'}
-                  </button>
-                  <button onClick={() => setShowDisclaimerModal(true)} style={{ background: 'none', border: 'none', color: theme.text, opacity: 0.6, fontSize: '12px', cursor: 'pointer', transition: 'opacity 0.2s' }}>
-                    {compliancePolicies?.disclaimer_title || 'Disclaimer'}
-                  </button>
+                  {loginSettings.showPrivacy && (
+                    <button onClick={() => setShowPrivacyModal(true)} style={{ background: 'none', border: 'none', color: theme.text, opacity: 0.6, fontSize: '12px', cursor: 'pointer', transition: 'opacity 0.2s' }}>
+                      {compliancePolicies?.privacy_policy_title || 'Privacy Policy'}
+                    </button>
+                  )}
+                  {loginSettings.showTerms && (
+                    <button onClick={() => setShowTermsModal(true)} style={{ background: 'none', border: 'none', color: theme.text, opacity: 0.6, fontSize: '12px', cursor: 'pointer', transition: 'opacity 0.2s' }}>
+                      {compliancePolicies?.terms_conditions_title || 'Terms & Conditions'}
+                    </button>
+                  )}
+                  {loginSettings.showDisclaimer && (
+                    <button onClick={() => setShowDisclaimerModal(true)} style={{ background: 'none', border: 'none', color: theme.text, opacity: 0.6, fontSize: '12px', cursor: 'pointer', transition: 'opacity 0.2s' }}>
+                      {compliancePolicies?.disclaimer_title || 'Disclaimer'}
+                    </button>
+                  )}
                   {compliancePolicies?.dpa_required && (
                     <button onClick={() => setShowDpaModal(true)} style={{ background: 'none', border: 'none', color: theme.text, opacity: 0.6, fontSize: '12px', cursor: 'pointer', transition: 'opacity 0.2s' }}>
                       {compliancePolicies?.dpa_title || 'DPA'}
