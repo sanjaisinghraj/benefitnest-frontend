@@ -1,12 +1,12 @@
+
 "use client";
 import { useEffect, useState } from "react";
-import { useSession } from "@/hooks/useSession";
+import { useSession } from "next-auth/react";
 import { gql, useApolloClient } from "@apollo/client";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
-import { gql, useApolloClient } from "@apollo/client";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#A28BFE", "#FF6699"];
 

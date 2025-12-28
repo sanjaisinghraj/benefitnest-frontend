@@ -1,16 +1,17 @@
+
 "use client";
 import { useEffect, useState } from "react";
-import { useSession } from "@/hooks/useSession";
-import { usePlanConfig } from "@/hooks/usePlanConfig";
-import { useEnrollment } from "@/hooks/useEnrollment";
-import { useOverrides } from "@/hooks/useOverrides";
-import { FamilyDefinitionForm } from "@/components/FamilyDefinitionForm";
-import { SumInsuredSelector } from "@/components/SumInsuredSelector";
-import { PremiumMatrixTable } from "@/components/PremiumMatrixTable";
-import { RiderOptions } from "@/components/RiderOptions";
-import { WalletContributionSlider } from "@/components/WalletContributionSlider";
-import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
-import { ProductSummaryCard } from "@/components/ProductSummaryCard";
+import { useSession } from "next-auth/react";
+import { usePlanConfig } from "../../hooks/usePlanConfig";
+import { useEnrollment } from "../../hooks/useEnrollment";
+import { useOverrides } from "../../hooks/useOverrides";
+import { FamilyDefinitionForm } from "../../components/FamilyDefinitionForm";
+import { SumInsuredSelector } from "../../components/SumInsuredSelector";
+import { PremiumMatrixTable } from "../../components/PremiumMatrixTable";
+import { RiderOptions } from "../../components/RiderOptions";
+import { WalletContributionSlider } from "../../components/WalletContributionSlider";
+import { PaymentMethodSelector } from "../../components/PaymentMethodSelector";
+import { ProductSummaryCard } from "../../components/ProductSummaryCard";
 
 export default function EmployeeEnrollPage() {
   const { user, token } = useSession();

@@ -1,6 +1,7 @@
+
 "use client";
 import { useEffect, useState } from "react";
-import { useSession } from "@/hooks/useSession";
+import { useSession } from "next-auth/react";
 import { gql, useApolloClient } from "@apollo/client";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
