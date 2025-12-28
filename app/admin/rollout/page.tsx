@@ -1,7 +1,8 @@
 
 "use client";
 import { useState, useEffect } from "react";
-import { gql, useApolloClient } from "@apollo/client";
+import { gql } from "@apollo/client";
+// import { useQuery } from '@apollo/client/react'; // Add if needed
 import { useSession } from "next-auth/react";
 
 export default function RolloutDashboard() {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useQuery, gql } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
+import { gql } from '@apollo/client';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, Bar, BarChart } from 'recharts';
 import { Select, DatePicker, Spin, Alert } from 'antd';
 import { hasRole } from '../../utils/rbac';

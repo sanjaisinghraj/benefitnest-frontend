@@ -236,7 +236,9 @@ export default function TenantAnalyticsPage() {
       // FeatureFlagsPanel component (unchanged)
       // ExportHistoryTable component
       function ExportHistoryTable({ exportHistory, tenantId }: any) {
-        if (!exportHistory?.length) return null;
+        if (!exportHistory?.length) {
+          return null;
+        }
         return (
           <div style={{ border: "1px solid #eee", borderRadius: 8, padding: 16, marginTop: 24 }}>
             <h3>Export History</h3>

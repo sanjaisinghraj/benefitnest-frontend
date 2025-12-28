@@ -2,7 +2,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { gql, useApolloClient } from "@apollo/client";
+import { gql } from "@apollo/client";
+// import { useQuery } from '@apollo/client/react'; // Add if needed
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#A28BFE", "#FF6699"];

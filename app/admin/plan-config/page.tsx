@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { usePlanConfig } from "../../hooks/usePlanConfig";
 import { useOverrides } from "../../hooks/useOverrides";
-import { gql, useApolloClient } from "@apollo/client";
+import { gql } from "@apollo/client";
+// import { useQuery } from '@apollo/client/react'; // Add if needed
 import { FamilyDefinitionForm } from "../../components/FamilyDefinitionForm";
 import { SumInsuredSelector } from "../../components/SumInsuredSelector";
 import { PremiumMatrixTable } from "../../components/PremiumMatrixTable";
