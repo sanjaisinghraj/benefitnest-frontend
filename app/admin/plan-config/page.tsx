@@ -1,10 +1,11 @@
 
 "use client";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { usePlanConfig } from "../../hooks/usePlanConfig";
 import { useOverrides } from "../../hooks/useOverrides";
 import { gql } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 // import { useQuery } from '@apollo/client/react'; // Add if needed
 import { FamilyDefinitionForm } from "../../components/FamilyDefinitionForm";
 import { SumInsuredSelector } from "../../components/SumInsuredSelector";
@@ -17,7 +18,6 @@ import { ProductSummaryCard } from "../../components/ProductSummaryCard";
 export default function PlanConfigPage() {
   const { data: session } = useSession();
   const user = session?.user;
-  const token = session?.token;
   const [planType, setPlanType] = useState("GMC");
   const [countryCode, setCountryCode] = useState("IN");
   const [corporateId, setCorporateId] = useState("");
@@ -34,13 +34,18 @@ export default function PlanConfigPage() {
     setCorporateId(host.split(".")[0]);
   }, []);
 
-  const { config, loading: configLoading } = usePlanConfig(planType, corporateId, countryCode);
-  const effectiveConfig = useOverrides(config, countryCode);
+  const { config, loading: configLoading } = (usePlanConfig as any)(planType, corporateId, countryCode) as any;
+  const effectiveConfig = (useOverrides as any)(config, countryCode) as any;
 
   useEffect(() => {
     setForm({});
     setPreview(effectiveConfig);
-    setBranding({ font: effectiveConfig?.branding?.font, background: effectiveConfig?.branding?.background, color: effectiveConfig?.branding?.color, logo: effectiveConfig?.branding?.logo });
+    setBranding({
+      font: (effectiveConfig?.branding as any)?.font,
+      background: (effectiveConfig?.branding as any)?.background,
+      color: (effectiveConfig?.branding as any)?.color,
+      logo: (effectiveConfig?.branding as any)?.logo
+    });
   }, [effectiveConfig]);
 
   const handleField = (field: string, value: any) => {
@@ -87,16 +92,16 @@ export default function PlanConfigPage() {
       ) : effectiveConfig ? (
         <div style={{ display: "flex", gap: 32, alignItems: "flex-start", padding: 32 }}>
           <div style={{ flex: 2 }}>
-            <FamilyDefinitionForm value={form.family} onChange={v => handleField('family', v)} config={effectiveConfig} branding={branding} errors={errors} />
-            <SumInsuredSelector value={form.sumInsured} onChange={v => handleField('sumInsured', v)} config={effectiveConfig} branding={branding} errors={errors} />
-            <PremiumMatrixTable config={effectiveConfig} selection={form} branding={branding} />
-            <RiderOptions value={form.riders} onChange={v => handleField('riders', v)} config={effectiveConfig} branding={branding} errors={errors} />
-            <WalletContributionSlider value={form.wallet} onChange={v => handleField('wallet', v)} config={effectiveConfig} branding={branding} errors={errors} />
-            <PaymentMethodSelector value={form.payment} onChange={v => handleField('payment', v)} config={effectiveConfig} branding={branding} errors={errors} />
+            {FamilyDefinitionForm && React.createElement(FamilyDefinitionForm, { value: form.family, onChange: (v: any) => handleField('family', v), config: effectiveConfig, branding, errors })}
+            {SumInsuredSelector && React.createElement(SumInsuredSelector, { value: form.sumInsured, onChange: (v: any) => handleField('sumInsured', v), config: effectiveConfig, branding, errors })}
+            {PremiumMatrixTable && React.createElement(PremiumMatrixTable, { config: effectiveConfig, selection: form, branding })}
+            {RiderOptions && React.createElement(RiderOptions, { value: form.riders, onChange: (v: any) => handleField('riders', v), config: effectiveConfig, branding, errors })}
+            {WalletContributionSlider && React.createElement(WalletContributionSlider, { value: form.wallet, onChange: (v: any) => handleField('wallet', v), config: effectiveConfig, branding, errors })}
+            {PaymentMethodSelector && React.createElement(PaymentMethodSelector, { value: form.payment, onChange: (v: any) => handleField('payment', v), config: effectiveConfig, branding, errors })}
             <button onClick={handleSave} disabled={loading} style={{ marginTop: 24 }}>Save Configuration</button>
           </div>
           <div style={{ flex: 1, minWidth: 320 }}>
-            <ProductSummaryCard config={effectiveConfig} selection={form} branding={branding} />
+            {ProductSummaryCard && React.createElement(ProductSummaryCard, { config: effectiveConfig, selection: form, branding })}
           </div>
         </div>
       ) : (
