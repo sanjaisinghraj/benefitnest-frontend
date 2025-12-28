@@ -79,89 +79,165 @@ const AdminDashboard = () => {
   };
 
   const dashboardCards = [
-    {
-      title: 'Master Data Management',
-      description: 'Configure system-wide lookup tables including insurers, TPAs, policy types, job grades, and regional settings.',
-      icon: '⚙️',
-      link: '/admin/masters',
-      color: '#0ea5e9'
-    },
+    // 1. Tenant & Corporate Management
     {
       title: 'Corporate Management',
-      description: 'Onboard and manage corporate clients, configure subdomains, branding, and organizational hierarchies.',
+      description: 'Onboard corporates, configure subdomains, branding, organizational hierarchy (global → location), and relationship mapping.',
       icon: '🏢',
       link: '/admin/corporates',
       color: '#2563eb'
     },
+    // 2. Master Data Management
+    {
+      title: 'Master Data Management',
+      description: 'Configure insurers, TPAs, policy types, job grades, business units, cities, states, relationships, gender, and network hospital types.',
+      icon: '⚙️',
+      link: '/admin/masters',
+      color: '#0ea5e9'
+    },
+    // 3. Portal Customization
     {
       title: 'Portal Customization',
-      description: 'Design and customize employee portal interfaces with brand colors, logos, fonts, and layout preferences.',
+      description: 'Design client portals with logos, colors, fonts, landing page tiles, login branding, and preview before publish (web + mobile).',
       icon: '🎨',
       link: '/admin/portal-customization',
       color: '#ec4899'
     },
+    // 4. Employee & HR Management
     {
-      title: 'Employee Management',
-      description: 'Manage employee records, enrollment status, eligibility, dependents, and access permissions.',
+      title: 'Employee & HR Management',
+      description: 'Bulk upload, edit, delete employees. Configure HR roles (Global, Country, Location HR), dependent mapping, and eligibility rules.',
       icon: '👥',
       link: '/admin/employees',
       color: '#10b981'
     },
+    // 5. Policy & Product Setup
     {
-      title: 'Policies & Benefits',
-      description: 'Configure insurance plans, benefit structures, coverage rules, and eligibility criteria across organizations.',
+      title: 'Policy & Product Setup',
+      description: 'Configure GMC, GPA, GTL, OPD, parental, keyman, workmen comp, voluntary, top-up, riders. Manage SI slabs, premium matrix, and EMI options.',
       icon: '📋',
       link: '/admin/policies',
       color: '#f59e0b'
     },
+    // 6. Enrollment Management
     {
-      title: 'Claims Administration',
-      description: 'Monitor claim submissions, track processing status, handle escalations, and manage settlements.',
-      icon: '📄',
-      link: '/admin/claims',
+      title: 'Enrollment Management',
+      description: 'Control enrollment windows (inception, new joiners, special), grace periods, eligibility filters, trade-off logic, and wallet panel setup.',
+      icon: '📝',
+      link: '/admin/enrollment',
       color: '#8b5cf6'
     },
+    // 7. Claims Administration
     {
-      title: 'Reports & Analytics',
-      description: 'Generate comprehensive reports on enrollment, claims, utilization, and financial performance metrics.',
-      icon: '📊',
-      link: '/admin/reports',
-      color: '#ec4899'
+      title: 'Claims Administration',
+      description: 'Configure intimation, reimbursement workflows, TPA API/SSO integration, document rules, escalation matrix, and live status tracking.',
+      icon: '📄',
+      link: '/admin/claims',
+      color: '#dc2626'
     },
+    // 8. E-Card Management
     {
-      title: 'Audit & Compliance Logs',
-      description: 'Track administrative actions, system changes, and maintain audit trails for regulatory compliance.',
-      icon: '📝',
-      link: '/admin/audit',
-      color: '#6366f1'
+      title: 'E-Card Management',
+      description: 'Manage e-card templates (template-based, API-based, upload-based), member/family downloads, alerts, daily sync, and failure reports.',
+      icon: '💳',
+      link: '/admin/ecards',
+      color: '#06b6d4'
     },
+    // 9. Network Hospital Management
     {
-      title: 'Wellness Management',
-      description: 'Configure wellness programs, health assessments, mental wellbeing modules, and AI-powered coaching features.',
+      title: 'Network Hospital Management',
+      description: 'Configure hospital data via manual upload or API sync, filters by insurer/TPA/location, map integration (distance, ETA), blacklist sync.',
+      icon: '🏥',
+      link: '/admin/hospitals',
+      color: '#059669'
+    },
+    // 10. Wellness & Wellbeing Programs
+    {
+      title: 'Wellness & Wellbeing',
+      description: 'Configure health assessments, mental wellbeing, AI coaching, wellness partner SSO, and content tiles (newsletters, events, surveys).',
       icon: '🧘',
       link: '/admin/wellness',
       color: '#14b8a6'
     },
+    // 11. Perks, Rewards & Recognition
     {
-      title: 'Compliance & Legal',
-      description: 'Manage privacy policies, terms of service, disclaimers, and consent forms for regulatory compliance.',
-      icon: '⚖️',
-      link: '/admin/compliance',
-      color: '#dc2626'
+      title: 'Perks & Rewards',
+      description: 'Set up meal cards, vouchers, travel perks, reward points logic, redemption catalog, and peer-to-peer recognition programs.',
+      icon: '🎁',
+      link: '/admin/rewards',
+      color: '#f97316'
     },
+    // 12. Marketplace Configuration
     {
       title: 'Marketplace Settings',
-      description: 'Configure product marketplace, vendor integrations, pricing tiers, and service catalog management.',
+      description: 'Manage vendor onboarding, pricing tiers, catalog setup, API/SSO integrations, and corporate-specific visibility rules.',
       icon: '🛒',
       link: '/admin/marketplace',
       color: '#7c3aed'
     },
+    // 13. Audit & Compliance Logs
+    {
+      title: 'Audit & Compliance Logs',
+      description: 'Track entity type, action, actor, IP. Immutable logs for regulatory audits with filters by tenant, date, and module.',
+      icon: '🔍',
+      link: '/admin/audit',
+      color: '#6366f1'
+    },
+    // 14. Reports & Analytics
+    {
+      title: 'Reports & Analytics',
+      description: 'Generate enrollment trends, claim ratios, premium utilization, SI distribution, engagement metrics. Export CSV, PDF, API feeds.',
+      icon: '📊',
+      link: '/admin/reports',
+      color: '#ec4899'
+    },
+    // 15. Compliance & Legal Setup
+    {
+      title: 'Compliance & Legal',
+      description: 'Manage privacy policy, terms, disclaimers, consent templates, country-specific toggles, versioning, and audit trail.',
+      icon: '⚖️',
+      link: '/admin/compliance',
+      color: '#dc2626'
+    },
+    // 16. System Configuration
     {
       title: 'System Configuration',
-      description: 'Manage global system settings, integrations, email templates, and notification preferences.',
+      description: 'Configure email/SMS templates, notification preferences, API keys, SSO providers, and feature toggles per tenant.',
       icon: '🔧',
       link: '/admin/system',
       color: '#64748b'
+    },
+    // 17. Mailer & Communication Management
+    {
+      title: 'Mailer & Communications',
+      description: 'Configure enrollment reminders, claim alerts, custom templates per tenant, test-send logs, and delivery status tracking.',
+      icon: '📧',
+      link: '/admin/mailer',
+      color: '#0284c7'
+    },
+    // 18. Role & Permission Management
+    {
+      title: 'Roles & Permissions',
+      description: 'Define module-level permissions, create roles (Admin, Broker, HR, Insurer), configure MFA, login expiry, and OTP rules.',
+      icon: '🔐',
+      link: '/admin/roles',
+      color: '#9333ea'
+    },
+    // 19. Broker & Insurer Panel Setup
+    {
+      title: 'Broker & Insurer Panel',
+      description: 'Enable broker dashboards for client servicing, insurer dashboards for policy/claims, controlled tenant access, partner branding.',
+      icon: '🤝',
+      link: '/admin/partners',
+      color: '#0891b2'
+    },
+    // 20. Data Retention & Archival
+    {
+      title: 'Data Retention & Archival',
+      description: 'Configure retention rules for claims, enrollments, logs. Set auto-archive logic and GDPR/HIPAA compliance toggles.',
+      icon: '🗄️',
+      link: '/admin/retention',
+      color: '#78716c'
     }
   ];
 
