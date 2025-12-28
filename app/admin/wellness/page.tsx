@@ -7,7 +7,7 @@ const API_URL = 'https://benefitnest-backend.onrender.com';
 
 interface Corporate {
   tenant_id: string;
-  company_name: string;
+  corporate_legal_name: string;
   subdomain: string;
   status: string;
 }
@@ -166,8 +166,13 @@ export default function WellnessAdminPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
-        const data = await res.json();
-        setCorporates(data.corporates || []);
+        const result = await res.json();
+        // Backend returns { success: true, data: [...] } from tenants table
+        if (result.success) {
+          setCorporates(result.data || []);
+        }
+      } else {
+        console.error('Failed to fetch corporates:', res.status);
       }
     } catch (error) {
       console.error('Error fetching corporates:', error);
@@ -371,7 +376,7 @@ export default function WellnessAdminPage() {
             <option value="">-- Choose a corporate --</option>
             {corporates.map((corp) => (
               <option key={corp.tenant_id} value={corp.tenant_id}>
-                {corp.company_name} ({corp.subdomain})
+                {corp.corporate_legal_name || corp.subdomain} ({corp.subdomain})
               </option>
             ))}
           </select>
