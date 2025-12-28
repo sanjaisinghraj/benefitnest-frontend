@@ -368,50 +368,258 @@ export default function PortalPage() {
         input:focus { outline: none; border-color: ${theme.primary} !important; box-shadow: 0 0 0 4px ${theme.primary}20; }
         .signin-btn:hover { transform: translateY(-3px); box-shadow: 0 20px 40px -15px ${theme.primary}60 !important; }
         .outline-btn:hover { background-color: rgba(255,255,255,0.15) !important; transform: scale(1.02); }
+        
+        /* Responsive Styles */
+        .login-main-container {
+          width: 100%;
+          max-width: 1000px;
+          min-height: 600px;
+          display: flex;
+          flex-direction: row;
+          border-radius: 30px;
+          overflow: hidden;
+          box-shadow: 0 50px 100px -30px rgba(0,0,0,0.3);
+          position: relative;
+          margin: 20px;
+        }
+        .left-panel {
+          width: 50%;
+          min-width: 300px;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          padding: 50px 40px;
+          overflow: hidden;
+          z-index: 10;
+        }
+        .left-panel.forgot { width: 40%; }
+        .right-panel {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          background-color: #f8f4ff;
+          position: relative;
+          overflow: hidden;
+        }
+        .form-area {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 50px 60px;
+          position: relative;
+          z-index: 10;
+        }
+        .form-container {
+          width: 100%;
+          max-width: 380px;
+        }
+        .welcome-title {
+          font-size: 42px;
+          line-height: 1.1;
+        }
+        .welcome-text {
+          font-size: 16px;
+        }
+        .form-title {
+          font-size: 28px;
+        }
+        .blob-edge {
+          position: absolute;
+          right: -1px;
+          top: 0;
+          height: 100%;
+          width: 100px;
+          z-index: 5;
+        }
+        .decorative-elements { display: block; }
+        
+        /* Tablet */
+        @media (max-width: 900px) {
+          .login-main-container {
+            max-width: 95%;
+            min-height: auto;
+            margin: 15px;
+            border-radius: 24px;
+          }
+          .left-panel {
+            width: 45%;
+            padding: 40px 30px;
+          }
+          .left-panel.forgot { width: 35%; }
+          .form-area {
+            padding: 40px 35px;
+          }
+          .welcome-title {
+            font-size: 32px;
+          }
+          .welcome-text {
+            font-size: 14px;
+          }
+          .blob-edge { width: 60px; }
+        }
+        
+        /* Mobile Landscape & Small Tablets */
+        @media (max-width: 768px) {
+          .login-main-container {
+            flex-direction: column;
+            max-width: 100%;
+            margin: 0;
+            border-radius: 0;
+            min-height: 100vh;
+            box-shadow: none;
+          }
+          .left-panel {
+            width: 100% !important;
+            min-height: 200px;
+            padding: 30px 25px;
+            border-radius: 0 0 30px 30px;
+          }
+          .blob-edge { display: none; }
+          .right-panel {
+            border-radius: 0;
+          }
+          .form-area {
+            padding: 30px 25px;
+          }
+          .welcome-title {
+            font-size: 28px;
+            margin-bottom: 10px !important;
+          }
+          .welcome-text {
+            font-size: 14px;
+            margin-bottom: 20px !important;
+          }
+          .form-title {
+            font-size: 24px;
+          }
+          .decorative-elements { display: none; }
+        }
+        
+        /* Mobile Portrait */
+        @media (max-width: 480px) {
+          .login-main-container {
+            min-height: 100dvh;
+          }
+          .left-panel {
+            min-height: 180px;
+            padding: 25px 20px;
+          }
+          .form-area {
+            padding: 25px 20px;
+          }
+          .form-container {
+            max-width: 100%;
+          }
+          .welcome-title {
+            font-size: 24px;
+          }
+          .welcome-text {
+            font-size: 13px;
+          }
+          .form-title {
+            font-size: 22px;
+          }
+        }
+        
+        /* Very Small Phones */
+        @media (max-width: 360px) {
+          .left-panel {
+            min-height: 150px;
+            padding: 20px 15px;
+          }
+          .form-area {
+            padding: 20px 15px;
+          }
+          .welcome-title {
+            font-size: 22px;
+          }
+          .form-title {
+            font-size: 20px;
+          }
+        }
+        
+        /* Modal Responsive */
+        .modal-overlay {
+          position: fixed;
+          inset: 0;
+          background-color: rgba(0,0,0,0.6);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          padding: 20px;
+        }
+        .modal-content {
+          background-color: white;
+          border-radius: 20px;
+          max-width: 700px;
+          width: 100%;
+          max-height: 80vh;
+          overflow: hidden;
+          box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+        }
+        .modal-header {
+          padding: 24px 28px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .modal-body {
+          padding: 28px;
+          overflow-y: auto;
+          max-height: calc(80vh - 80px);
+          font-size: 14px;
+          line-height: 1.8;
+        }
+        
+        @media (max-width: 768px) {
+          .modal-overlay {
+            padding: 10px;
+            align-items: flex-end;
+          }
+          .modal-content {
+            border-radius: 20px 20px 0 0;
+            max-height: 90vh;
+          }
+          .modal-header {
+            padding: 20px;
+          }
+          .modal-body {
+            padding: 20px;
+            max-height: calc(90vh - 70px);
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .modal-header h3 {
+            font-size: 18px !important;
+          }
+          .modal-body {
+            font-size: 13px;
+          }
+        }
+        
         ${theme.customCss}
       `}</style>
 
       {/* Main Container */}
-      <div style={{
-        width: '100%',
-        maxWidth: '1000px',
-        minHeight: '600px',
-        display: 'flex',
-        borderRadius: '30px',
-        overflow: 'hidden',
-        boxShadow: '0 50px 100px -30px rgba(0,0,0,0.3)',
-        position: 'relative',
-        margin: '20px'
-      }}>
+      <div className="login-main-container">
         
         {/* ========== LEFT PANEL - Pink Blob with Welcome ========== */}
         <div 
-          className="panel-slide"
+          className={`panel-slide left-panel ${showForgotPassword ? 'forgot' : ''}`}
           style={{ 
-            width: showForgotPassword ? '40%' : '50%',
-            background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`, 
-            position: 'relative', 
-            display: 'flex', 
-            flexDirection: 'column', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            padding: '50px 40px', 
-            overflow: 'hidden',
-            zIndex: 10
+            background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`
           }}
         >
           {/* Organic Blob Edge - Like in the GIF */}
           <svg 
+            className="blob-edge"
             viewBox="0 0 100 600" 
             preserveAspectRatio="none"
-            style={{
-              position: 'absolute',
-              right: '-1px',
-              top: 0,
-              height: '100%',
-              width: '100px',
-              zIndex: 5
-            }}
           >
             <path 
               d="M0,0 L0,600 L100,600 C60,550 30,480 50,400 C70,320 30,260 60,180 C90,100 50,50 80,0 Z" 
@@ -426,60 +634,62 @@ export default function PortalPage() {
           </svg>
 
           {/* Decorative Elements - Like in the GIF */}
-          <div className="blob-shape" style={{ 
-            position: 'absolute', 
-            top: '-80px', 
-            left: '-80px', 
-            width: '250px', 
-            height: '250px', 
-            background: 'rgba(255,255,255,0.08)' 
-          }} />
-          <div style={{ 
-            position: 'absolute', 
-            bottom: '8%', 
-            left: '5%', 
-            width: '120px', 
-            height: '120px', 
-            border: '3px solid rgba(255,255,255,0.15)', 
-            borderRadius: '50%' 
-          }} />
-          <div style={{ 
-            position: 'absolute', 
-            top: '20%', 
-            left: '10%', 
-            width: '50px', 
-            height: '50px', 
-            border: '2px solid rgba(255,255,255,0.12)', 
-            borderRadius: '8px', 
-            transform: 'rotate(45deg)' 
-          }} />
-          <div className="blob-shape" style={{ 
-            position: 'absolute', 
-            bottom: '15%', 
-            left: '20%', 
-            width: '80px', 
-            height: '80px', 
-            background: 'rgba(0,0,0,0.1)',
-            animationDelay: '-3s'
-          }} />
-          <div style={{ 
-            position: 'absolute', 
-            top: '60%', 
-            left: '8%', 
-            width: '30px', 
-            height: '30px', 
-            background: 'rgba(255,255,255,0.1)', 
-            borderRadius: '50%' 
-          }} />
+          <div className="decorative-elements">
+            <div className="blob-shape" style={{ 
+              position: 'absolute', 
+              top: '-80px', 
+              left: '-80px', 
+              width: '250px', 
+              height: '250px', 
+              background: 'rgba(255,255,255,0.08)' 
+            }} />
+            <div style={{ 
+              position: 'absolute', 
+              bottom: '8%', 
+              left: '5%', 
+              width: '120px', 
+              height: '120px', 
+              border: '3px solid rgba(255,255,255,0.15)', 
+              borderRadius: '50%' 
+            }} />
+            <div style={{ 
+              position: 'absolute', 
+              top: '20%', 
+              left: '10%', 
+              width: '50px', 
+              height: '50px', 
+              border: '2px solid rgba(255,255,255,0.12)', 
+              borderRadius: '8px', 
+              transform: 'rotate(45deg)' 
+            }} />
+            <div className="blob-shape" style={{ 
+              position: 'absolute', 
+              bottom: '15%', 
+              left: '20%', 
+              width: '80px', 
+              height: '80px', 
+              background: 'rgba(0,0,0,0.1)',
+              animationDelay: '-3s'
+            }} />
+            <div style={{ 
+              position: 'absolute', 
+              top: '60%', 
+              left: '8%', 
+              width: '30px', 
+              height: '30px', 
+              background: 'rgba(255,255,255,0.1)', 
+              borderRadius: '50%' 
+            }} />
+          </div>
 
           {/* Main Content */}
-          <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', color: 'white', maxWidth: '320px' }}>
+          <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', color: 'white', maxWidth: '320px', padding: '0 10px' }}>
             {/* Logo */}
             {theme.logoUrl ? (
               <img 
                 src={theme.logoUrl} 
                 alt={theme.portalTitle} 
-                style={{ maxWidth: `${Math.min(theme.logoWidth, 120)}px`, maxHeight: `${Math.min(theme.logoHeight, 60)}px`, marginBottom: '40px', objectFit: 'contain' }} 
+                style={{ maxWidth: `${Math.min(theme.logoWidth, 120)}px`, maxHeight: `${Math.min(theme.logoHeight, 60)}px`, marginBottom: '20px', objectFit: 'contain' }} 
                 onError={(e: any) => { e.target.style.display = 'none'; }} 
               />
             ) : (
@@ -487,7 +697,7 @@ export default function PortalPage() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
-                marginBottom: '40px',
+                marginBottom: '20px',
                 justifyContent: 'center'
               }}>
                 <div style={{ 
@@ -504,21 +714,19 @@ export default function PortalPage() {
               </div>
             )}
             
-            <h1 style={{ 
-              fontSize: '42px', 
+            <h1 className="welcome-title" style={{ 
               fontWeight: theme.headingWeight, 
-              marginBottom: '20px', 
+              marginBottom: '15px', 
               fontFamily: theme.headingFont, 
               lineHeight: 1.1
             }}>
               Welcome Back
             </h1>
             
-            <p style={{ 
-              fontSize: '16px', 
+            <p className="welcome-text" style={{ 
               opacity: 0.85, 
-              lineHeight: 1.7, 
-              marginBottom: '45px'
+              lineHeight: 1.6, 
+              marginBottom: '20px'
             }}>
               {theme.tagline}
             </p>
@@ -526,16 +734,9 @@ export default function PortalPage() {
         </div>
 
         {/* ========== RIGHT PANEL - Illustration & Login Form ========== */}
-        <div style={{ 
-          flex: 1,
-          display: 'flex', 
-          flexDirection: 'column',
-          backgroundColor: '#f8f4ff',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
+        <div className="right-panel">
           {/* Background Decorations - Movie/Carnival Theme like GIF */}
-          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+          <div className="decorative-elements" style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
             {/* Confetti Elements */}
             <div className="confetti" style={{ position: 'absolute', top: '15%', right: '20%', width: '12px', height: '12px', backgroundColor: theme.primary, opacity: 0.3, borderRadius: '2px', transform: 'rotate(45deg)' }} />
             <div className="confetti" style={{ position: 'absolute', top: '25%', left: '15%', width: '8px', height: '8px', backgroundColor: theme.secondary, opacity: 0.4, borderRadius: '50%', animationDelay: '-1s' }} />
@@ -569,21 +770,13 @@ export default function PortalPage() {
           </div>
 
           {/* Login Form Area */}
-          <div style={{ 
-            flex: 1, 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            padding: '50px 60px',
-            position: 'relative',
-            zIndex: 10
-          }}>
-            <div style={{ width: '100%', maxWidth: '380px' }}>
+          <div className="form-area">
+            <div className="form-container">
               
               {showForgotPassword ? (
                 /* ===== FORGOT PASSWORD FORM ===== */
                 <div>
-                  <h2 style={{ fontSize: '28px', fontWeight: theme.headingWeight, color: theme.text, marginBottom: '10px', fontFamily: theme.headingFont }}>
+                  <h2 className="form-title" style={{ fontWeight: theme.headingWeight, color: theme.text, marginBottom: '10px', fontFamily: theme.headingFont }}>
                     Reset Password
                   </h2>
                   <p style={{ color: theme.text, opacity: 0.5, marginBottom: '30px', fontSize: '14px', lineHeight: 1.6 }}>
@@ -700,10 +893,10 @@ export default function PortalPage() {
               ) : (
                 /* ===== LOGIN FORM ===== */
                 <div>
-                  <h2 style={{ fontSize: '28px', fontWeight: theme.headingWeight, color: theme.text, marginBottom: '10px', fontFamily: theme.headingFont }}>
+                  <h2 className="form-title" style={{ fontWeight: theme.headingWeight, color: theme.text, marginBottom: '10px', fontFamily: theme.headingFont }}>
                     {showOtpLogin ? 'Sign In with OTP' : 'Sign In'}
                   </h2>
-                  <p style={{ color: theme.text, opacity: 0.5, marginBottom: '30px', fontSize: '14px' }}>
+                  <p style={{ color: theme.text, opacity: 0.5, marginBottom: '25px', fontSize: '14px' }}>
                     Access your employee benefits portal
                   </p>
 
@@ -880,17 +1073,31 @@ export default function PortalPage() {
                           {compliancePolicies?.consent_checkbox_text || (
                             <>
                               I agree to the{' '}
+                              <button type="button" onClick={() => setShowPrivacyModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                                Privacy Policy
+                              </button>
+                              ,{' '}
                               <button type="button" onClick={() => setShowTermsModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
-                                Terms & Conditions & Disclaimer
+                                Terms & Conditions
+                              </button>
+                              {' '}and{' '}
+                              <button type="button" onClick={() => setShowDisclaimerModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                                Disclaimer
                               </button>
                             </>
                           )}
                         </span>
                       </label>
                       {compliancePolicies?.consent_checkbox_text && (
-                        <div style={{ marginTop: '6px', marginLeft: '28px', fontSize: '12px' }}>
+                        <div style={{ marginTop: '6px', marginLeft: '28px', fontSize: '12px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                          <button type="button" onClick={() => setShowPrivacyModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 500, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                            Privacy Policy
+                          </button>
                           <button type="button" onClick={() => setShowTermsModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 500, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
-                            Terms & Conditions & Disclaimer
+                            Terms & Conditions
+                          </button>
+                          <button type="button" onClick={() => setShowDisclaimerModal(true)} style={{ background: 'none', border: 'none', color: theme.primary, fontWeight: 500, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                            Disclaimer
                           </button>
                         </div>
                       )}
@@ -1011,13 +1218,13 @@ export default function PortalPage() {
 
           {/* Privacy Policy Modal */}
           {showPrivacyModal && (
-            <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }}>
-              <div style={{ backgroundColor: 'white', borderRadius: '20px', maxWidth: '700px', width: '100%', maxHeight: '80vh', overflow: 'hidden', boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
-                <div style={{ padding: '24px 28px', borderBottom: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <div className="modal-header" style={{ borderBottom: `1px solid ${theme.border}` }}>
                   <h3 style={{ margin: 0, fontSize: '20px', color: theme.text }}>🔒 {compliancePolicies?.privacy_policy_title || 'Privacy Policy'}</h3>
-                  <button onClick={() => setShowPrivacyModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: theme.text, opacity: 0.5 }}>×</button>
+                  <button onClick={() => setShowPrivacyModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: theme.text, opacity: 0.5, padding: '5px' }}>×</button>
                 </div>
-                <div style={{ padding: '28px', overflowY: 'auto', maxHeight: 'calc(80vh - 80px)', fontSize: '14px', lineHeight: '1.8', color: theme.text }}>
+                <div className="modal-body" style={{ color: theme.text }}>
                   {compliancePolicies?.privacy_policy_content ? (
                     <div dangerouslySetInnerHTML={{ __html: compliancePolicies.privacy_policy_content }} />
                   ) : (
@@ -1038,13 +1245,13 @@ export default function PortalPage() {
 
           {/* Terms & Conditions Modal */}
           {showTermsModal && (
-            <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }}>
-              <div style={{ backgroundColor: 'white', borderRadius: '20px', maxWidth: '700px', width: '100%', maxHeight: '80vh', overflow: 'hidden', boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
-                <div style={{ padding: '24px 28px', borderBottom: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <div className="modal-header" style={{ borderBottom: `1px solid ${theme.border}` }}>
                   <h3 style={{ margin: 0, fontSize: '20px', color: theme.text }}>📜 {compliancePolicies?.terms_conditions_title || 'Terms & Conditions'}</h3>
-                  <button onClick={() => setShowTermsModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: theme.text, opacity: 0.5 }}>×</button>
+                  <button onClick={() => setShowTermsModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: theme.text, opacity: 0.5, padding: '5px' }}>×</button>
                 </div>
-                <div style={{ padding: '28px', overflowY: 'auto', maxHeight: 'calc(80vh - 80px)', fontSize: '14px', lineHeight: '1.8', color: theme.text }}>
+                <div className="modal-body" style={{ color: theme.text }}>
                   {compliancePolicies?.terms_conditions_content ? (
                     <div dangerouslySetInnerHTML={{ __html: compliancePolicies.terms_conditions_content }} />
                   ) : (
@@ -1063,13 +1270,13 @@ export default function PortalPage() {
 
           {/* Disclaimer Modal */}
           {showDisclaimerModal && (
-            <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }}>
-              <div style={{ backgroundColor: 'white', borderRadius: '20px', maxWidth: '700px', width: '100%', maxHeight: '80vh', overflow: 'hidden', boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
-                <div style={{ padding: '24px 28px', borderBottom: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <div className="modal-header" style={{ borderBottom: `1px solid ${theme.border}` }}>
                   <h3 style={{ margin: 0, fontSize: '20px', color: theme.text }}>⚠️ {compliancePolicies?.disclaimer_title || 'Disclaimer'}</h3>
-                  <button onClick={() => setShowDisclaimerModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: theme.text, opacity: 0.5 }}>×</button>
+                  <button onClick={() => setShowDisclaimerModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: theme.text, opacity: 0.5, padding: '5px' }}>×</button>
                 </div>
-                <div style={{ padding: '28px', overflowY: 'auto', maxHeight: 'calc(80vh - 80px)', fontSize: '14px', lineHeight: '1.8', color: theme.text }}>
+                <div className="modal-body" style={{ color: theme.text }}>
                   {compliancePolicies?.disclaimer_content ? (
                     <div dangerouslySetInnerHTML={{ __html: compliancePolicies.disclaimer_content }} />
                   ) : (
@@ -1087,13 +1294,13 @@ export default function PortalPage() {
 
           {/* DPA Modal (for GDPR countries) */}
           {showDpaModal && compliancePolicies?.dpa_required && (
-            <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }}>
-              <div style={{ backgroundColor: 'white', borderRadius: '20px', maxWidth: '700px', width: '100%', maxHeight: '80vh', overflow: 'hidden', boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
-                <div style={{ padding: '24px 28px', borderBottom: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <div className="modal-header" style={{ borderBottom: `1px solid ${theme.border}` }}>
                   <h3 style={{ margin: 0, fontSize: '20px', color: theme.text }}>📋 {compliancePolicies?.dpa_title || 'Data Processing Agreement'}</h3>
-                  <button onClick={() => setShowDpaModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: theme.text, opacity: 0.5 }}>×</button>
+                  <button onClick={() => setShowDpaModal(false)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: theme.text, opacity: 0.5, padding: '5px' }}>×</button>
                 </div>
-                <div style={{ padding: '28px', overflowY: 'auto', maxHeight: 'calc(80vh - 80px)', fontSize: '14px', lineHeight: '1.8', color: theme.text }}>
+                <div className="modal-body" style={{ color: theme.text }}>
                   {compliancePolicies?.dpa_content ? (
                     <div dangerouslySetInnerHTML={{ __html: compliancePolicies.dpa_content }} />
                   ) : (
