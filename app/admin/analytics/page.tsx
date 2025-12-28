@@ -3,13 +3,15 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { gql } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 // import { useQuery } from '@apollo/client/react'; // Add if needed
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#A28BFE", "#FF6699"];
 
 export default function AdminAnalyticsPage() {
-  const { user, token } = useSession();
+  const { data: session } = useSession();
+  const user = session?.user;
   const client = useApolloClient();
   const [corporateId, setCorporateId] = useState("");
   const [planType, setPlanType] = useState("");
@@ -56,15 +58,15 @@ export default function AdminAnalyticsPage() {
       variables: { corporateId, planType, country, from: dateRange.from, to: dateRange.to },
       fetchPolicy: "network-only"
     });
-    setEvents(res1.data.getAnalyticsEvents || []);
-    setFacts(res2.data.getPlanActionFacts || []);
+    setEvents((res1.data as any).getAnalyticsEvents || []);
+    setFacts((res2.data as any).getPlanActionFacts || []);
     setLoading(false);
   };
 
   useEffect(() => {
-    if (token) fetchAnalytics();
+    if (session) fetchAnalytics();
     // eslint-disable-next-line
-  }, [corporateId, planType, country, dateRange, token]);
+  }, [corporateId, planType, country, dateRange, session]);
 
   // Aggregate data for charts
   const enrollmentsByPlan = facts.reduce((acc, f) => {
