@@ -45,7 +45,7 @@ const FontSelector = ({ label, value, onChange }: any) => { const [isOpen, setIs
 const Toggle = ({ label, value, onChange, description }: any) => <div onClick={() => onChange(!value)} style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '14px 16px', backgroundColor: value ? colors.primaryLight : colors.gray[50], borderRadius: '12px', cursor: 'pointer', border: `2px solid ${value ? colors.primary : 'transparent'}`, marginBottom: '10px' }}><div style={{ width: '48px', height: '26px', borderRadius: '13px', backgroundColor: value ? colors.primary : colors.gray[300], position: 'relative', flexShrink: 0 }}><div style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: 'white', position: 'absolute', top: '2px', left: value ? '24px' : '2px', transition: 'all 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} /></div><div><div style={{ fontSize: '14px', fontWeight: '600', color: colors.gray[800] }}>{label}</div>{description && <div style={{ fontSize: '12px', color: colors.gray[500], marginTop: '2px' }}>{description}</div>}</div></div>;
 
 // Live Preview
-const LivePreview = ({ customizations: c, corporate, previewMode }: any) => {
+const LivePreview = ({ customizations: c, corporate, previewMode, forceLoginPage = false }: any) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -56,7 +56,7 @@ const LivePreview = ({ customizations: c, corporate, previewMode }: any) => {
   const faqs = [{ q: 'How do I enroll?', a: 'During open enrollment or after a qualifying event.' }, { q: 'When can I change?', a: 'Open enrollment or qualifying event.' }, { q: 'How to add dependent?', a: 'Profile settings > Manage Dependents.' }];
   const isMini = previewMode === 'mini';
 
-  if (!isLoggedIn && previewMode === 'full') {
+  if ((!isLoggedIn && previewMode === 'full') || forceLoginPage) {
     return <div style={{ width: '100%', height: '100%', display: 'flex', fontFamily: theme.bodyFont }}><div style={{ flex: 1, background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px', color: 'white', position: 'relative' }}><div style={{ position: 'absolute', inset: 0, opacity: 0.1, backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23fff'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E")` }} /><div style={{ position: 'relative', textAlign: 'center' }}>{theme.logoUrl ? <img src={theme.logoUrl} alt="Logo" style={{ maxWidth: theme.logoWidth, maxHeight: theme.logoHeight, marginBottom: '24px' }} onError={(e: any) => { e.target.style.display = 'none'; }} /> : <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏢</div>}<h1 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px', fontFamily: theme.headingFont }}>{content.title}</h1><p style={{ fontSize: '14px', opacity: 0.9 }}>{content.tagline}</p><div style={{ marginTop: '32px', display: 'flex', gap: '16px' }}>{['🏥 Health', '📋 Claims', '👨‍👩‍👧 Family'].map((item, i) => <div key={i} style={{ textAlign: 'center' }}><div style={{ fontSize: '24px' }}>{item.split(' ')[0]}</div><div style={{ fontSize: '11px', opacity: 0.8 }}>{item.split(' ')[1]}</div></div>)}</div></div></div><div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px', backgroundColor: theme.background }}><div style={{ width: '100%', maxWidth: '320px' }}><div style={{ backgroundColor: 'white', padding: '32px', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)', border: `1px solid ${theme.border}` }}><h2 style={{ fontSize: '20px', fontWeight: '700', color: theme.text, marginBottom: '8px', textAlign: 'center', fontFamily: theme.headingFont }}>Welcome Back</h2><p style={{ fontSize: '13px', color: theme.text, opacity: 0.6, textAlign: 'center', marginBottom: '24px' }}>Sign in to access your benefits</p><div style={{ marginBottom: '16px' }}><label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: theme.text, marginBottom: '6px' }}>Email</label><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter email" style={{ width: '100%', padding: '12px', border: `1px solid ${theme.border}`, borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} /></div><div style={{ marginBottom: '20px' }}><label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: theme.text, marginBottom: '6px' }}>Password</label><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter password" style={{ width: '100%', padding: '12px', border: `1px solid ${theme.border}`, borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} /></div><button onClick={() => setIsLoggedIn(true)} style={{ width: '100%', padding: '12px', backgroundColor: theme.primary, color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>Sign In</button><div style={{ textAlign: 'center', marginTop: '16px' }}><a href="#" style={{ fontSize: '12px', color: theme.primary, textDecoration: 'none' }}>Forgot Password?</a></div></div><div style={{ textAlign: 'center', marginTop: '24px', fontSize: '11px', color: theme.text, opacity: 0.5 }}>Powered by <strong>BenefitNest</strong></div></div></div></div>;
   }
 
@@ -65,6 +65,8 @@ const LivePreview = ({ customizations: c, corporate, previewMode }: any) => {
 
 // Main Component
 export default function PortalDesignerStudio() {
+    // Preview type: 'login' or 'main'
+    const [previewType, setPreviewType] = useState<'login' | 'main'>('main');
   const router = useRouter();
   const [corporates, setCorporates] = useState<Corporate[]>([]);
   const [selectedCorporate, setSelectedCorporate] = useState<Corporate | null>(null);
@@ -164,7 +166,56 @@ export default function PortalDesignerStudio() {
         </div>
 
         {/* Live Preview Panel */}
-        {selectedCorporate && <div style={{ position: 'sticky', top: '90px', height: 'calc(100vh - 130px)' }}><div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: `1px solid ${colors.gray[200]}`, height: '100%', display: 'flex', flexDirection: 'column' }}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '12px', borderBottom: `1px solid ${colors.gray[200]}` }}><div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span style={{ fontSize: '20px' }}>👁️</span><div><span style={{ fontSize: '15px', fontWeight: '700', color: colors.gray[900] }}>Live Preview</span><div style={{ fontSize: '11px', color: colors.gray[500] }}>Changes appear instantly</div></div></div><div style={{ display: 'flex', gap: '8px' }}><Button size="xs" variant={previewMode === 'mini' ? 'primary' : 'outline'} onClick={() => setPreviewMode('mini')}>Mini</Button><Button size="xs" variant={previewMode === 'full' ? 'primary' : 'outline'} onClick={() => setPreviewMode('full')}>Full</Button><Button size="xs" variant="outline" onClick={() => setShowPreviewModal(true)}>↗ Expand</Button></div></div><div style={{ flex: 1, borderRadius: '12px', overflow: 'hidden', border: `1px solid ${colors.gray[200]}`, backgroundColor: colors.gray[100] }}><div style={{ backgroundColor: colors.gray[200], padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}><div style={{ display: 'flex', gap: '6px' }}><div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ef4444' }} /><div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#f59e0b' }} /><div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#10b981' }} /></div><div style={{ flex: 1, backgroundColor: 'white', borderRadius: '4px', padding: '4px 10px', marginLeft: '8px' }}><span style={{ fontSize: '10px', color: colors.gray[500] }}>🔒 {selectedCorporate.subdomain}.benefitnest.space</span></div></div><div style={{ height: 'calc(100% - 34px)', overflow: 'hidden' }}><LivePreview customizations={customizations} corporate={selectedCorporate} previewMode={previewMode} /></div></div></div></div>}
+        {selectedCorporate && (
+          <div style={{ position: 'sticky', top: '90px', height: 'calc(100vh - 130px)' }}>
+            <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: `1px solid ${colors.gray[200]}`, height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '12px', borderBottom: `1px solid ${colors.gray[200]}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '20px' }}>👁️</span>
+                  <div>
+                    <span style={{ fontSize: '15px', fontWeight: '700', color: colors.gray[900] }}>Live Preview</span>
+                    <div style={{ fontSize: '11px', color: colors.gray[500] }}>Changes appear instantly</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                  {/* Toggle for Login/Main Portal Preview */}
+                  <div style={{ marginBottom: '4px', display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '12px', color: colors.gray[700], fontWeight: 600 }}>Preview:</span>
+                    <Button size="xs" variant={previewType === 'main' ? 'primary' : 'outline'} onClick={() => setPreviewType('main')}>Main Portal</Button>
+                    <Button size="xs" variant={previewType === 'login' ? 'primary' : 'outline'} onClick={() => setPreviewType('login')}>Login Page</Button>
+                  </div>
+                  {/* Mini/Full/Expand Buttons (only for Main Portal) */}
+                  {previewType === 'main' && (
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <Button size="xs" variant={previewMode === 'mini' ? 'primary' : 'outline'} onClick={() => setPreviewMode('mini')}>Mini</Button>
+                      <Button size="xs" variant={previewMode === 'full' ? 'primary' : 'outline'} onClick={() => setPreviewMode('full')}>Full</Button>
+                      <Button size="xs" variant="outline" onClick={() => setShowPreviewModal(true)}>↗ Expand</Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div style={{ flex: 1, borderRadius: '12px', overflow: 'hidden', border: `1px solid ${colors.gray[200]}`, backgroundColor: colors.gray[100] }}>
+                <div style={{ backgroundColor: colors.gray[200], padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+                  </div>
+                  <div style={{ flex: 1, backgroundColor: 'white', borderRadius: '4px', padding: '4px 10px', marginLeft: '8px' }}>
+                    <span style={{ fontSize: '10px', color: colors.gray[500] }}>🔒 {selectedCorporate.subdomain}.benefitnest.space</span>
+                  </div>
+                </div>
+                <div style={{ height: 'calc(100% - 34px)', overflow: 'hidden' }}>
+                  {previewType === 'main' ? (
+                    <LivePreview customizations={customizations} corporate={selectedCorporate} previewMode={previewMode} />
+                  ) : (
+                    <LivePreview customizations={customizations} corporate={selectedCorporate} previewMode="full" forceLoginPage={true} />
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Preview Modal */}
