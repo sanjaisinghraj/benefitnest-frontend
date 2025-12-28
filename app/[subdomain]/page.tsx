@@ -177,7 +177,7 @@ export default function PortalPage() {
   // Login page visibility settings from customizations
   const loginSettings = useMemo(() => {
     const c: Customizations = customizations || {};
-    return {
+    const settings = {
       showConsent: c.show_consent_checkbox !== false,
       showPrivacy: c.show_privacy_link !== false,
       showTerms: c.show_terms_link !== false,
@@ -187,6 +187,14 @@ export default function PortalPage() {
       showLoginMethodSelector: c.show_login_method_selector !== false,
       enableOtpLogin: c.enable_otp_login !== false,
     };
+    console.log('[Portal] Login Settings:', settings);
+    console.log('[Portal] Raw customizations for login:', {
+      show_consent_checkbox: c.show_consent_checkbox,
+      show_privacy_link: c.show_privacy_link,
+      show_remember_me: c.show_remember_me,
+      enable_otp_login: c.enable_otp_login
+    });
+    return settings;
   }, [customizations]);
 
   const handleLogin = async (e: React.FormEvent) => {
