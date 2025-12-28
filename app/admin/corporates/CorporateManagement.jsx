@@ -792,7 +792,10 @@ const CorporateManagement = () => {
         
         setCreatingPortal(true);
         try {
+            console.log(`[PORTAL] Creating portal for tenant: ${portalCorporate.tenant_id}`);
             const createResponse = await axios.post(`${CORPORATES_API}/${portalCorporate.tenant_id}/create-portal`, {}, { headers: getAuthHeaders() });
+            
+            console.log(`[PORTAL] Create response:`, createResponse.data);
             
             if (createResponse.data.success) {
                 setToast({ message: 'Portal created successfully!', type: 'success' });
@@ -810,10 +813,9 @@ const CorporateManagement = () => {
                 throw new Error(createResponse.data.message || 'Failed to create portal');
             }
         } catch (createErr) {
-            console.log('Create portal endpoint not available, trying direct URL');
-            // Fallback - open the URL directly
-            const fallbackUrl = portalCorporate.portal_url || `https://${portalCorporate.subdomain}.benefitnest.space`;
-            window.open(fallbackUrl, '_blank');
+            console.error('[PORTAL] Create portal error:', createErr);
+            const errorMessage = createErr.response?.data?.message || createErr.message || 'Failed to create portal';
+            setToast({ message: errorMessage, type: 'error' });
             setShowPortalModal(false);
             setPortalCorporate(null);
         } finally {
