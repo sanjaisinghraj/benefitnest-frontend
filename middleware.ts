@@ -29,9 +29,8 @@ export function middleware(request: NextRequest) {
         // In development, you can test with query param: ?subdomain=kindmaster
         const testSubdomain = url.searchParams.get('subdomain');
         if (testSubdomain && !RESERVED_SUBDOMAINS.includes(testSubdomain)) {
-            // Rewrite to portal route
-            url.pathname = `/portal${url.pathname}`;
-            url.searchParams.set('tenant', testSubdomain);
+            // Rewrite to dynamic [subdomain] route - this is the correct page with all features
+            url.pathname = `/${testSubdomain}${url.pathname === '/' ? '' : url.pathname}`;
             return NextResponse.rewrite(url);
         }
         return NextResponse.next();
@@ -52,11 +51,10 @@ export function middleware(request: NextRequest) {
     }
     
     // Valid tenant subdomain detected!
-    // Rewrite to portal pages
     const pathname = url.pathname;
     
-    // Already on portal route
-    if (pathname.startsWith('/portal')) {
+    // Already on dynamic subdomain route - skip
+    if (pathname.startsWith(`/${subdomain}`)) {
         return NextResponse.next();
     }
     
@@ -68,18 +66,16 @@ export function middleware(request: NextRequest) {
         return NextResponse.next();
     }
     
-    // Rewrite to portal route with tenant info
-    // kindmaster.benefitnest.space/ → /portal?tenant=kindmaster
-    // kindmaster.benefitnest.space/dashboard → /portal/dashboard?tenant=kindmaster
+    // Rewrite to dynamic [subdomain] route (app/[subdomain]/page.tsx)
+    // This is the correct page with all login toggle features
+    // kind.benefitnest.space/ → /kind (maps to app/[subdomain]/page.tsx)
+    // kind.benefitnest.space/dashboard → /kind/dashboard
     
     if (pathname === '/') {
-        url.pathname = '/portal';
+        url.pathname = `/${subdomain}`;
     } else {
-        url.pathname = `/portal${pathname}`;
+        url.pathname = `/${subdomain}${pathname}`;
     }
-    
-    // Pass tenant subdomain as search param (can also use headers/cookies)
-    url.searchParams.set('tenant', subdomain);
     
     // Add tenant to response headers for client-side access
     const response = NextResponse.rewrite(url);
