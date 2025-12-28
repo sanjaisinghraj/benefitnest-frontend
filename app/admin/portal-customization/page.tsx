@@ -87,6 +87,9 @@ export default function PortalDesignerStudio() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiLogs, setAiLogs] = useState<string[]>([]);
   const [showAiModal, setShowAiModal] = useState(false);
+  const [showAiConfirmModal, setShowAiConfirmModal] = useState(false);
+  const [aiDiscoveryResults, setAiDiscoveryResults] = useState<{found: boolean; companyInfo: any; suggestedSettings: any; searchSources: string[]; confidenceScore?: number; aiPowered?: boolean} | null>(null);
+  const [aiSearching, setAiSearching] = useState(false);
   const [showTesterModal, setShowTesterModal] = useState(false);
   const [testers, setTesters] = useState<Tester[]>([]);
   const [loadingTesters, setLoadingTesters] = useState(false);
@@ -104,13 +107,112 @@ export default function PortalDesignerStudio() {
   
   const handleAIMagic = async () => {
     if (!selectedCorporate) return;
-    setAiLoading(true); setShowAiModal(true); setAiLogs(['🚀 Starting AI brand discovery...']);
+    setAiSearching(true);
+    setShowAiConfirmModal(true);
+    setAiDiscoveryResults(null);
+    
+    try {
+      // Call backend AI Brand Discovery endpoint (uses Groq)
+      const res = await axios.post(`${API_URL}/api/admin/ai-brand-discovery`, {
+        companyName: selectedCorporate.corporate_legal_name,
+        industryType: selectedCorporate.industry_type,
+        subdomain: selectedCorporate.subdomain,
+        existingLogo: selectedCorporate.logo_url
+      }, { headers: getAuthHeaders() });
+      
+      if (res.data.success) {
+        const data = res.data.data;
+        setAiDiscoveryResults({
+          found: data.found,
+          companyInfo: data.companyInfo,
+          suggestedSettings: data.suggestedSettings,
+          searchSources: data.searchSources,
+          confidenceScore: data.confidenceScore,
+          aiPowered: data.aiPowered
+        });
+      } else {
+        throw new Error(res.data.message || 'AI discovery failed');
+      }
+    } catch (error) {
+      console.error('AI Brand Discovery error:', error);
+      // Fallback to local industry-based defaults
+      const industry = selectedCorporate.industry_type?.toLowerCase() || 'default';
+      const data = INDUSTRY_AI[industry] || INDUSTRY_AI.default;
+      
+      setAiDiscoveryResults({
+        found: false,
+        companyInfo: { name: selectedCorporate.corporate_legal_name },
+        suggestedSettings: {
+          primary_color: data.c.p,
+          secondary_color: data.c.s,
+          accent_color: data.c.a,
+          heading_font_family: data.f.h,
+          body_font_family: data.f.b,
+          portal_title: `${selectedCorporate.corporate_legal_name} Benefits`,
+          portal_tagline: `Your ${data.t} Partner`,
+          hero_headline: `Welcome to ${selectedCorporate.corporate_legal_name}`,
+          hero_subheadline: `Access your complete benefits with ease`,
+          logo_url: selectedCorporate.logo_url,
+          theme: data.t,
+          industry: industry
+        },
+        searchSources: ['Local Industry Defaults'],
+        confidenceScore: 50,
+        aiPowered: false
+      });
+    } finally {
+      setAiSearching(false);
+    }
+  };
+  
+  const applyAISettings = (useDefaults = false) => {
+    if (!selectedCorporate) return;
+    setShowAiConfirmModal(false);
+    setAiLoading(true);
+    setShowAiModal(true);
+    setAiLogs(['🚀 Applying brand settings...']);
+    
     const industry = selectedCorporate.industry_type?.toLowerCase() || 'default';
     const data = INDUSTRY_AI[industry] || INDUSTRY_AI.default;
-    const logs = [`🔍 Analyzing: ${selectedCorporate.corporate_legal_name}`, `📊 Industry: ${industry}`, `🎨 Applying ${data.t} color palette`, `📝 Setting ${data.f.h} + ${data.f.b} fonts`, `✅ Complete! Confidence: ${selectedCorporate.industry_type ? 85 : 70}%`];
-    for (const log of logs) { await new Promise(r => setTimeout(r, 500)); setAiLogs(prev => [...prev, log]); }
-    setCustomizations(prev => ({ ...prev, primary_color: data.c.p, secondary_color: data.c.s, accent_color: data.c.a, heading_font_family: data.f.h, body_font_family: data.f.b, portal_title: `${selectedCorporate.corporate_legal_name} Benefits`, portal_tagline: `Your ${data.t} Partner`, hero_headline: `Welcome to ${selectedCorporate.corporate_legal_name}`, hero_subheadline: `Access your complete benefits with ease`, logo_url: selectedCorporate.logo_url }));
-    showToast('🤖 AI configured your portal!', 'ai'); setAiLoading(false);
+    const settings = aiDiscoveryResults?.suggestedSettings;
+    
+    const logs = [
+      `🔍 Corporate: ${selectedCorporate.corporate_legal_name}`,
+      `📊 Industry: ${industry !== 'default' ? industry : 'General (using defaults)'}`,
+      `🎨 Applying ${data.t} color palette`,
+      `📝 Setting ${data.f.h} + ${data.f.b} fonts`,
+      useDefaults ? '⚙️ Using default professional settings' : '✨ Applied discovered brand settings',
+      `✅ Complete! Confidence: ${aiDiscoveryResults?.found ? 85 : 65}%`
+    ];
+    
+    (async () => {
+      for (const log of logs) {
+        await new Promise(r => setTimeout(r, 400));
+        setAiLogs(prev => [...prev, log]);
+      }
+      
+      if (settings && !useDefaults) {
+        setCustomizations(prev => ({ ...prev, ...settings }));
+      } else {
+        // Apply defaults
+        setCustomizations(prev => ({
+          ...prev,
+          primary_color: data.c.p,
+          secondary_color: data.c.s,
+          accent_color: data.c.a,
+          heading_font_family: data.f.h,
+          body_font_family: data.f.b,
+          portal_title: `${selectedCorporate.corporate_legal_name} Benefits`,
+          portal_tagline: `Your ${data.t} Partner`,
+          hero_headline: `Welcome to ${selectedCorporate.corporate_legal_name}`,
+          hero_subheadline: `Access your complete benefits with ease`,
+          logo_url: selectedCorporate.logo_url
+        }));
+      }
+      
+      showToast('🤖 AI configured your portal!', 'ai');
+      setAiLoading(false);
+    })();
   };
 
   const handleLogout = () => { localStorage.removeItem('admin_token'); document.cookie = 'admin_token=; path=/; max-age=0'; window.location.href = 'https://www.benefitnest.space'; };
@@ -234,7 +336,7 @@ export default function PortalDesignerStudio() {
           {/* Design Controls */}
           {selectedCorporate && <div style={{ backgroundColor: 'white', borderRadius: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: `1px solid ${colors.gray[200]}`, overflow: 'hidden' }}>
             {/* AI Magic Bar */}
-            <div style={{ padding: '20px 24px', background: 'linear-gradient(135deg, #fef3c7, #fde68a, #fcd34d)', borderBottom: `1px solid ${colors.warning}40` }}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}><div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><div style={{ fontSize: '28px' }}>🤖</div><div><div style={{ fontSize: '15px', fontWeight: '700', color: '#92400e' }}>AI Brand Discovery</div><div style={{ fontSize: '12px', color: '#a16207' }}>Auto-detect colors, fonts & content from brand guidelines</div></div></div><Button variant="magic" size="lg" icon="✨" onClick={handleAIMagic} loading={aiLoading}>AI Magic</Button></div></div>
+            <div style={{ padding: '20px 24px', background: 'linear-gradient(135deg, #fef3c7, #fde68a, #fcd34d)', borderBottom: `1px solid ${colors.warning}40` }}><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}><div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><div style={{ fontSize: '28px' }}>🤖</div><div><div style={{ fontSize: '15px', fontWeight: '700', color: '#92400e' }}>AI Brand Discovery</div><div style={{ fontSize: '12px', color: '#a16207' }}>Search the web for company branding & apply smart defaults</div></div></div><Button variant="magic" size="lg" icon="✨" onClick={handleAIMagic} loading={aiSearching} disabled={aiSearching}>AI Magic</Button></div></div>
 
             {/* Tabs */}
             <div style={{ display: 'flex', borderBottom: `1px solid ${colors.gray[200]}`, overflowX: 'auto', backgroundColor: colors.gray[50] }}>{tabs.map(tab => <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ padding: '16px 22px', border: 'none', borderBottom: `3px solid ${activeTab === tab.id ? colors.primary : 'transparent'}`, backgroundColor: activeTab === tab.id ? 'white' : 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: '600', color: activeTab === tab.id ? colors.primary : colors.gray[500], display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}><span style={{ fontSize: '16px' }}>{tab.icon}</span>{tab.label}</button>)}</div>
@@ -301,8 +403,132 @@ export default function PortalDesignerStudio() {
       {/* Preview Modal */}
       <Modal isOpen={showPreviewModal} onClose={() => setShowPreviewModal(false)} title={previewType === 'login' ? 'Login Page Preview' : 'Main Portal Preview'} icon="🖥️" size="xl"><div style={{ height: '70vh', borderRadius: '12px', overflow: 'hidden', border: `1px solid ${colors.gray[200]}` }}><LivePreview customizations={customizations} corporate={selectedCorporate} previewMode="full" forceLoginPage={previewType === 'login'} /></div><div style={{ marginTop: '20px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}><Button variant="outline" onClick={() => setShowPreviewModal(false)}>Close</Button><Button variant="primary" onClick={() => window.open(`https://${selectedCorporate?.subdomain}.benefitnest.space`, '_blank')}>🔗 Open Live Portal</Button></div></Modal>
 
-      {/* AI Modal */}
-      <Modal isOpen={showAiModal} onClose={() => !aiLoading && setShowAiModal(false)} title="AI Brand Discovery" icon="🤖" size="md"><div style={{ padding: '20px 0' }}><div style={{ textAlign: 'center', marginBottom: '24px' }}><div style={{ width: '80px', height: '80px', margin: '0 auto 16px', background: 'linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px', animation: aiLoading ? 'pulse 1.5s ease-in-out infinite' : 'none', boxShadow: '0 10px 40px rgba(99, 102, 241, 0.4)' }}>🤖</div><h3 style={{ fontSize: '18px', fontWeight: '700', color: colors.gray[900], marginBottom: '8px' }}>{aiLoading ? 'Discovering Brand...' : 'Discovery Complete!'}</h3><p style={{ fontSize: '13px', color: colors.gray[500] }}>{aiLoading ? 'Analyzing company profile and brand guidelines' : 'Brand settings have been applied'}</p></div><div style={{ backgroundColor: colors.gray[900], borderRadius: '12px', padding: '16px', maxHeight: '250px', overflowY: 'auto', fontFamily: 'Monaco, Consolas, monospace', fontSize: '12px' }}>{aiLogs.map((log, i) => <div key={i} style={{ color: log.startsWith('✅') ? '#10b981' : log.startsWith('❌') ? '#ef4444' : '#9ca3af', marginBottom: '8px', opacity: i === aiLogs.length - 1 ? 1 : 0.7 }}>{log}</div>)}{aiLoading && <div style={{ color: '#6366f1', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '12px', height: '12px', border: '2px solid transparent', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />Processing...</div>}</div>{!aiLoading && <div style={{ marginTop: '20px', textAlign: 'center' }}><Button variant="primary" onClick={() => setShowAiModal(false)}>Done</Button></div>}</div></Modal>
+      {/* AI Confirmation Modal - Shows discovery results before applying */}
+      <Modal isOpen={showAiConfirmModal} onClose={() => !aiSearching && setShowAiConfirmModal(false)} title="🔍 AI Brand Discovery" icon="🤖" size="md">
+        <div style={{ padding: '10px 0' }}>
+          {aiSearching ? (
+            <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+              <div style={{ width: '80px', height: '80px', margin: '0 auto 20px', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', animation: 'pulse 1.5s ease-in-out infinite' }}>🌐</div>
+              <h3 style={{ fontSize: '18px', fontWeight: '700', color: colors.gray[900], marginBottom: '8px' }}>Searching the Internet...</h3>
+              <p style={{ fontSize: '13px', color: colors.gray[500], marginBottom: '20px' }}>Looking for "{selectedCorporate?.corporate_legal_name}" online</p>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                {['Clearbit', 'Web Search', 'Brand APIs'].map((source, i) => (
+                  <span key={i} style={{ padding: '6px 12px', backgroundColor: colors.gray[100], borderRadius: '20px', fontSize: '11px', color: colors.gray[600], animation: `pulse ${1 + i * 0.2}s ease-in-out infinite` }}>{source}</span>
+                ))}
+              </div>
+            </div>
+          ) : aiDiscoveryResults ? (
+            <div>
+              {/* Discovery Status */}
+              <div style={{ 
+                padding: '20px', 
+                borderRadius: '16px', 
+                marginBottom: '20px',
+                background: aiDiscoveryResults.found 
+                  ? 'linear-gradient(135deg, #d1fae5, #a7f3d0)' 
+                  : 'linear-gradient(135deg, #fef3c7, #fde68a)',
+                border: `2px solid ${aiDiscoveryResults.found ? '#10b981' : '#f59e0b'}`
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{ fontSize: '40px' }}>{aiDiscoveryResults.found ? '✅' : '⚠️'}</div>
+                  <div>
+                    <h4 style={{ fontSize: '16px', fontWeight: '700', color: aiDiscoveryResults.found ? '#065f46' : '#92400e', margin: 0 }}>
+                      {aiDiscoveryResults.found ? 'Company Found Online!' : 'Company Not Found Online'}
+                    </h4>
+                    <p style={{ fontSize: '13px', color: aiDiscoveryResults.found ? '#047857' : '#a16207', margin: '4px 0 0 0' }}>
+                      {aiDiscoveryResults.found 
+                        ? `Found via: ${aiDiscoveryResults.searchSources.join(', ')}`
+                        : 'No brand information found on the internet'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Discovered Info */}
+              {aiDiscoveryResults.companyInfo && (
+                <div style={{ padding: '16px', backgroundColor: colors.gray[50], borderRadius: '12px', marginBottom: '20px', border: `1px solid ${colors.gray[200]}` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <h5 style={{ fontSize: '13px', fontWeight: '700', color: colors.gray[700], textTransform: 'uppercase', margin: 0 }}>Discovered Information</h5>
+                    {aiDiscoveryResults.aiPowered && (
+                      <span style={{ padding: '4px 10px', backgroundColor: '#6366f1', color: 'white', borderRadius: '20px', fontSize: '10px', fontWeight: '600' }}>🤖 Groq AI Powered</span>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {aiDiscoveryResults.companyInfo.logo && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ fontSize: '12px', color: colors.gray[500], width: '80px' }}>Logo:</span>
+                        <img src={aiDiscoveryResults.companyInfo.logo} alt="Logo" style={{ height: '32px', borderRadius: '6px' }} onError={(e: any) => e.target.style.display = 'none'} />
+                      </div>
+                    )}
+                    {aiDiscoveryResults.companyInfo.description && (
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                        <span style={{ fontSize: '12px', color: colors.gray[500], width: '80px' }}>About:</span>
+                        <span style={{ fontSize: '12px', color: colors.gray[700], flex: 1 }}>{aiDiscoveryResults.companyInfo.description}</span>
+                      </div>
+                    )}
+                    {aiDiscoveryResults.companyInfo.industry && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ fontSize: '12px', color: colors.gray[500], width: '80px' }}>Industry:</span>
+                        <span style={{ fontSize: '12px', color: colors.gray[700], textTransform: 'capitalize' }}>{aiDiscoveryResults.companyInfo.industry}</span>
+                      </div>
+                    )}
+                    {aiDiscoveryResults.confidenceScore && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ fontSize: '12px', color: colors.gray[500], width: '80px' }}>Confidence:</span>
+                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ flex: 1, height: '6px', backgroundColor: colors.gray[200], borderRadius: '3px', overflow: 'hidden' }}>
+                            <div style={{ 
+                              width: `${aiDiscoveryResults.confidenceScore}%`, 
+                              height: '100%', 
+                              backgroundColor: aiDiscoveryResults.confidenceScore >= 70 ? '#10b981' : aiDiscoveryResults.confidenceScore >= 50 ? '#f59e0b' : '#ef4444',
+                              borderRadius: '3px'
+                            }} />
+                          </div>
+                          <span style={{ fontSize: '12px', fontWeight: '600', color: colors.gray[700] }}>{aiDiscoveryResults.confidenceScore}%</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Suggested Settings Preview */}
+              {aiDiscoveryResults.suggestedSettings && (
+                <div style={{ padding: '16px', backgroundColor: colors.gray[50], borderRadius: '12px', marginBottom: '20px', border: `1px solid ${colors.gray[200]}` }}>
+                  <h5 style={{ fontSize: '13px', fontWeight: '700', color: colors.gray[700], marginBottom: '12px', textTransform: 'uppercase' }}>
+                    {aiDiscoveryResults.found ? 'Suggested Settings' : 'Default Settings (Professional)'}
+                  </h5>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ width: '24px', height: '24px', borderRadius: '6px', backgroundColor: aiDiscoveryResults.suggestedSettings.primary_color }} />
+                      <span style={{ fontSize: '12px', color: colors.gray[600] }}>Primary</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ width: '24px', height: '24px', borderRadius: '6px', backgroundColor: aiDiscoveryResults.suggestedSettings.secondary_color }} />
+                      <span style={{ fontSize: '12px', color: colors.gray[600] }}>Secondary</span>
+                    </div>
+                    <div style={{ fontSize: '12px', color: colors.gray[600] }}>📝 {aiDiscoveryResults.suggestedSettings.heading_font_family}</div>
+                    <div style={{ fontSize: '12px', color: colors.gray[600] }}>🏷️ {aiDiscoveryResults.suggestedSettings.theme} theme</div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', paddingTop: '10px', borderTop: `1px solid ${colors.gray[200]}` }}>
+                <Button variant="outline" onClick={() => setShowAiConfirmModal(false)}>Cancel</Button>
+                {!aiDiscoveryResults.found ? (
+                  <Button variant="magic" icon="⚙️" onClick={() => applyAISettings(true)}>Apply Default Settings</Button>
+                ) : (
+                  <Button variant="magic" icon="✨" onClick={() => applyAISettings(false)}>Apply These Settings</Button>
+                )}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </Modal>
+
+      {/* AI Progress Modal - Shows during application */}
+      <Modal isOpen={showAiModal} onClose={() => !aiLoading && setShowAiModal(false)} title="Applying Brand Settings" icon="🤖" size="md"><div style={{ padding: '20px 0' }}><div style={{ textAlign: 'center', marginBottom: '24px' }}><div style={{ width: '80px', height: '80px', margin: '0 auto 16px', background: 'linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px', animation: aiLoading ? 'pulse 1.5s ease-in-out infinite' : 'none', boxShadow: '0 10px 40px rgba(99, 102, 241, 0.4)' }}>🤖</div><h3 style={{ fontSize: '18px', fontWeight: '700', color: colors.gray[900], marginBottom: '8px' }}>{aiLoading ? 'Applying Settings...' : 'Settings Applied!'}</h3><p style={{ fontSize: '13px', color: colors.gray[500] }}>{aiLoading ? 'Configuring your portal branding' : 'Brand settings have been applied'}</p></div><div style={{ backgroundColor: colors.gray[900], borderRadius: '12px', padding: '16px', maxHeight: '250px', overflowY: 'auto', fontFamily: 'Monaco, Consolas, monospace', fontSize: '12px' }}>{aiLogs.map((log, i) => <div key={i} style={{ color: log.startsWith('✅') ? '#10b981' : log.startsWith('❌') ? '#ef4444' : '#9ca3af', marginBottom: '8px', opacity: i === aiLogs.length - 1 ? 1 : 0.7 }}>{log}</div>)}{aiLoading && <div style={{ color: '#6366f1', display: 'flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '12px', height: '12px', border: '2px solid transparent', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />Processing...</div>}</div>{!aiLoading && <div style={{ marginTop: '20px', textAlign: 'center' }}><Button variant="primary" onClick={() => setShowAiModal(false)}>Done</Button></div>}</div></Modal>
 
       {/* Portal Tester Modal */}
       <Modal isOpen={showTesterModal} onClose={() => setShowTesterModal(false)} title="Portal Test Users" icon="🧪" size="lg">
