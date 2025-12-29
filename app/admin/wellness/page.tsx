@@ -10,11 +10,6 @@ interface Corporate {
   corporate_legal_name: string;
   subdomain: string;
   status: string;
-		});
-
-      );
-      const successCount = results.filter((r) => r.success).length;
-      const failCount = results.filter((r) => !r.success).length;
   wellness_enabled: boolean;
   health_risk_assessment_enabled: boolean;
   mental_wellbeing_enabled: boolean;
