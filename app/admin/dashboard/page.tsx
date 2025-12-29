@@ -300,21 +300,29 @@ const AdminDashboard = () => {
     const savedTheme = localStorage.getItem("admin_theme");
 
     if (savedOrder) {
-      const orderIds = JSON.parse(savedOrder);
-      // Sort DEFAULT_CARDS based on saved order
-      const sortedCards = [...DEFAULT_CARDS].sort((a, b) => {
-        const indexA = orderIds.indexOf(a.id);
-        const indexB = orderIds.indexOf(b.id);
-        // If id not found (new card added), put at end
-        if (indexA === -1) return 1;
-        if (indexB === -1) return -1;
-        return indexA - indexB;
-      });
-      setCards(sortedCards);
+      try {
+        const orderIds = JSON.parse(savedOrder);
+        // Sort DEFAULT_CARDS based on saved order
+        const sortedCards = [...DEFAULT_CARDS].sort((a, b) => {
+          const indexA = orderIds.indexOf(a.id);
+          const indexB = orderIds.indexOf(b.id);
+          // If id not found (new card added), put at end
+          if (indexA === -1) return 1;
+          if (indexB === -1) return -1;
+          return indexA - indexB;
+        });
+        setCards(sortedCards);
+      } catch (e) {
+        console.error("Failed to parse saved order", e);
+      }
     }
 
     if (savedHidden) {
-      setHiddenCardIds(JSON.parse(savedHidden));
+      try {
+        setHiddenCardIds(JSON.parse(savedHidden));
+      } catch (e) {
+        console.error("Failed to parse saved hidden cards", e);
+      }
     }
 
     if (savedTheme === "dark") {
