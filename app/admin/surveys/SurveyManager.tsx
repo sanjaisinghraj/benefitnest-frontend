@@ -172,6 +172,7 @@ function SurveyManager() {
                 onUpdate={setCurrentSurvey}
                 onSave={() => setView("list")}
                 onCancel={() => setView("list")}
+                tenants={tenants}
             />
         );
     }
@@ -199,9 +200,9 @@ function SurveyManager() {
                             value={selectedTenants[0] || ''}
                             onChange={e => setSelectedTenants([e.target.value])}
                         >
-                            <option value="">All Tenants</option>
+                            <option value="">All Corporates</option>
                             {tenants.map(t => (
-                                <option key={t.id} value={t.id}>{t.name}</option>
+                                <option key={t.id} value={t.id}>{t.name || t.subdomain}</option>
                             ))}
                         </select>
                     </div>
@@ -221,7 +222,13 @@ function SurveyManager() {
                 </div>
                 {/* Survey Cards Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    {surveys.map(survey => (
+                    {surveys.map(survey => {
+                        // Find tenant for subdomain
+                        const tenant = tenants.find(t => t.id === survey.tenantId);
+                        // Slugify survey title for URL
+                        const slug = survey.title ? survey.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") : "survey";
+                        const surveyUrl = tenant ? `https://${tenant.subdomain}.benefitnest.space/${slug}` : null;
+                        return (
                         <div key={survey.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all flex flex-col h-[340px] group overflow-hidden">
                             <div className="relative h-32 w-full bg-gradient-to-r from-indigo-100 to-indigo-300 flex-shrink-0">
                                 {/* Banner or color */}
@@ -234,6 +241,9 @@ function SurveyManager() {
                             <div className="p-6 flex-1 flex flex-col">
                                 <h3 className="text-xl font-bold text-indigo-900 mb-1 truncate">{survey.title}</h3>
                                 <p className="text-gray-500 text-sm mb-3 line-clamp-2 flex-1">{survey.description || 'No description provided.'}</p>
+                                {surveyUrl && (
+                                    <a href={surveyUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 underline break-all mb-2">{surveyUrl}</a>
+                                )}
                                 <div className="flex items-center justify-between text-xs text-gray-400 mt-auto pt-4 border-t border-gray-100">
                                     <span>{survey.questions?.length || 0} Questions</span>
                                     <span>{survey.createdAt}</span>
@@ -246,7 +256,8 @@ function SurveyManager() {
                                 </button>
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
                     {surveys.length === 0 && !loading && (
                         <div className="col-span-full py-20 text-center">
                             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-50 text-indigo-600 mb-4">
@@ -274,9 +285,9 @@ function SurveyManager() {
 export default SurveyManager;
 
 function SurveyEditor({ 
-  survey, onUpdate, onSave, onCancel 
+    survey, onUpdate, onSave, onCancel, tenants 
 }: { 
-  survey: Survey, onUpdate: (s: Survey) => void, onSave: () => void, onCancel: () => void 
+    survey: Survey, onUpdate: (s: Survey) => void, onSave: () => void, onCancel: () => void, tenants: Tenant[] 
 }) {
     const [activeTab, setActiveTab] = useState<"build" | "design" | "settings" | "preview">("build");
     // AI Design state (moved here)
@@ -284,8 +295,36 @@ function SurveyEditor({
     const [aiPrompt, setAiPrompt] = useState("");
     const [aiSurveyType, setAiSurveyType] = useState("Employee Engagement");
     const [generatingAi, setGeneratingAi] = useState(false);
+
     // Notification (optional, can be lifted up if needed)
     const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+    const [saving, setSaving] = useState(false);
+    // --- Save Handler ---
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
+            // Attach tenantId if not present
+            const payload = { ...survey, tenantId: survey.tenantId };
+            // Attach auth token
+            let token = null;
+            if (typeof window !== "undefined") {
+                token = document.cookie.split('; ').find(r => r.startsWith('admin_token='))?.split('=')[1] || localStorage.getItem('admin_token');
+            }
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            const res = await axios.post(`${API_URL}/api/surveys`, payload, { headers });
+            if (res.data.success) {
+                showNotification("Survey saved successfully!", "success");
+                onSave();
+            } else {
+                showNotification("Failed to save survey.", "error");
+            }
+        } catch (err) {
+            showNotification("Failed to save survey. Please try again.", "error");
+        } finally {
+            setSaving(false);
+        }
+    };
 
     // Helper for notification
     const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
@@ -371,24 +410,38 @@ function SurveyEditor({
             <ArrowLeft size={20} />
           </button>
           <div>
-            <input 
-              value={survey.title}
-              onChange={(e) => onUpdate({ ...survey, title: e.target.value })}
-              className="text-lg font-bold text-gray-900 border-none p-0 focus:ring-0 bg-transparent placeholder-gray-400"
-              placeholder="Survey Title"
-            />
-            <div className="flex items-center gap-2 mt-1">
-                <span className={`w-2 h-2 rounded-full ${survey.status === 'active' ? 'bg-green-500' : 'bg-gray-300'}`} />
-                <select 
-                    value={survey.status}
-                    onChange={(e) => onUpdate({...survey, status: e.target.value as any})}
-                    className="text-xs text-gray-500 border-none p-0 focus:ring-0 bg-transparent cursor-pointer hover:text-gray-900"
-                >
-                    <option value="draft">Draft</option>
-                    <option value="active">Active</option>
-                    <option value="closed">Closed</option>
-                </select>
-            </div>
+                        <input 
+                            value={survey.title}
+                            onChange={(e) => onUpdate({ ...survey, title: e.target.value })}
+                            className="text-lg font-bold text-gray-900 border-none p-0 focus:ring-0 bg-transparent placeholder-gray-400"
+                            placeholder="Survey Title"
+                        />
+                        <div className="flex items-center gap-2 mt-1">
+                                <span className={`w-2 h-2 rounded-full ${survey.status === 'active' ? 'bg-green-500' : 'bg-gray-300'}`} />
+                                <select 
+                                        value={survey.status}
+                                        onChange={(e) => onUpdate({...survey, status: e.target.value as any})}
+                                        className="text-xs text-gray-500 border-none p-0 focus:ring-0 bg-transparent cursor-pointer hover:text-gray-900"
+                                >
+                                        <option value="draft">Draft</option>
+                                        <option value="active">Active</option>
+                                        <option value="closed">Closed</option>
+                                </select>
+                        </div>
+                        {/* Tenant selection dropdown */}
+                        <div className="flex items-center gap-2 mt-2">
+                            <label className="text-xs text-gray-500">Tenant:</label>
+                            <select
+                                value={survey.tenantId || ''}
+                                onChange={e => onUpdate({ ...survey, tenantId: e.target.value })}
+                                className="text-xs text-gray-500 border border-gray-200 rounded px-2 py-1 bg-white"
+                            >
+                                <option value="">Select Tenant</option>
+                                {tenants.map(t => (
+                                    <option key={t.id} value={t.id}>{t.name || t.subdomain}</option>
+                                ))}
+                            </select>
+                        </div>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -400,10 +453,10 @@ function SurveyEditor({
             {/* Sparkles icon, fallback to emoji if not imported */}
             <span role="img" aria-label="AI">✨</span> AI Design
           </button>
-          <button onClick={onSave} className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 font-medium shadow-sm transition-all">
-            {/* Save icon, fallback to emoji if not imported */}
-            <span role="img" aria-label="Save">💾</span> Save
-          </button>
+                    <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 font-medium shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                        {/* Save icon, fallback to emoji if not imported */}
+                        <span role="img" aria-label="Save">💾</span> {saving ? "Saving..." : "Save"}
+                    </button>
         </div>
       </div>
       {/* AI Modal */}
