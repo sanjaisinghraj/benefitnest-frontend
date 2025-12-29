@@ -632,7 +632,7 @@ export default function MarketplaceSettingsPage() {
     }
   }, []);
 
-  const handleCorporateSelect = (corp: Corporate) => {
+  const handleCorporateSelect = async (corp: Corporate) => {
     if (hasUnsavedChanges && !confirm("You have unsaved changes. Continue?"))
       return;
     try {

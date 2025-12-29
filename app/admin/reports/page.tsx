@@ -1071,6 +1071,10 @@ export default function ReportsAnalyticsPage() {
     if (selectedCorporates.length === 0) {
       setAnalytics(null);
       return;
+    }
+    try {
+      const res = await fetch(`${API_URL}/api/analytics`, {
+        method: "POST",
         headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
         body: JSON.stringify({ tenantIds: selectedCorporates }),
       });
