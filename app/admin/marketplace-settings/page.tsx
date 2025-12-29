@@ -654,6 +654,8 @@ export default function MarketplaceSettingsPage() {
     }
   };
 
+  // Save handler for marketplace settings
+
   const handleLogout = () => {
     localStorage.removeItem("admin_token");
     router.push("/admin");
