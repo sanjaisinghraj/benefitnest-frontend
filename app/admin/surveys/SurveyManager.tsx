@@ -1,13 +1,13 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Plus, Search, LayoutTemplate, ArrowLeft, Upload, List, Trash2 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
+
 // --- Types ---
 
-
-
 type QuestionType = "text" | "textarea" | "radio" | "checkbox" | "dropdown" | "slider" | "nps" | "matrix" | "ranking" | "weightage" | "email" | "date" | "rating" | "file_upload";
+
 interface QuestionOption {
     id: string;
     label: string;
@@ -24,11 +24,13 @@ interface QuestionOption {
         errorMessage?: string;
     };
 }
+
 interface Question {
     id: string;
     type: QuestionType;
     options?: QuestionOption[];
     text: string;
+    description?: string;
     required: boolean;
     imageUrl?: string;
     weightageConfig?: { totalPoints?: number };
@@ -45,94 +47,51 @@ interface BrandingConfig {
     headingItalic?: boolean;
     questionColor?: string;
     questionSize?: "text-sm" | "text-base" | "text-lg";
-        questionBold?: boolean;
-        questionItalic?: boolean;
-        primaryColor?: string;
-        backgroundColor?: string;
-        fontFamily?: string;
-        logoUrl?: string;
-        bannerUrl?: string;
+    questionBold?: boolean;
+    questionItalic?: boolean;
+    primaryColor?: string;
+    backgroundColor?: string;
+    fontFamily?: string;
+    logoUrl?: string;
+    bannerUrl?: string;
 }
 
 interface Survey {
-  id: string;
-  title: string;
-  description: string;
-  questions: Question[];
-  status: "draft" | "active" | "closed";
-  createdAt: string;
-  tenantId?: string;
-  branding?: BrandingConfig;
-  isTemplate?: boolean;
-  templateCategory?: string;
-  questionCount?: number;
+    id: string;
+    title: string;
+    description: string;
+    questions: Question[];
+    status: "draft" | "active" | "closed";
+    createdAt: string;
+    tenantId?: string;
+    branding?: BrandingConfig;
+    isTemplate?: boolean;
+    templateCategory?: string;
+    questionCount?: number;
 }
 
 interface Tenant {
-  id: string;
-  name: string;
-  subdomain: string;
+    id: string;
+    name: string;
+    subdomain: string;
 }
 
-// --- Components ---
+// --- SurveyManager Component ---
 
 function SurveyManager() {
-        // --- Delete Survey Handler ---
-        const handleDeleteSurvey = async (survey: Survey) => {
-            if (!window.confirm(`Are you sure you want to delete the survey "${survey.title}"? This action cannot be undone.`)) return;
-            switch (q.type) {
-                case "text":
-                case "textarea": {
-                    // Admin mode: inline title, add description, required, delete
-                    return (
-                        <div className="space-y-2">
-                            {/* Editable Title */}
-                            <input
-                                type="text"
-                                value={q.text || ''}
-                                onChange={e => updateFn(q.id, { text: e.target.value })}
-                                className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent"
-                                placeholder="Untitled Question"
-                            />
-                            {/* Add Description Checkbox */}
-                            <label className="flex items-center gap-2 text-xs text-gray-500">
-                                <input
-                                    type="checkbox"
-                                    checked={typeof q.description === 'string'}
-                                    onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}
-                                />
-                                Add Description
-                            </label>
-                            {/* Editable Description */}
-                            {typeof q.description === 'string' && (
-                                <input
-                                    type="text"
-                                    value={q.description}
-                                    onChange={e => updateFn(q.id, { description: e.target.value })}
-                                    className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent"
-                                    placeholder="Enter description (optional)"
-                                />
-                            )}
-                            {/* Required Checkbox */}
-                            <label className="flex items-center gap-2 text-xs text-gray-500 mt-2">
-                                <input
-                                    type="checkbox"
-                                    checked={!!q.required}
-                                    onChange={e => updateFn(q.id, { required: e.target.checked })}
-                                />
-                                Required
-                            </label>
-                            {/* Delete Button */}
-                            <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
-                            {/* Answer Preview (disabled for admin) */}
-                            {q.type === "text" ? (
-                                <input type="text" className="w-full border border-gray-200 rounded px-2 py-1 mt-2" placeholder="Recipient answer (single line)" disabled />
-                            ) : (
-                                <textarea className="w-full border border-gray-200 rounded px-2 py-1 mt-2" rows={3} placeholder="Recipient answer (multi-line)" disabled />
-                            )}
-                        </div>
-                    );
-                }
+    // --- State ---
+    const [tenants, setTenants] = useState<Tenant[]>([]);
+    const [surveys, setSurveys] = useState<Survey[]>([]);
+    const [selectedTenants, setSelectedTenants] = useState<string[]>([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [currentSurvey, setCurrentSurvey] = useState<Survey | null>(null);
+    const [view, setView] = useState<'list' | 'editor'>("list");
+    const [surveyUrl, setSurveyUrl] = useState<string | null>(null);
+    
+    // API URL
+    const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
+
     const getToken = () => {
         if (typeof window === "undefined") return null;
         const cookieToken = document.cookie
@@ -140,6 +99,7 @@ function SurveyManager() {
             .find((r) => r.startsWith("admin_token="));
         return (cookieToken ? cookieToken.split("=")[1] : null) || localStorage.getItem("admin_token");
     };
+
     const getAuthHeaders = () => ({ Authorization: `Bearer ${getToken()}` });
 
     // --- Data Fetching ---
@@ -153,10 +113,11 @@ function SurveyManager() {
             console.warn("Failed to fetch tenants", err);
         }
     };
+
     const fetchSurveys = async () => {
         try {
             setLoading(true);
-            const params: any = { search: searchTerm, limit: 5 };
+            const params: any = { search: searchTerm, limit: 100 }; // Increased limit
             if (selectedTenants.length > 0) params.tenantId = selectedTenants.join(',');
             const res = await axios.get(`${API_URL}/api/surveys`, { headers: getAuthHeaders(), params });
             if (res.data.success) {
@@ -168,6 +129,14 @@ function SurveyManager() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchTenants();
+    }, []);
+
+    useEffect(() => {
+        fetchSurveys();
+    }, [selectedTenants, searchTerm]);
 
     // --- Handlers ---
     const handleCreateNew = () => {
@@ -186,16 +155,23 @@ function SurveyManager() {
             }
         };
         setCurrentSurvey(newSurvey);
+        setSurveyUrl(null);
         setView("editor");
     };
 
-    // --- Fetch survey by ID for editing ---
     const fetchSurveyById = async (id: string) => {
         try {
             setLoading(true);
             const res = await axios.get(`${API_URL}/api/surveys/${id}`, { headers: getAuthHeaders() });
             if (res.data.success && res.data.data) {
                 setCurrentSurvey(res.data.data);
+                // Set initial URL if available
+                if (res.data.data.tenantId) {
+                     const tenant = tenants.find(t => t.id === res.data.data.tenantId);
+                     if (tenant) {
+                         setSurveyUrl(`https://${tenant.subdomain}.benefitnest.space/employeebenefitsurvey/${res.data.data.id}`);
+                     }
+                }
                 setView("editor");
             } else {
                 alert("Failed to fetch survey details.");
@@ -207,23 +183,45 @@ function SurveyManager() {
         }
     };
 
+    const handleDeleteSurvey = async (survey: Survey) => {
+        if (!window.confirm(`Are you sure you want to delete the survey "${survey.title}"? This action cannot be undone.`)) return;
+        try {
+            const res = await axios.delete(`${API_URL}/api/surveys/${survey.id}`, { headers: getAuthHeaders() });
+            if (res.data.success) {
+                setSurveys(surveys.filter(s => s.id !== survey.id));
+            } else {
+                alert("Failed to delete survey");
+            }
+        } catch (err) {
+            console.error("Error deleting survey", err);
+            alert("Error deleting survey");
+        }
+    };
+
     // --- Render ---
     if (view === "editor" && currentSurvey) {
         return (
             <SurveyEditor
                 survey={currentSurvey}
                 onUpdate={setCurrentSurvey}
-                onSave={() => setView("list")}
-                onCancel={() => setView("list")}
+                onSave={() => {
+                     fetchSurveys();
+                     // setView("list"); // Optional: keep in editor after save?
+                }}
+                onCancel={() => {
+                    fetchSurveys();
+                    setView("list");
+                }}
                 tenants={tenants}
                 surveyUrl={surveyUrl}
                 setSurveyUrl={setSurveyUrl}
             />
         );
     }
+
     return (
         <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-indigo-50">
-            {/* Header (unchanged) */}
+            {/* Header */}
             <header className="w-full py-6 bg-white shadow-sm border-b border-gray-100">
                 <div className="max-w-7xl mx-auto flex justify-between items-center px-6">
                     <h1 className="text-3xl font-extrabold text-indigo-700 tracking-tight">Survey Manager</h1>
@@ -268,15 +266,13 @@ function SurveyManager() {
                 {/* Survey Cards Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     {surveys.map(survey => {
-                        // Find tenant for subdomain
                         const tenant = tenants.find(t => t.id === survey.tenantId);
-                        // Slugify survey title for URL
-                        const slug = survey.title ? survey.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") : "survey";
-                        const surveyUrl = tenant ? `https://${tenant.subdomain}.benefitnest.space/${slug}` : null;
+                        // Simple link generation logic
+                        const link = tenant ? `https://${tenant.subdomain}.benefitnest.space/employeebenefitsurvey/${survey.id}` : null;
+                        
                         return (
                         <div key={survey.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all flex flex-col h-[340px] group overflow-hidden">
                             <div className="relative h-32 w-full bg-gradient-to-r from-indigo-100 to-indigo-300 flex-shrink-0">
-                                {/* Banner or color */}
                                 {survey.branding?.bannerUrl ? (
                                     <img src={survey.branding.bannerUrl} alt="Banner" className="absolute inset-0 w-full h-full object-cover" />
                                 ) : (
@@ -286,8 +282,8 @@ function SurveyManager() {
                             <div className="p-6 flex-1 flex flex-col">
                                 <h3 className="text-xl font-bold text-indigo-900 mb-1 truncate">{survey.title}</h3>
                                 <p className="text-gray-500 text-sm mb-3 line-clamp-2 flex-1">{survey.description || 'No description provided.'}</p>
-                                {surveyUrl && (
-                                    <a href={surveyUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 underline break-all mb-2">{surveyUrl}</a>
+                                {link && (
+                                    <a href={link} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 underline break-all mb-2">{link}</a>
                                 )}
                                 <div className="flex items-center justify-between text-xs text-gray-400 mt-auto pt-4 border-t border-gray-100">
                                     <span>{survey.questions?.length || 0} Questions</span>
@@ -323,7 +319,7 @@ function SurveyManager() {
                     )}
                 </div>
             </main>
-            {/* Footer (unchanged) */}
+            {/* Footer */}
             <footer className="w-full py-6 bg-white border-t border-gray-100 mt-auto">
                 <div className="max-w-7xl mx-auto px-6 text-center text-gray-400 text-sm">
                     &copy; {new Date().getFullYear()} Insurance Platform. All rights reserved.
@@ -332,38 +328,38 @@ function SurveyManager() {
         </div>
     );
 }
-// End of SurveyManager component
-
-// --- Survey Editor Component ---
 
 export default SurveyManager;
 
-function SurveyEditor({ 
-    survey, onUpdate, onSave, onCancel, tenants, surveyUrl, setSurveyUrl 
-}: { 
-    survey: Survey, onUpdate: (s: Survey) => void, onSave: () => void, onCancel: () => void, tenants: Tenant[], surveyUrl: string | null, setSurveyUrl: (url: string | null) => void 
-}) {
-    const [activeTab, setActiveTab] = useState<"build" | "design" | "settings" | "preview">("build");
-    // AI Design state (moved here)
+// --- Survey Editor Component ---
+
+interface SurveyEditorProps {
+    survey: Survey;
+    onUpdate: (s: Survey) => void;
+    onSave: () => void;
+    onCancel: () => void;
+    tenants: Tenant[];
+    surveyUrl: string | null;
+    setSurveyUrl: (url: string | null) => void;
+}
+
+function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, setSurveyUrl }: SurveyEditorProps) {
+    const [activeTab, setActiveTab] = useState<'build' | 'design' | 'settings' | 'preview'>('build');
     const [aiModalOpen, setAiModalOpen] = useState(false);
     const [aiPrompt, setAiPrompt] = useState("");
     const [aiSurveyType, setAiSurveyType] = useState("Employee Engagement");
     const [generatingAi, setGeneratingAi] = useState(false);
-
-    // Notification (optional, can be lifted up if needed)
-    const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
     const [saving, setSaving] = useState(false);
-
-    // --- Debounced Autosave ---
-    const autosaveTimeout = React.useRef<NodeJS.Timeout | null>(null);
+    const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
     const [autosaveStatus, setAutosaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+    const autosaveTimeout = useRef<NodeJS.Timeout | null>(null);
 
     const autosaveSurvey = React.useCallback((updatedSurvey: Survey) => {
         if (autosaveTimeout.current) clearTimeout(autosaveTimeout.current);
         setAutosaveStatus('saving');
         autosaveTimeout.current = setTimeout(async () => {
             try {
-                // Prepare payload (same as handleSave)
+                // Prepare payload
                 const payload = {
                     title: updatedSurvey.title,
                     tenantId: updatedSurvey.tenantId,
@@ -375,24 +371,37 @@ function SurveyEditor({
                         id: q.id,
                         type: q.type,
                         text: q.text,
+                        description: q.description,
                         required: q.required,
                         errorMessage: q.errorMessage,
+                        weightageConfig: q.weightageConfig,
+                        scaleConfig: q.scaleConfig,
+                        subQuestions: q.subQuestions,
                         options: q.options?.map((o: QuestionOption) => ({
+                            id: o.id,
                             label: o.label,
                             type: o.type,
                             value: o.value,
                             required: o.required,
-                            errorMessage: o.errorMessage
+                            errorMessage: o.errorMessage,
+                            fieldType: o.fieldType
                         })) || []
                     }))
                 };
+                
                 let token = null;
                 if (typeof window !== "undefined") {
                     token = document.cookie.split('; ').find(r => r.startsWith('admin_token='))?.split('=')[1] || localStorage.getItem('admin_token');
                 }
                 const headers = token ? { Authorization: `Bearer ${token}` } : {};
                 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
-                await axios.post(`${API_URL}/api/surveys`, payload, { headers });
+                
+                // Use updatedSurvey.id to determine if it's an update or create, but API might handle upsert
+                // Assuming POST to /api/surveys handles upsert based on ID if present in payload or logic
+                // For safety, we should probably check if it exists or just rely on backend
+                // The original code used POST for save, so we stick to that.
+                await axios.post(`${API_URL}/api/surveys`, { ...payload, id: updatedSurvey.id }, { headers });
+                
                 setAutosaveStatus('saved');
                 setTimeout(() => setAutosaveStatus('idle'), 1500);
             } catch (err) {
@@ -401,84 +410,81 @@ function SurveyEditor({
             }
         }, 1000); // 1s debounce
     }, []);
-    // --- Save Handler ---
+
     const handleSave = async () => {
-            setSaving(true);
-            try {
-                // Validate survey
-                if (!survey.title || !survey.tenantId || survey.questions.length === 0) {
-                    showNotification("Please fill all required fields and add at least one question.", "error");
-                    setSaving(false);
-                    return;
-                }
-                for (const q of survey.questions) {
-                    if (q.type === 'weightage') {
-                        const total = q.options?.reduce((sum: number, o: QuestionOption) => sum + (parseFloat(typeof o.value === "string" ? o.value : String(o.value)) || 0), 0) || 0;
-                        if (total !== 100) {
-                            showNotification("Weightage total must be 100.", "error");
-                            setSaving(false);
-                            return;
-                        }
-                    }
-                    if (q.required && !q.text) {
-                        showNotification("Required questions must have text.", "error");
-                        setSaving(false);
-                        return;
-                    }
-                }
-                // Prepare payload: only allowed fields
-                const payload = {
-                    title: survey.title,
-                    tenantId: survey.tenantId,
-                    status: survey.status,
-                    branding: survey.branding,
-                    isTemplate: survey.isTemplate,
-                    templateCategory: survey.templateCategory,
-                    questions: survey.questions.map((q: Question) => ({
-                        id: q.id,
-                        type: q.type,
-                        text: q.text,
-                        required: q.required,
-                        errorMessage: q.errorMessage,
-                        options: q.options?.map((o: QuestionOption) => ({
-                            label: o.label,
-                            type: o.type,
-                            value: o.value,
-                            required: o.required,
-                            errorMessage: o.errorMessage
-                        })) || []
-                    }))
-                };
-                // Attach auth token
-                let token = null;
-                if (typeof window !== "undefined") {
-                    token = document.cookie.split('; ').find(r => r.startsWith('admin_token='))?.split('=')[1] || localStorage.getItem('admin_token');
-                }
-                const headers = token ? { Authorization: `Bearer ${token}` } : {};
-                const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
-                const res = await axios.post(`${API_URL}/api/surveys`, payload, { headers });
-                if (res.data.success && res.data.data) {
-                    showNotification("Survey saved successfully!", "success");
-                    if (res.data.data.url) setSurveyUrl(res.data.data.url);
-                    else if (res.data.data.tenantSubdomain && res.data.data.id) setSurveyUrl(`https://${res.data.data.tenantSubdomain}.benefitnest.space/employeebenefitsurvey/${res.data.data.id}`);
-                    onSave();
-                } else {
-                    showNotification("Failed to save survey.", "error");
-                }
-            } catch (err) {
-                showNotification("Failed to save survey. Please try again.", "error");
-            } finally {
+        setSaving(true);
+        try {
+            // Validate survey
+            if (!survey.title || !survey.tenantId || survey.questions.length === 0) {
+                showNotification("Please fill all required fields and add at least one question.", "error");
                 setSaving(false);
+                return;
             }
+            
+            // Prepare payload
+            const payload = {
+                id: survey.id,
+                title: survey.title,
+                tenantId: survey.tenantId,
+                status: survey.status,
+                branding: survey.branding,
+                isTemplate: survey.isTemplate,
+                templateCategory: survey.templateCategory,
+                questions: survey.questions.map((q: Question) => ({
+                    id: q.id,
+                    type: q.type,
+                    text: q.text,
+                    description: q.description,
+                    required: q.required,
+                    errorMessage: q.errorMessage,
+                    weightageConfig: q.weightageConfig,
+                    scaleConfig: q.scaleConfig,
+                    subQuestions: q.subQuestions,
+                    options: q.options?.map((o: QuestionOption) => ({
+                        id: o.id,
+                        label: o.label,
+                        type: o.type,
+                        value: o.value,
+                        required: o.required,
+                        errorMessage: o.errorMessage,
+                        fieldType: o.fieldType
+                    })) || []
+                }))
+            };
+
+            let token = null;
+            if (typeof window !== "undefined") {
+                token = document.cookie.split('; ').find(r => r.startsWith('admin_token='))?.split('=')[1] || localStorage.getItem('admin_token');
+            }
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
+            
+            const res = await axios.post(`${API_URL}/api/surveys`, payload, { headers });
+            
+            if (res.data.success && res.data.data) {
+                showNotification("Survey saved successfully!", "success");
+                
+                const tenant = tenants.find(t => t.id === survey.tenantId);
+                if (tenant) {
+                    setSurveyUrl(`https://${tenant.subdomain}.benefitnest.space/employeebenefitsurvey/${survey.id}`);
+                }
+                
+                onSave();
+            } else {
+                showNotification("Failed to save survey.", "error");
+            }
+        } catch (err) {
+            showNotification("Failed to save survey. Please try again.", "error");
+        } finally {
+            setSaving(false);
+        }
     };
 
-    // Helper for notification
     const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
         setNotification({ message, type });
         setTimeout(() => setNotification(null), 3000);
     };
 
-    // AI Design handler
     const handleGenerateAI = async () => {
         if (!aiPrompt) return;
         setGeneratingAi(true);
@@ -489,15 +495,16 @@ function SurveyEditor({
                 surveyType: aiSurveyType
             });
             if (res.data.success && res.data.data && Array.isArray(res.data.data.questions)) {
-                // Only use allowed fields and structure
                 const allowedTypes = ["text", "textarea", "radio", "checkbox", "dropdown", "rating", "slider", "nps", "date", "email", "matrix", "ranking", "file_upload", "weightage"];
                 const filteredQuestions = res.data.data.questions.filter((q: any) => allowedTypes.includes(q.type)).map((q: any) => ({
                     id: q.id || uuidv4(),
                     type: q.type,
                     text: q.text,
+                    description: q.description,
                     required: q.required,
                     errorMessage: q.errorMessage,
                     options: q.options?.map((o: any) => ({
+                        id: uuidv4(),
                         label: o.label,
                         type: o.type,
                         value: o.value,
@@ -523,7 +530,6 @@ function SurveyEditor({
         }
     };
 
-    // Helper to update branding
     const updateBranding = (key: keyof BrandingConfig, value: string) => {
         const updated = { ...survey, branding: { ...survey.branding, [key]: value } };
         onUpdate(updated);
@@ -547,7 +553,6 @@ function SurveyEditor({
         autosaveSurvey(updated);
     };
 
-  // ... (Other CRUD helpers would go here, simplified for brevity but fully functional in logic)
     const updateQuestion = (id: string, updates: Partial<Question>) => {
         const updated = {
             ...survey,
@@ -575,6 +580,7 @@ function SurveyEditor({
                 {autosaveStatus === 'saved' && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">All changes saved</span>}
                 {autosaveStatus === 'error' && <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">Autosave failed</span>}
             </div>
+            
             {/* Editor Header */}
             <div className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm z-10">
                 <div className="flex items-center gap-4">
@@ -604,7 +610,6 @@ function SurveyEditor({
                                 <option value="closed">Closed</option>
                             </select>
                         </div>
-                        {/* Tenant selection dropdown */}
                         <div className="flex items-center gap-2 mt-2">
                             <label className="text-xs text-gray-500">Tenant:</label>
                             <select
@@ -621,7 +626,6 @@ function SurveyEditor({
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
-                    {/* AI Design button only in editor */}
                     <button
                         onClick={() => setAiModalOpen(true)}
                         className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md"
@@ -633,6 +637,7 @@ function SurveyEditor({
                     </button>
                 </div>
             </div>
+
             {/* AI Modal */}
             {aiModalOpen && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
@@ -685,6 +690,7 @@ function SurveyEditor({
                     </div>
                 </div>
             )}
+
             {/* Main Editor Tabs and Question Builder */}
             <div className="flex flex-col flex-1">
                 {/* Tabs */}
@@ -700,13 +706,13 @@ function SurveyEditor({
                     ))}
                 </div>
                 {/* Tab Content */}
-                <div className="flex-1 px-6 py-6 bg-gray-50">
+                <div className="flex-1 px-6 py-6 bg-gray-50 overflow-y-auto">
                     {activeTab === 'build' && (
                         <div>
                             {/* Question Builder */}
                             <div className="flex justify-between items-center mb-6">
                                 <h2 className="text-xl font-bold text-gray-900">Questions</h2>
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 flex-wrap">
                                     {['text','textarea','radio','checkbox','dropdown','rating','slider','nps','date','email','matrix','ranking','file_upload','weightage'].map(type => (
                                         <button
                                             key={type}
@@ -756,7 +762,6 @@ function SurveyEditor({
                     {activeTab === 'design' && (
                         <div>
                             <h2 className="text-xl font-bold text-gray-900 mb-4">Design & Branding</h2>
-                            {/* Branding controls */}
                             <div className="grid grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Primary Color</label>
@@ -791,7 +796,10 @@ function SurveyEditor({
                             <div className="grid grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Template</label>
-                                    <input type="checkbox" checked={!!survey.isTemplate} onChange={e => onUpdate({ ...survey, isTemplate: e.target.checked })} /> Mark as Template
+                                    <div className="flex items-center gap-2">
+                                        <input type="checkbox" checked={!!survey.isTemplate} onChange={e => onUpdate({ ...survey, isTemplate: e.target.checked })} /> 
+                                        <span>Mark as Template</span>
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
@@ -826,13 +834,304 @@ function SurveyEditor({
     );
 }
 
-function ToolButton({ icon, label, onClick }: { icon: any, label: string, onClick: () => void }) {
-    return (
-        <button onClick={onClick} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-indigo-600 rounded-lg transition-colors text-left group">
-            <span className="text-gray-400 group-hover:text-indigo-600">{icon}</span>
-            {label}
-        </button>
-    );
+// --- Question Body Renderer ---
+
+function renderQuestionBody(q: Question, updateFn: (id: string, u: Partial<Question>) => void) {
+    const addOption = () => {
+        const opts = q.options || [];
+        updateFn(q.id, { options: [...opts, { id: uuidv4(), label: `Option ${opts.length + 1}` }] });
+    };
+
+    const updateOption = (optId: string, label: string) => {
+        const opts = q.options?.map(o => o.id === optId ? { ...o, label } : o);
+        updateFn(q.id, { options: opts });
+    };
+
+    const removeOption = (optId: string) => {
+        updateFn(q.id, { options: q.options?.filter(o => o.id !== optId) });
+    };
+
+    switch (q.type) {
+        case "text":
+        case "email":
+        case "date":
+        case "file_upload":
+        case "textarea": {
+            return (
+                <div className="space-y-2">
+                    <input
+                        type="text"
+                        value={q.text || ''}
+                        onChange={e => updateFn(q.id, { text: e.target.value })}
+                        className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent"
+                        placeholder="Untitled Question"
+                    />
+                    <label className="flex items-center gap-2 text-xs text-gray-500">
+                        <input
+                            type="checkbox"
+                            checked={typeof q.description === 'string'}
+                            onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}
+                        />
+                        Add Description
+                    </label>
+                    {typeof q.description === 'string' && (
+                        <input
+                            type="text"
+                            value={q.description}
+                            onChange={e => updateFn(q.id, { description: e.target.value })}
+                            className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent"
+                            placeholder="Enter description (optional)"
+                        />
+                    )}
+                    {q.type === "textarea" ? (
+                         <textarea className="w-full border border-gray-200 rounded px-2 py-1 mt-2" rows={3} placeholder="Recipient answer (multi-line)" disabled />
+                    ) : (
+                         <input type={q.type === 'file_upload' ? 'text' : q.type} className="w-full border border-gray-200 rounded px-2 py-1 mt-2" placeholder={q.type === 'file_upload' ? 'File upload preview' : "Recipient answer"} disabled />
+                    )}
+                </div>
+            );
+        }
+        case "radio":
+        case "checkbox":
+        case "dropdown":
+        case "ranking": {
+            return (
+                <div className="space-y-2">
+                    <input
+                        type="text"
+                        value={q.text || ''}
+                        onChange={e => updateFn(q.id, { text: e.target.value })}
+                        className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent"
+                        placeholder="Untitled Question"
+                    />
+                     <div className="space-y-1">
+                        {(q.options || []).map((o, i) => (
+                            <div key={o.id} className="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    value={o.label}
+                                    onChange={e => updateOption(o.id, e.target.value)}
+                                    className="flex-1 border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent"
+                                    placeholder={`Option ${i + 1}`}
+                                />
+                                <button onClick={() => removeOption(o.id)} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
+                            </div>
+                        ))}
+                        <button onClick={addOption} className="text-xs text-indigo-600 mt-1">+ Add Option</button>
+                    </div>
+                </div>
+            );
+        }
+        case "rating":
+            return (
+                <div className="space-y-2">
+                    <input
+                         type="text"
+                         value={q.text || ''}
+                         onChange={e => updateFn(q.id, { text: e.target.value })}
+                         className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent"
+                         placeholder="Untitled Question"
+                     />
+                    <div className="flex gap-4 text-2xl text-gray-300">
+                        {[1,2,3,4,5].map(i => <span key={i}>★</span>)}
+                    </div>
+                </div>
+            );
+        case "nps":
+            return (
+                <div className="space-y-2">
+                    <input
+                         type="text"
+                         value={q.text || ''}
+                         onChange={e => updateFn(q.id, { text: e.target.value })}
+                         className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent"
+                         placeholder="Untitled Question"
+                     />
+                    <div className="flex gap-1 overflow-x-auto py-2">
+                        {[0,1,2,3,4,5,6,7,8,9,10].map(n => (
+                            <div key={n} className="w-10 h-10 flex items-center justify-center border border-gray-200 rounded-md text-sm text-gray-500 bg-gray-50">
+                                {n}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        case "matrix":
+            return (
+                <div className="space-y-6">
+                    <input
+                         type="text"
+                         value={q.text || ''}
+                         onChange={e => updateFn(q.id, { text: e.target.value })}
+                         className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent"
+                         placeholder="Untitled Question"
+                     />
+                    <div>
+                        <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Columns (Options)</h4>
+                        <div className="space-y-2">
+                            {q.options?.map((opt, i) => (
+                                <div key={opt.id} className="flex items-center gap-2">
+                                    <div className="w-4 h-4 border border-gray-300 rounded-full" />
+                                    <input 
+                                        value={opt.label}
+                                        onChange={(e) => updateOption(opt.id, e.target.value)}
+                                        className="flex-1 border-none bg-transparent focus:ring-0 text-sm hover:bg-gray-50 rounded px-2 py-1"
+                                        placeholder={`Column ${i+1}`}
+                                    />
+                                    <button onClick={() => removeOption(opt.id)} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
+                                </div>
+                            ))}
+                            <button onClick={addOption} className="text-sm text-indigo-600 font-medium hover:underline flex items-center gap-1 mt-2">
+                                <Plus size={14} /> Add Column
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Rows (Questions)</h4>
+                        <div className="space-y-2">
+                            {q.subQuestions?.map((sq, i) => (
+                                <div key={sq.id} className="flex items-center gap-2">
+                                    <span className="text-xs text-gray-400 w-4">{i+1}.</span>
+                                    <input 
+                                        value={sq.label}
+                                        onChange={(e) => {
+                                            const newSubs = q.subQuestions?.map(s => s.id === sq.id ? { ...s, label: e.target.value } : s);
+                                            updateFn(q.id, { subQuestions: newSubs });
+                                        }}
+                                        className="flex-1 border-none bg-transparent focus:ring-0 text-sm hover:bg-gray-50 rounded px-2 py-1"
+                                        placeholder={`Row ${i+1}`}
+                                    />
+                                    <button onClick={() => {
+                                        const newSubs = q.subQuestions?.filter(s => s.id !== sq.id);
+                                        updateFn(q.id, { subQuestions: newSubs });
+                                    }} className="text-gray-400 hover:text-red-500"><Trash2 size={14} /></button>
+                                </div>
+                            ))}
+                            <button 
+                                onClick={() => {
+                                    const newSub = { id: uuidv4(), label: `Row ${(q.subQuestions?.length || 0) + 1}` };
+                                    updateFn(q.id, { subQuestions: [...(q.subQuestions || []), newSub] });
+                                }}
+                                className="text-sm text-indigo-600 font-medium hover:underline flex items-center gap-1 mt-2"
+                            >
+                                <Plus size={14} /> Add Row
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        case "weightage":
+            return (
+                <div className="space-y-2">
+                    <input
+                         type="text"
+                         value={q.text || ''}
+                         onChange={e => updateFn(q.id, { text: e.target.value })}
+                         className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent"
+                         placeholder="Untitled Question"
+                     />
+                    <div className="flex items-center gap-2 mb-2">
+                        <span className="text-sm text-gray-600">Total Points Target:</span>
+                        <input 
+                            type="number"
+                            value={q.weightageConfig?.totalPoints || 100}
+                            onChange={(e) => updateFn(q.id, { weightageConfig: { totalPoints: parseInt(e.target.value) } })}
+                            className="w-20 border border-gray-300 rounded px-2 py-1 text-sm"
+                        />
+                    </div>
+                     {q.options?.map((opt, i) => (
+                        <div key={opt.id} className="flex items-center gap-2">
+                            <span className="text-gray-400 text-sm">Item:</span>
+                            <input 
+                                value={opt.label}
+                                onChange={(e) => updateOption(opt.id, e.target.value)}
+                                className="flex-1 border-none bg-transparent focus:ring-0 text-sm hover:bg-gray-50 rounded px-2 py-1"
+                            />
+                             <div className="w-16 h-8 border border-gray-200 bg-gray-50 rounded flex items-center justify-center text-xs text-gray-400">0</div>
+                            <button onClick={() => removeOption(opt.id)} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
+                        </div>
+                    ))}
+                     <button onClick={addOption} className="text-sm text-indigo-600 font-medium hover:underline flex items-center gap-1 mt-2">
+                        <Plus size={14} /> Add Item
+                    </button>
+                </div>
+            );
+        case "slider":
+            return (
+                <div className="space-y-4">
+                    <input
+                         type="text"
+                         value={q.text || ''}
+                         onChange={e => updateFn(q.id, { text: e.target.value })}
+                         className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent"
+                         placeholder="Untitled Question"
+                     />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="text-xs font-semibold text-gray-500 uppercase">Min Value</label>
+                            <input 
+                                type="number" 
+                                value={q.scaleConfig?.min ?? 0}
+                                onChange={(e) => updateFn(q.id, { scaleConfig: {
+                                    min: isNaN(parseInt(e.target.value)) ? 0 : parseInt(e.target.value),
+                                    max: typeof q.scaleConfig?.max === 'number' ? q.scaleConfig.max : 10,
+                                    minLabel: q.scaleConfig?.minLabel ?? "Poor",
+                                    maxLabel: q.scaleConfig?.maxLabel ?? "Excellent"
+                                } })}
+                                className="w-full border-b border-gray-200 py-1 bg-transparent text-sm"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-xs font-semibold text-gray-500 uppercase">Max Value</label>
+                            <input 
+                                type="number" 
+                                value={q.scaleConfig?.max ?? 100}
+                                onChange={(e) => updateFn(q.id, { scaleConfig: {
+                                    min: typeof q.scaleConfig?.min === 'number' ? q.scaleConfig.min : 0,
+                                    max: isNaN(parseInt(e.target.value)) ? 10 : parseInt(e.target.value),
+                                    minLabel: q.scaleConfig?.minLabel ?? "Poor",
+                                    maxLabel: q.scaleConfig?.maxLabel ?? "Excellent"
+                                } })}
+                                className="w-full border-b border-gray-200 py-1 bg-transparent text-sm"
+                            />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="text-xs font-semibold text-gray-500 uppercase">Min Label</label>
+                            <input 
+                                value={q.scaleConfig?.minLabel || ''}
+                                onChange={(e) => updateFn(q.id, { scaleConfig: {
+                                    min: typeof q.scaleConfig?.min === 'number' ? q.scaleConfig.min : 0,
+                                    max: typeof q.scaleConfig?.max === 'number' ? q.scaleConfig.max : 10,
+                                    minLabel: e.target.value,
+                                    maxLabel: q.scaleConfig?.maxLabel ?? "Excellent"
+                                } })}
+                                className="w-full border-b border-gray-200 py-1 bg-transparent text-sm"
+                                placeholder="e.g. Poor"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-xs font-semibold text-gray-500 uppercase">Max Label</label>
+                            <input 
+                                value={q.scaleConfig?.maxLabel || ''}
+                                onChange={(e) => updateFn(q.id, { scaleConfig: {
+                                    min: typeof q.scaleConfig?.min === 'number' ? q.scaleConfig.min : 0,
+                                    max: typeof q.scaleConfig?.max === 'number' ? q.scaleConfig.max : 10,
+                                    minLabel: q.scaleConfig?.minLabel ?? "Poor",
+                                    maxLabel: e.target.value
+                                } })}
+                                className="w-full border-b border-gray-200 py-1 bg-transparent text-sm"
+                                placeholder="e.g. Excellent"
+                            />
+                        </div>
+                    </div>
+                </div>
+            );
+        default:
+            return <div className="text-gray-400 italic text-sm">Preview not available for this type</div>;
+    }
 }
 
 const renderPreviewInput = (q: Question) => {
@@ -976,541 +1275,3 @@ const renderPreviewInput = (q: Question) => {
             return <div className="text-gray-400 italic text-sm">Preview not available for this type</div>;
     }
 };
-
-// --- Question Body Renderer ---
-function renderQuestionBody(q: Question, updateFn: (id: string, u: Partial<Question>) => void) {
-                    case "rating": {
-                        return (
-                            <div className="space-y-2">
-                                <input type="text" value={q.text || ''} onChange={e => updateFn(q.id, { text: e.target.value })} className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent" placeholder="Untitled Question" />
-                                <label className="flex items-center gap-2 text-xs text-gray-500"><input type="checkbox" checked={typeof q.description === 'string'} onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}/> Add Description</label>
-                                {typeof q.description === 'string' && (<input type="text" value={q.description} onChange={e => updateFn(q.id, { description: e.target.value })} className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent" placeholder="Enter description (optional)" />)}
-                                {/* Rating scale config */}
-                                <label className="block text-xs text-gray-500 mt-2">Max Value</label>
-                                <input type="number" min={1} max={10} value={q.scaleConfig?.max || 5} onChange={e => updateFn(q.id, { scaleConfig: { ...q.scaleConfig, max: Number(e.target.value) } })} className="w-20 border border-gray-200 rounded px-2 py-1 text-xs" />
-                                <label className="flex items-center gap-2 text-xs text-gray-500 mt-2"><input type="checkbox" checked={!!q.required} onChange={e => updateFn(q.id, { required: e.target.checked })}/> Required</label>
-                                <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
-                                <div className="flex gap-2 mt-2">
-                                    {Array.from({ length: q.scaleConfig?.max || 5 }).map((_, i) => (
-                                        <div key={i} className="h-10 w-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-400 font-medium bg-white">{i + 1}</div>
-                                    ))}
-                                </div>
-                            </div>
-                        );
-                    }
-                    case "slider": {
-                        return (
-                            <div className="space-y-2">
-                                <input type="text" value={q.text || ''} onChange={e => updateFn(q.id, { text: e.target.value })} className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent" placeholder="Untitled Question" />
-                                <label className="flex items-center gap-2 text-xs text-gray-500"><input type="checkbox" checked={typeof q.description === 'string'} onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}/> Add Description</label>
-                                {typeof q.description === 'string' && (<input type="text" value={q.description} onChange={e => updateFn(q.id, { description: e.target.value })} className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent" placeholder="Enter description (optional)" />)}
-                                <div className="flex gap-2 mt-2">
-                                    <label className="text-xs text-gray-500">Min</label>
-                                    <input type="number" value={q.scaleConfig?.min || 0} onChange={e => updateFn(q.id, { scaleConfig: { ...q.scaleConfig, min: Number(e.target.value) } })} className="w-16 border border-gray-200 rounded px-2 py-1 text-xs" />
-                                    <label className="text-xs text-gray-500">Max</label>
-                                    <input type="number" value={q.scaleConfig?.max || 10} onChange={e => updateFn(q.id, { scaleConfig: { ...q.scaleConfig, max: Number(e.target.value) } })} className="w-16 border border-gray-200 rounded px-2 py-1 text-xs" />
-                                    <label className="text-xs text-gray-500">Step</label>
-                                    <input type="number" value={q.scaleConfig?.step || 1} onChange={e => updateFn(q.id, { scaleConfig: { ...q.scaleConfig, step: Number(e.target.value) } })} className="w-16 border border-gray-200 rounded px-2 py-1 text-xs" />
-                                </div>
-                                <label className="flex items-center gap-2 text-xs text-gray-500 mt-2"><input type="checkbox" checked={!!q.required} onChange={e => updateFn(q.id, { required: e.target.checked })}/> Required</label>
-                                <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
-                                <input type="range" min={q.scaleConfig?.min || 0} max={q.scaleConfig?.max || 10} step={q.scaleConfig?.step || 1} className="w-full mt-2" disabled />
-                            </div>
-                        );
-                    }
-                    case "nps": {
-                        return (
-                            <div className="space-y-2">
-                                <input type="text" value={q.text || ''} onChange={e => updateFn(q.id, { text: e.target.value })} className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent" placeholder="Untitled Question" />
-                                <label className="flex items-center gap-2 text-xs text-gray-500"><input type="checkbox" checked={typeof q.description === 'string'} onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}/> Add Description</label>
-                                {typeof q.description === 'string' && (<input type="text" value={q.description} onChange={e => updateFn(q.id, { description: e.target.value })} className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent" placeholder="Enter description (optional)" />)}
-                                <label className="flex items-center gap-2 text-xs text-gray-500 mt-2"><input type="checkbox" checked={!!q.required} onChange={e => updateFn(q.id, { required: e.target.checked })}/> Required</label>
-                                <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
-                                <div className="flex gap-1 mt-2 overflow-x-auto pb-2">
-                                    {[0,1,2,3,4,5,6,7,8,9,10].map(v => (
-                                        <div key={v} className="h-10 min-w-[40px] rounded border border-gray-200 flex items-center justify-center font-bold text-sm text-gray-400 bg-white">{v}</div>
-                                    ))}
-                                </div>
-                            </div>
-                        );
-                    }
-                    case "date":
-                    case "email": {
-                        return (
-                            <div className="space-y-2">
-                                <input type="text" value={q.text || ''} onChange={e => updateFn(q.id, { text: e.target.value })} className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent" placeholder="Untitled Question" />
-                                <label className="flex items-center gap-2 text-xs text-gray-500"><input type="checkbox" checked={typeof q.description === 'string'} onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}/> Add Description</label>
-                                {typeof q.description === 'string' && (<input type="text" value={q.description} onChange={e => updateFn(q.id, { description: e.target.value })} className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent" placeholder="Enter description (optional)" />)}
-                                <label className="flex items-center gap-2 text-xs text-gray-500 mt-2"><input type="checkbox" checked={!!q.required} onChange={e => updateFn(q.id, { required: e.target.checked })}/> Required</label>
-                                <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
-                                <input type={q.type} className="w-full border border-gray-200 rounded px-2 py-1 mt-2 text-gray-400" placeholder={q.type === 'email' ? 'Recipient email' : 'Recipient date'} disabled />
-                            </div>
-                        );
-                    }
-                    case "matrix": {
-                        return (
-                            <div className="space-y-2">
-                                <input type="text" value={q.text || ''} onChange={e => updateFn(q.id, { text: e.target.value })} className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent" placeholder="Untitled Question" />
-                                <label className="flex items-center gap-2 text-xs text-gray-500"><input type="checkbox" checked={typeof q.description === 'string'} onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}/> Add Description</label>
-                                {typeof q.description === 'string' && (<input type="text" value={q.description} onChange={e => updateFn(q.id, { description: e.target.value })} className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent" placeholder="Enter description (optional)" />)}
-                                {/* Matrix rows/columns config */}
-                                <div className="flex gap-2 mt-2">
-                                    <div>
-                                        <label className="block text-xs text-gray-500 mb-1">Rows</label>
-                                        {(q.subQuestions || []).map((row, i) => (
-                                            <div key={row.id} className="flex items-center gap-2 mb-1">
-                                                <input type="text" value={row.label} onChange={e => updateFn(q.id, { subQuestions: (q.subQuestions || []).map(r => r.id === row.id ? { ...r, label: e.target.value } : r) })} className="border-b border-gray-200 text-xs focus:border-indigo-400 outline-none bg-transparent flex-1" placeholder={`Row ${i + 1}`} />
-                                                <button onClick={() => updateFn(q.id, { subQuestions: (q.subQuestions || []).filter(r => r.id !== row.id) })} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
-                                            </div>
-                                        ))}
-                                        <button onClick={() => updateFn(q.id, { subQuestions: [...(q.subQuestions || []), { id: crypto.randomUUID(), label: `Row ${(q.subQuestions?.length || 0) + 1}` }] })} className="text-xs text-indigo-600 mt-1">+ Add Row</button>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs text-gray-500 mb-1">Columns</label>
-                                        {(q.options || []).map((col, i) => (
-                                            <div key={col.id} className="flex items-center gap-2 mb-1">
-                                                <input type="text" value={col.label} onChange={e => updateOption(col.id, e.target.value)} className="border-b border-gray-200 text-xs focus:border-indigo-400 outline-none bg-transparent flex-1" placeholder={`Col ${i + 1}`} />
-                                                <button onClick={() => removeOption(col.id)} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
-                                            </div>
-                                        ))}
-                                        <button onClick={() => addOption()} className="text-xs text-indigo-600 mt-1">+ Add Column</button>
-                                    </div>
-                                </div>
-                                <label className="flex items-center gap-2 text-xs text-gray-500 mt-2"><input type="checkbox" checked={!!q.required} onChange={e => updateFn(q.id, { required: e.target.checked })}/> Required</label>
-                                <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
-                                {/* Disabled matrix preview */}
-                                <div className="overflow-x-auto mt-2">
-                                    <table className="w-full text-sm text-left">
-                                        <thead><tr className="border-b border-gray-100"><th className="p-2"></th>{(q.options || []).map(col => (<th key={col.id} className="p-2 font-medium text-gray-400 text-center">{col.label}</th>))}</tr></thead>
-                                        <tbody>{(q.subQuestions || []).map(row => (<tr key={row.id} className="border-b border-gray-50"><td className="p-3 font-medium text-gray-400">{row.label}</td>{(q.options || []).map(col => (<td key={col.id} className="p-2 text-center"><input type="radio" disabled /></td>))}</tr>))}</tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        );
-                    }
-                    case "ranking": {
-                        return (
-                            <div className="space-y-2">
-                                <input type="text" value={q.text || ''} onChange={e => updateFn(q.id, { text: e.target.value })} className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent" placeholder="Untitled Question" />
-                                <label className="flex items-center gap-2 text-xs text-gray-500"><input type="checkbox" checked={typeof q.description === 'string'} onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}/> Add Description</label>
-                                {typeof q.description === 'string' && (<input type="text" value={q.description} onChange={e => updateFn(q.id, { description: e.target.value })} className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent" placeholder="Enter description (optional)" />)}
-                                <div className="space-y-1 mt-2">
-                                    {(q.options || []).map((o, i) => (
-                                        <div key={o.id} className="flex items-center gap-2">
-                                            <input type="text" value={o.label} onChange={e => updateOption(o.id, e.target.value)} className="flex-1 border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent" placeholder={`Option ${i + 1}`} />
-                                            <button onClick={() => removeOption(o.id)} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
-                                        </div>
-                                    ))}
-                                    <button onClick={addOption} className="text-xs text-indigo-600 mt-1">+ Add Option</button>
-                                </div>
-                                <label className="flex items-center gap-2 text-xs text-gray-500 mt-2"><input type="checkbox" checked={!!q.required} onChange={e => updateFn(q.id, { required: e.target.checked })}/> Required</label>
-                                <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
-                                <div className="space-y-2 mt-2">
-                                    {(q.options || []).map((o, i) => (
-                                        <div key={o.id} className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
-                                            <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">{i + 1}</div>
-                                            <span className="text-sm text-gray-400">{o.label}</span>
-                                            <div className="ml-auto text-gray-300"><List size={16} /></div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        );
-                    }
-                    case "file_upload": {
-                        return (
-                            <div className="space-y-2">
-                                <input type="text" value={q.text || ''} onChange={e => updateFn(q.id, { text: e.target.value })} className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent" placeholder="Untitled Question" />
-                                <label className="flex items-center gap-2 text-xs text-gray-500"><input type="checkbox" checked={typeof q.description === 'string'} onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}/> Add Description</label>
-                                {typeof q.description === 'string' && (<input type="text" value={q.description} onChange={e => updateFn(q.id, { description: e.target.value })} className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent" placeholder="Enter description (optional)" />)}
-                                <label className="flex items-center gap-2 text-xs text-gray-500 mt-2"><input type="checkbox" checked={!!q.required} onChange={e => updateFn(q.id, { required: e.target.checked })}/> Required</label>
-                                <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
-                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center text-gray-400 bg-gray-50 mt-2">
-                                    <Upload className="mx-auto h-8 w-8 text-gray-300 mb-2" />
-                                    <p className="text-sm">File upload (disabled in admin mode)</p>
-                                </div>
-                            </div>
-                        );
-                    }
-                    case "weightage": {
-                        return (
-                            <div className="space-y-2">
-                                <input type="text" value={q.text || ''} onChange={e => updateFn(q.id, { text: e.target.value })} className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent" placeholder="Untitled Question" />
-                                <label className="flex items-center gap-2 text-xs text-gray-500"><input type="checkbox" checked={typeof q.description === 'string'} onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}/> Add Description</label>
-                                {typeof q.description === 'string' && (<input type="text" value={q.description} onChange={e => updateFn(q.id, { description: e.target.value })} className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent" placeholder="Enter description (optional)" />)}
-                                {/* Sub-fields (options) */}
-                                <div className="space-y-1 mt-2">
-                                    {(q.options || []).map((o, i) => (
-                                        <div key={o.id} className="flex items-center gap-2">
-                                            <input type="text" value={o.label} onChange={e => updateOption(o.id, e.target.value)} className="flex-1 border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent" placeholder={`Field ${i + 1}`} />
-                                            <button onClick={() => removeOption(o.id)} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
-                                        </div>
-                                    ))}
-                                    <button onClick={addOption} className="text-xs text-indigo-600 mt-1">+ Add Field</button>
-                                </div>
-                                <div className="text-right text-xs text-gray-500 mt-1">Total: {(q.options || []).reduce((sum, o) => sum + (Number(o.value) || 0), 0)} / {q.weightageConfig?.totalPoints || 100}</div>
-                                {((q.options || []).reduce((sum, o) => sum + (Number(o.value) || 0), 0) !== (q.weightageConfig?.totalPoints || 100)) && <div className="text-xs text-red-500">Total must match target</div>}
-                                <label className="flex items-center gap-2 text-xs text-gray-500 mt-2"><input type="checkbox" checked={!!q.required} onChange={e => updateFn(q.id, { required: e.target.checked })}/> Required</label>
-                                <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
-                            </div>
-                        );
-                    }
-            // Validation updater must be declared before use
-            const updateOptionValidation = (optId: string, field: keyof NonNullable<QuestionOption['validation']>, value: any) => {
-                const opts = q.options?.map(o => o.id === optId ? { ...o, validation: { ...o.validation, [field]: value } } : o);
-                updateFn(q.id, { options: opts });
-            };
-        // For custom field group logic
-        const updateOptionFieldType = (optId: string, fieldType: QuestionOption['fieldType']) => {
-            const opts = q.options?.map(o => o.id === optId ? { ...o, fieldType } : o);
-            updateFn(q.id, { options: opts });
-        };
-        const updateOptionValue = (optId: string, value: string | number) => {
-            const opts = q.options?.map(o => o.id === optId ? { ...o, value } : o);
-            updateFn(q.id, { options: opts });
-        };
-        const totalValue = q.options?.reduce((sum, o) => sum + (Number(o.value) || 0), 0) || 0;
-        const totalTarget = q.weightageConfig?.totalPoints || 100;
-        const showTotalError = totalValue !== totalTarget;
-    const addOption = () => {
-        const opts = q.options || [];
-        updateFn(q.id, { options: [...opts, { id: crypto.randomUUID(), label: `Option ${opts.length + 1}` }] });
-    };
-
-    const updateOption = (optId: string, label: string) => {
-        const opts = q.options?.map(o => o.id === optId ? { ...o, label } : o);
-        updateFn(q.id, { options: opts });
-    };
-
-    const removeOption = (optId: string) => {
-        updateFn(q.id, { options: q.options?.filter(o => o.id !== optId) });
-    };
-
-    switch (q.type) {
-        case "text":
-        case "textarea":
-        case "radio":
-        case "text":
-        case "textarea": {
-            // ...existing code for text/textarea...
-            return (
-                <div className="space-y-2">
-                    {/* Editable Title */}
-                    <input
-                        type="text"
-                        value={q.text || ''}
-                        onChange={e => updateFn(q.id, { text: e.target.value })}
-                        className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent"
-                        placeholder="Untitled Question"
-                    />
-                    {/* Add Description Checkbox */}
-                    <label className="flex items-center gap-2 text-xs text-gray-500">
-                        <input
-                            type="checkbox"
-                            checked={typeof q.description === 'string'}
-                            onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}
-                        />
-                        Add Description
-                    </label>
-                    {/* Editable Description */}
-                    {typeof q.description === 'string' && (
-                        <input
-                            type="text"
-                            value={q.description}
-                            onChange={e => updateFn(q.id, { description: e.target.value })}
-                            className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent"
-                            placeholder="Enter description (optional)"
-                        />
-                    )}
-                    {/* Required Checkbox */}
-                    <label className="flex items-center gap-2 text-xs text-gray-500 mt-2">
-                        <input
-                            type="checkbox"
-                            checked={!!q.required}
-                            onChange={e => updateFn(q.id, { required: e.target.checked })}
-                        />
-                        Required
-                    </label>
-                    {/* Delete Button */}
-                    <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
-                    {/* Answer Preview (disabled for admin) */}
-                    {q.type === "text" ? (
-                        <input type="text" className="w-full border border-gray-200 rounded px-2 py-1 mt-2" placeholder="Recipient answer (single line)" disabled />
-                    ) : (
-                        <textarea className="w-full border border-gray-200 rounded px-2 py-1 mt-2" rows={3} placeholder="Recipient answer (multi-line)" disabled />
-                    )}
-                </div>
-            );
-        }
-        case "radio":
-        case "checkbox":
-        case "dropdown": {
-            // Admin mode: title, description, required, delete, options
-            return (
-                <div className="space-y-2">
-                    {/* Editable Title */}
-                    <input
-                        type="text"
-                        value={q.text || ''}
-                        onChange={e => updateFn(q.id, { text: e.target.value })}
-                        className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent"
-                        placeholder="Untitled Question"
-                    />
-                    {/* Add Description Checkbox */}
-                    <label className="flex items-center gap-2 text-xs text-gray-500">
-                        <input
-                            type="checkbox"
-                            checked={typeof q.description === 'string'}
-                            onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}
-                        />
-                        Add Description
-                    </label>
-                    {/* Editable Description */}
-                    {typeof q.description === 'string' && (
-                        <input
-                            type="text"
-                            value={q.description}
-                            onChange={e => updateFn(q.id, { description: e.target.value })}
-                            className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent"
-                            placeholder="Enter description (optional)"
-                        />
-                    )}
-                    {/* Option List */}
-                    <div className="space-y-1">
-                        {(q.options || []).map((o, i) => (
-                            <div key={o.id} className="flex items-center gap-2">
-                                <input
-                                    type="text"
-                                    value={o.label}
-                                    onChange={e => updateOption(o.id, e.target.value)}
-                                    className="flex-1 border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent"
-                                    placeholder={`Option ${i + 1}`}
-                                />
-                                <button onClick={() => removeOption(o.id)} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
-                            </div>
-                        ))}
-                        <button onClick={addOption} className="text-xs text-indigo-600 mt-1">+ Add Option</button>
-                    </div>
-                    {/* Required Checkbox */}
-                    <label className="flex items-center gap-2 text-xs text-gray-500 mt-2">
-                        <input
-                            type="checkbox"
-                            checked={!!q.required}
-                            onChange={e => updateFn(q.id, { required: e.target.checked })}
-                        />
-                        Required
-                    </label>
-                    {/* Delete Button */}
-                    <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
-                    {/* Disabled preview for admin */}
-                    {q.type === "radio" && (
-                        <div className="flex gap-2 mt-2">
-                            {(q.options || []).map((o, i) => (
-                                <label key={o.id} className="flex items-center gap-1 text-gray-400">
-                                    <input type="radio" disabled />
-                                    <span>{o.label}</span>
-                                </label>
-                            ))}
-                        </div>
-                    )}
-                    {q.type === "checkbox" && (
-                        <div className="flex gap-2 mt-2">
-                            {(q.options || []).map((o, i) => (
-                                <label key={o.id} className="flex items-center gap-1 text-gray-400">
-                                    <input type="checkbox" disabled />
-                                    <span>{o.label}</span>
-                                </label>
-                            ))}
-                        </div>
-                    )}
-                    {q.type === "dropdown" && (
-                        <select className="w-full border border-gray-200 rounded px-2 py-1 mt-2 text-gray-400" disabled>
-                            <option>Select an option...</option>
-                            {(q.options || []).map(o => <option key={o.id}>{o.label}</option>)}
-                        </select>
-                    )}
-                </div>
-            );
-        }
-                        <Plus size={14} /> Add Field
-                    </button>
-                    <div className="flex items-center gap-2 mt-2">
-                        <span className="text-xs text-gray-500">Total:</span>
-                        <span className={`text-xs font-bold ${showTotalError ? 'text-red-500' : 'text-green-600'}`}>{totalValue}</span>
-                        <span className="text-xs text-gray-500">/ {totalTarget} {q.options?.some(o => o.fieldType === 'percentage') ? '%' : ''}</span>
-                        {showTotalError && <span className="text-xs text-red-500 ml-2">Total must match target</span>}
-                    </div>
-                </div>
-            );
-        case "rating":
-            return (
-                <div className="flex gap-4 text-2xl text-gray-300">
-                    {[1,2,3,4,5].map(i => <span key={i}>★</span>)}
-                </div>
-            );
-        case "nps":
-            return (
-                <div className="flex gap-1 overflow-x-auto py-2">
-                    {[0,1,2,3,4,5,6,7,8,9,10].map(n => (
-                        <div key={n} className="w-10 h-10 flex items-center justify-center border border-gray-200 rounded-md text-sm text-gray-500 bg-gray-50">
-                            {n}
-                        </div>
-                    ))}
-                </div>
-            );
-        case "matrix":
-            return (
-                <div className="space-y-6">
-                    <div>
-                        <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Columns (Options)</h4>
-                        <div className="space-y-2">
-                            {q.options?.map((opt, i) => (
-                                <div key={opt.id} className="flex items-center gap-2">
-                                    <div className="w-4 h-4 border border-gray-300 rounded-full" />
-                                    <input 
-                                        value={opt.label}
-                                        onChange={(e) => updateOption(opt.id, e.target.value)}
-                                        className="flex-1 border-none bg-transparent focus:ring-0 text-sm hover:bg-gray-50 rounded px-2 py-1"
-                                        placeholder={`Column ${i+1}`}
-                                    />
-                                    <button onClick={() => removeOption(opt.id)} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
-                                </div>
-                            ))}
-                            <button onClick={addOption} className="text-sm text-indigo-600 font-medium hover:underline flex items-center gap-1 mt-2">
-                                <Plus size={14} /> Add Column
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">Rows (Questions)</h4>
-                        <div className="space-y-2">
-                            {q.subQuestions?.map((sq, i) => (
-                                <div key={sq.id} className="flex items-center gap-2">
-                                    <span className="text-xs text-gray-400 w-4">{i+1}.</span>
-                                    <input 
-                                        value={sq.label}
-                                        onChange={(e) => {
-                                            const newSubs = q.subQuestions?.map(s => s.id === sq.id ? { ...s, label: e.target.value } : s);
-                                            updateFn(q.id, { subQuestions: newSubs });
-                                        }}
-                                        className="flex-1 border-none bg-transparent focus:ring-0 text-sm hover:bg-gray-50 rounded px-2 py-1"
-                                        placeholder={`Row ${i+1}`}
-                                    />
-                                    <button onClick={() => {
-                                        const newSubs = q.subQuestions?.filter(s => s.id !== sq.id);
-                                        updateFn(q.id, { subQuestions: newSubs });
-                                    }} className="text-gray-400 hover:text-red-500"><Trash2 size={14} /></button>
-                                </div>
-                            ))}
-                            <button 
-                                onClick={() => {
-                                    const newSub = { id: crypto.randomUUID(), label: `Row ${(q.subQuestions?.length || 0) + 1}` };
-                                    updateFn(q.id, { subQuestions: [...(q.subQuestions || []), newSub] });
-                                }}
-                                className="text-sm text-indigo-600 font-medium hover:underline flex items-center gap-1 mt-2"
-                            >
-                                <Plus size={14} /> Add Row
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            );
-        case "weightage":
-            return (
-                <div className="space-y-2">
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm text-gray-600">Total Points Target:</span>
-                        <input 
-                            type="number"
-                            value={q.weightageConfig?.totalPoints || 100}
-                            onChange={(e) => updateFn(q.id, { weightageConfig: { totalPoints: parseInt(e.target.value) } })}
-                            className="w-20 border border-gray-300 rounded px-2 py-1 text-sm"
-                        />
-                    </div>
-                     {q.options?.map((opt, i) => (
-                        <div key={opt.id} className="flex items-center gap-2">
-                            <span className="text-gray-400 text-sm">Item:</span>
-                            <input 
-                                value={opt.label}
-                                onChange={(e) => updateOption(opt.id, e.target.value)}
-                                className="flex-1 border-none bg-transparent focus:ring-0 text-sm hover:bg-gray-50 rounded px-2 py-1"
-                            />
-                             <div className="w-16 h-8 border border-gray-200 bg-gray-50 rounded flex items-center justify-center text-xs text-gray-400">0</div>
-                            <button onClick={() => removeOption(opt.id)} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
-                        </div>
-                    ))}
-                     <button onClick={addOption} className="text-sm text-indigo-600 font-medium hover:underline flex items-center gap-1 mt-2">
-                        <Plus size={14} /> Add Item
-                    </button>
-                </div>
-            );
-        case "slider":
-            return (
-                <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="text-xs font-semibold text-gray-500 uppercase">Min Value</label>
-                            <input 
-                                type="number" 
-                                value={q.scaleConfig?.min ?? 0}
-                                onChange={(e) => updateFn(q.id, { scaleConfig: {
-                                    min: isNaN(parseInt(e.target.value)) ? 0 : parseInt(e.target.value),
-                                    max: typeof q.scaleConfig?.max === 'number' ? q.scaleConfig.max : 10,
-                                    minLabel: q.scaleConfig?.minLabel ?? "Poor",
-                                    maxLabel: q.scaleConfig?.maxLabel ?? "Excellent"
-                                } })}
-                                className="w-full border-b border-gray-200 py-1 bg-transparent text-sm"
-                            />
-                        </div>
-                        <div>
-                            <label className="text-xs font-semibold text-gray-500 uppercase">Max Value</label>
-                            <input 
-                                type="number" 
-                                value={q.scaleConfig?.max ?? 100}
-                                onChange={(e) => updateFn(q.id, { scaleConfig: {
-                                    min: typeof q.scaleConfig?.min === 'number' ? q.scaleConfig.min : 0,
-                                    max: isNaN(parseInt(e.target.value)) ? 10 : parseInt(e.target.value),
-                                    minLabel: q.scaleConfig?.minLabel ?? "Poor",
-                                    maxLabel: q.scaleConfig?.maxLabel ?? "Excellent"
-                                } })}
-                                className="w-full border-b border-gray-200 py-1 bg-transparent text-sm"
-                            />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="text-xs font-semibold text-gray-500 uppercase">Min Label</label>
-                            <input 
-                                value={q.scaleConfig?.minLabel || ''}
-                                onChange={(e) => updateFn(q.id, { scaleConfig: {
-                                    min: typeof q.scaleConfig?.min === 'number' ? q.scaleConfig.min : 0,
-                                    max: typeof q.scaleConfig?.max === 'number' ? q.scaleConfig.max : 10,
-                                    minLabel: e.target.value,
-                                    maxLabel: q.scaleConfig?.maxLabel ?? "Excellent"
-                                } })}
-                                className="w-full border-b border-gray-200 py-1 bg-transparent text-sm"
-                                placeholder="e.g. Poor"
-                            />
-                        </div>
-                        <div>
-                            <label className="text-xs font-semibold text-gray-500 uppercase">Max Label</label>
-                            <input 
-                                value={q.scaleConfig?.maxLabel || ''}
-                                onChange={(e) => updateFn(q.id, { scaleConfig: {
-                                    min: typeof q.scaleConfig?.min === 'number' ? q.scaleConfig.min : 0,
-                                    max: typeof q.scaleConfig?.max === 'number' ? q.scaleConfig.max : 10,
-                                    minLabel: q.scaleConfig?.minLabel ?? "Poor",
-                                    maxLabel: e.target.value
-                                } })}
-                                className="w-full border-b border-gray-200 py-1 bg-transparent text-sm"
-                                placeholder="e.g. Excellent"
-                            />
-                        </div>
-                    </div>
-                </div>
-            );
-        default:
-            return null;
-    }
-}
