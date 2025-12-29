@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import AdminTopBar from "../components/AdminTopBar";
+import AdminFooter from "../components/AdminFooter";
 
 const API_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL ||
@@ -1612,180 +1614,18 @@ const CorporateManagement = () => {
     <div
       style={{
         minHeight: "100vh",
-        backgroundColor: colors.gray[50],
+        background: "#f9fafb",
         display: "flex",
         flexDirection: "column",
       }}
     >
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "white",
-          borderBottom: `1px solid ${colors.gray[200]}`,
-          padding: "12px 24px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          position: "sticky",
-          top: 0,
-          zIndex: 100,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-          <img
-            src="/images/marketing/logo.png"
-            alt="BenefitNest"
-            style={{ height: "40px", objectFit: "contain" }}
-            onError={(e) => {
-              e.target.style.display = "none";
-            }}
-          />
-          <button
-            onClick={() => router.push("/admin/dashboard")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              color: colors.gray[600],
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "14px",
-            }}
-          >
-            ← Dashboard
-          </button>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          {/* User Profile Dropdown */}
-          <div style={{ position: "relative" }}>
-            <button
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "8px 12px",
-                backgroundColor: colors.gray[100],
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                fontSize: "14px",
-                fontWeight: "500",
-                color: colors.gray[700],
-              }}
-            >
-              <span style={{ fontSize: "20px" }}>👤</span>
-              <span>Admin</span>
-              <span style={{ fontSize: "12px" }}>▼</span>
-            </button>
-            {showProfileMenu && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  right: 0,
-                  marginTop: "8px",
-                  backgroundColor: "white",
-                  borderRadius: "8px",
-                  boxShadow: "0 10px 40px rgba(0,0,0,0.15)",
-                  border: `1px solid ${colors.gray[200]}`,
-                  minWidth: "180px",
-                  zIndex: 200,
-                }}
-              >
-                <div
-                  style={{
-                    padding: "12px 16px",
-                    borderBottom: `1px solid ${colors.gray[200]}`,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: "600",
-                      color: colors.gray[900],
-                    }}
-                  >
-                    Administrator
-                  </div>
-                  <div style={{ fontSize: "12px", color: colors.gray[500] }}>
-                    admin@benefitnest.com
-                  </div>
-                </div>
-                <div style={{ padding: "8px" }}>
-                  <button
-                    onClick={() => {
-                      setShowProfileMenu(false);
-                      router.push("/admin/profile");
-                    }}
-                    style={{
-                      width: "100%",
-                      padding: "10px 12px",
-                      textAlign: "left",
-                      backgroundColor: "transparent",
-                      border: "none",
-                      borderRadius: "6px",
-                      cursor: "pointer",
-                      fontSize: "14px",
-                      color: colors.gray[700],
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                    }}
-                  >
-                    👤 My Profile
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowProfileMenu(false);
-                      router.push("/admin/settings");
-                    }}
-                    style={{
-                      width: "100%",
-                      padding: "10px 12px",
-                      textAlign: "left",
-                      backgroundColor: "transparent",
-                      border: "none",
-                      borderRadius: "6px",
-                      cursor: "pointer",
-                      fontSize: "14px",
-                      color: colors.gray[700],
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                    }}
-                  >
-                    ⚙️ Settings
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-          <Button
-            variant="danger"
-            icon="🚪"
-            onClick={() => {
-              document.cookie =
-                "admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-              localStorage.removeItem("admin_token");
-              router.push("/admin/");
-            }}
-          >
-            Logout
-          </Button>
-        </div>
-      </header>
-      {showProfileMenu && (
-        <div
-          style={{ position: "fixed", inset: 0, zIndex: 99 }}
-          onClick={() => setShowProfileMenu(false)}
-        />
-      )}
-
-      {/* Main Content */}
-      <main style={{ padding: "24px", maxWidth: "1600px", margin: "0 auto" }}>
+      <AdminTopBar
+        title="Corporate Management"
+        subtitle="Onboard corporates, configure subdomains, branding, and more."
+        icon={<span style={{ fontSize: 24 }}>🏢</span>}
+        showBack={true}
+      />
+      <main style={{ flex: 1, width: "100%", maxWidth: 1400, margin: "0 auto", padding: 24 }}>
         {/* Title and Actions */}
         <div
           style={{
@@ -3757,35 +3597,7 @@ const CorporateManagement = () => {
       )}
 
       {/* Footer */}
-      <footer
-        style={{
-          marginTop: "auto",
-          padding: "20px 24px",
-          backgroundColor: "white",
-          borderTop: `1px solid ${colors.gray[200]}`,
-          textAlign: "center",
-        }}
-      >
-        <p
-          style={{
-            fontSize: "13px",
-            color: colors.gray[500],
-            marginBottom: "4px",
-          }}
-        >
-          © {new Date().getFullYear()} BenefitNest. All rights reserved.
-        </p>
-        <p style={{ fontSize: "12px", color: colors.gray[400] }}>
-          Developed by Sanjai & Aaryam
-        </p>
-      </footer>
-
-      {/* Global Styles */}
-      <style>{`
-                @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-                * { box-sizing: border-box; }
-                input:focus, select:focus, textarea:focus { border-color: ${colors.primary} !important; box-shadow: 0 0 0 3px ${colors.primaryLight}; }
-            `}</style>
+      <AdminFooter />
     </div>
   );
 };

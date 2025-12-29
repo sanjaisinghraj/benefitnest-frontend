@@ -1,14 +1,21 @@
 "use client";
 import React from "react";
 import AdminTopBar from "../components/AdminTopBar";
+import AdminFooter from "../components/AdminFooter";
 
 export default function Page() {
   return (
-    <div style={{ padding: 24 }}>
-      <AdminTopBar title="Enrollment Management" />
-      <p style={{ color: "#4b5563" }}>
-        Configure enrollment windows, grace periods, filters, trade-offs, and wallet panel.
-      </p>
+    <div style={{ minHeight: "100vh", background: "#f9fafb", display: "flex", flexDirection: "column" }}>
+      <AdminTopBar
+        title="Enrollment Management"
+        subtitle="Configure enrollment windows, grace periods, filters, trade-offs, and wallet panel."
+        icon={<span style={{ fontSize: 24 }}>📝</span>}
+        showBack={true}
+      />
+      <main style={{ flex: 1, width: "100%", maxWidth: 1400, margin: "0 auto", padding: 24 }}>
+        {/* ...existing content... */}
+      </main>
+      <AdminFooter />
     </div>
   );
 }

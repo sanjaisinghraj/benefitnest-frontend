@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import AdminTopBar from "../components/AdminTopBar";
+import AdminFooter from "../components/AdminFooter";
 
 const API_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL ||
@@ -1338,27 +1340,6 @@ const LivePreview = ({
                 📱 Sign in with OTP
               </button>
             )}
-
-            {/* Footer */}
-            <div
-              style={{
-                textAlign: "center",
-                marginTop: "12px",
-                paddingTop: "10px",
-                borderTop: `1px solid ${theme.border}`,
-              }}
-            >
-              <p
-                style={{
-                  color: theme.text,
-                  opacity: 0.3,
-                  fontSize: "7px",
-                  margin: 0,
-                }}
-              >
-                Powered by <strong>BenefitNest</strong>
-              </p>
-            </div>
           </div>
         </div>
       </div>
@@ -1367,7 +1348,7 @@ const LivePreview = ({
 };
 
 // Main Component
-export default function PortalDesignerStudio() {
+export default function PortalCustomizationPage() {
   // Preview type: 'login' or 'main'
   const [previewType, setPreviewType] = useState<"login" | "main">("main");
   const router = useRouter();
@@ -1706,230 +1687,246 @@ export default function PortalDesignerStudio() {
     <div
       style={{
         minHeight: "100vh",
-        backgroundColor: "#f8fafc",
+        background: "#f9fafb",
         display: "flex",
         flexDirection: "column",
       }}
     >
-      {/* Header */}
-      <header
+      <AdminTopBar
+        title="Portal Designer Studio"
+        subtitle="AI-Powered Brand Discovery"
+        icon={<span style={{ fontSize: 24 }}>🎨</span>}
+        showBack={true}
+      />
+      <main
         style={{
-          background: "white",
-          borderBottom: `1px solid ${colors.gray[200]}`,
-          position: "sticky",
-          top: 0,
-          zIndex: 50,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          flex: 1,
+          width: "100%",
+          maxWidth: 1400,
+          margin: "0 auto",
+          padding: 24,
         }}
       >
+        {/* Header */}
         <div
           style={{
-            maxWidth: "1800px",
-            margin: "0 auto",
-            padding: "14px 24px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            background: "white",
+            borderBottom: `1px solid ${colors.gray[200]}`,
+            position: "sticky",
+            top: 0,
+            zIndex: 50,
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-            <img
-              src="/images/marketing/logo.png"
-              alt="BenefitNest"
-              style={{ height: "40px", objectFit: "contain" }}
-              onError={(e: any) => {
-                e.target.style.display = "none";
-              }}
-            />
-            <button
-              onClick={() => router.push("/admin/dashboard")}
-              style={{
-                background: colors.gray[100],
-                border: "none",
-                color: colors.gray[700],
-                padding: "10px 16px",
-                borderRadius: "10px",
-                cursor: "pointer",
-                fontSize: "13px",
-                fontWeight: "500",
-              }}
-            >
-              ← Dashboard
-            </button>
-            <div
-              style={{
-                height: "30px",
-                width: "1px",
-                backgroundColor: colors.gray[200],
-              }}
-            />
-            <div>
-              <h1
-                style={{
-                  fontSize: "22px",
-                  fontWeight: "800",
-                  margin: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  color: colors.gray[900],
+          <div
+            style={{
+              maxWidth: "1800px",
+              margin: "0 auto",
+              padding: "14px 24px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+              <img
+                src="/images/marketing/logo.png"
+                alt="BenefitNest"
+                style={{ height: "40px", objectFit: "contain" }}
+                onError={(e: any) => {
+                  e.target.style.display = "none";
                 }}
-              >
-                <span style={{ fontSize: "28px" }}>🎨</span> Portal Designer
-                Studio
-              </h1>
-              <p
-                style={{
-                  fontSize: "12px",
-                  color: colors.gray[500],
-                  margin: 0,
-                  marginTop: "2px",
-                }}
-              >
-                AI-Powered Brand Discovery
-              </p>
-            </div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            {hasUnsavedChanges && <Badge variant="warning">● Unsaved</Badge>}
-            {selectedCorporate && (
-              <Button
-                variant="ai"
-                size="md"
-                icon="💾"
-                onClick={handleSave}
-                loading={saving}
-              >
-                Save Design
-              </Button>
-            )}
-            <div
-              style={{
-                height: "30px",
-                width: "1px",
-                backgroundColor: colors.gray[200],
-              }}
-            />
-            {/* User Profile Dropdown */}
-            <div style={{ position: "relative" }}>
+              />
               <button
-                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                onClick={() => router.push("/admin/dashboard")}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  padding: "8px 12px",
-                  backgroundColor: colors.gray[100],
+                  background: colors.gray[100],
                   border: "none",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  fontSize: "14px",
-                  fontWeight: "500",
                   color: colors.gray[700],
+                  padding: "10px 16px",
+                  borderRadius: "10px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  fontWeight: "500",
                 }}
               >
-                <span style={{ fontSize: "20px" }}>👤</span>
-                <span>Admin</span>
-                <span style={{ fontSize: "12px" }}>▼</span>
+                ← Dashboard
               </button>
-              {showProfileMenu && (
-                <div
+              <div
+                style={{
+                  height: "30px",
+                  width: "1px",
+                  backgroundColor: colors.gray[200],
+                }}
+              />
+              <div>
+                <h1
                   style={{
-                    position: "absolute",
-                    top: "100%",
-                    right: 0,
-                    marginTop: "8px",
-                    backgroundColor: "white",
-                    borderRadius: "8px",
-                    boxShadow: "0 10px 40px rgba(0,0,0,0.15)",
-                    border: `1px solid ${colors.gray[200]}`,
-                    minWidth: "180px",
-                    zIndex: 200,
+                    fontSize: "22px",
+                    fontWeight: "800",
+                    margin: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    color: colors.gray[900],
                   }}
                 >
+                  <span style={{ fontSize: "28px" }}>🎨</span> Portal Designer
+                  Studio
+                </h1>
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: colors.gray[500],
+                    margin: 0,
+                    marginTop: "2px",
+                  }}
+                >
+                  AI-Powered Brand Discovery
+                </p>
+              </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              {hasUnsavedChanges && <Badge variant="warning">● Unsaved</Badge>}
+              {selectedCorporate && (
+                <Button
+                  variant="ai"
+                  size="md"
+                  icon="💾"
+                  onClick={handleSave}
+                  loading={saving}
+                >
+                  Save Design
+                </Button>
+              )}
+              <div
+                style={{
+                  height: "30px",
+                  width: "1px",
+                  backgroundColor: colors.gray[200],
+                }}
+              />
+              {/* User Profile Dropdown */}
+              <div style={{ position: "relative" }}>
+                <button
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "8px 12px",
+                    backgroundColor: colors.gray[100],
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    color: colors.gray[700],
+                  }}
+                >
+                  <span style={{ fontSize: "20px" }}>👤</span>
+                  <span>Admin</span>
+                  <span style={{ fontSize: "12px" }}>▼</span>
+                </button>
+                {showProfileMenu && (
                   <div
                     style={{
-                      padding: "12px 16px",
-                      borderBottom: `1px solid ${colors.gray[200]}`,
+                      position: "absolute",
+                      top: "100%",
+                      right: 0,
+                      marginTop: "8px",
+                      backgroundColor: "white",
+                      borderRadius: "8px",
+                      boxShadow: "0 10px 40px rgba(0,0,0,0.15)",
+                      border: `1px solid ${colors.gray[200]}`,
+                      minWidth: "180px",
+                      zIndex: 200,
                     }}
                   >
                     <div
                       style={{
-                        fontSize: "14px",
-                        fontWeight: "600",
-                        color: colors.gray[900],
+                        padding: "12px 16px",
+                        borderBottom: `1px solid ${colors.gray[200]}`,
                       }}
                     >
-                      Administrator
+                      <div
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: "600",
+                          color: colors.gray[900],
+                        }}
+                      >
+                        Administrator
+                      </div>
+                      <div style={{ fontSize: "12px", color: colors.gray[500] }}>
+                        admin@benefitnest.com
+                      </div>
                     </div>
-                    <div style={{ fontSize: "12px", color: colors.gray[500] }}>
-                      admin@benefitnest.com
+                    <div style={{ padding: "8px" }}>
+                      <button
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          router.push("/admin/profile");
+                        }}
+                        style={{
+                          width: "100%",
+                          padding: "10px 12px",
+                          textAlign: "left",
+                          backgroundColor: "transparent",
+                          border: "none",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                          fontSize: "14px",
+                          color: colors.gray[700],
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        👤 My Profile
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          router.push("/admin/settings");
+                        }}
+                        style={{
+                          width: "100%",
+                          padding: "10px 12px",
+                          textAlign: "left",
+                          backgroundColor: "transparent",
+                          border: "none",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                          fontSize: "14px",
+                          color: colors.gray[700],
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        ⚙️ Settings
+                      </button>
                     </div>
                   </div>
-                  <div style={{ padding: "8px" }}>
-                    <button
-                      onClick={() => {
-                        setShowProfileMenu(false);
-                        router.push("/admin/profile");
-                      }}
-                      style={{
-                        width: "100%",
-                        padding: "10px 12px",
-                        textAlign: "left",
-                        backgroundColor: "transparent",
-                        border: "none",
-                        borderRadius: "6px",
-                        cursor: "pointer",
-                        fontSize: "14px",
-                        color: colors.gray[700],
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                      }}
-                    >
-                      👤 My Profile
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowProfileMenu(false);
-                        router.push("/admin/settings");
-                      }}
-                      style={{
-                        width: "100%",
-                        padding: "10px 12px",
-                        textAlign: "left",
-                        backgroundColor: "transparent",
-                        border: "none",
-                        borderRadius: "6px",
-                        cursor: "pointer",
-                        fontSize: "14px",
-                        color: colors.gray[700],
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                      }}
-                    >
-                      ⚙️ Settings
-                    </button>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
+              <button
+                onClick={handleLogout}
+                style={{
+                  background: "#ef4444",
+                  border: "none",
+                  color: "white",
+                  padding: "10px 18px",
+                  borderRadius: "10px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                }}
+              >
+                Logout
+              </button>
             </div>
-            <button
-              onClick={handleLogout}
-              style={{
-                background: "#ef4444",
-                border: "none",
-                color: "white",
-                padding: "10px 18px",
-                borderRadius: "10px",
-                cursor: "pointer",
-                fontSize: "13px",
-                fontWeight: "600",
-              }}
-            >
-              Logout
-            </button>
           </div>
         </div>
       </header>
@@ -2414,6 +2411,9 @@ export default function PortalDesignerStudio() {
                       }}
                     >
                       <h4
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: "600",
                         style={{
                           fontSize: "14px",
                           fontWeight: "600",
