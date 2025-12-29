@@ -173,7 +173,8 @@ const DailyTip = () => {
       text: "Take 5 minutes to practice deep breathing when you feel stressed.",
     },
   ];
-  const tip = tips[Math.floor(Math.random() * tips.length)];
+  const [tipIndex] = React.useState(() => Math.floor(Math.random() * tips.length));
+  const tip = tips[tipIndex];
 
   return (
     <div className="bg-gradient-to-r from-teal-500 to-cyan-500 rounded-xl p-5 text-white mb-8">

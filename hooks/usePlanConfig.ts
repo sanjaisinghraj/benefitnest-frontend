@@ -9,11 +9,9 @@ export function usePlanConfig(
 ) {
   const client = useApolloClient();
   const [config, setConfig] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!planType || !corporateId) return;
-    setLoading(true);
     client
       .query({
         query: gql`
@@ -40,9 +38,8 @@ export function usePlanConfig(
         // Type guard for res.data
         const data = (res.data as { getConfig?: { configJson?: any } }) || {};
         setConfig(data.getConfig?.configJson || null);
-      })
-      .finally(() => setLoading(false));
+      });
   }, [planType, corporateId, countryCode]);
 
-  return { config, loading };
+  return { config, loading: false };
 }
