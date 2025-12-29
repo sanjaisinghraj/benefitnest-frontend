@@ -10,7 +10,8 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, Resp
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#A28BFE", "#FF6699"];
 
 export default function AdminAnalyticsPage() {
-  const { data: session } = useSession();
+  const sessionObj = useSession();
+  const session = sessionObj?.data;
   const user = session?.user;
   const client = useApolloClient();
   const [corporateId, setCorporateId] = useState("");
