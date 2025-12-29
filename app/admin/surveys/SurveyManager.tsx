@@ -133,10 +133,12 @@ function SurveyManager() {
                         </div>
                     );
                 }
-                .split("; ")
-                .find((r) => r.startsWith("admin_token="))
-                ?.split("=")[1] || localStorage.getItem("admin_token")
-        );
+    const getToken = () => {
+        if (typeof window === "undefined") return null;
+        const cookieToken = document.cookie
+            .split("; ")
+            .find((r) => r.startsWith("admin_token="));
+        return (cookieToken ? cookieToken.split("=")[1] : null) || localStorage.getItem("admin_token");
     };
     const getAuthHeaders = () => ({ Authorization: `Bearer ${getToken()}` });
 
