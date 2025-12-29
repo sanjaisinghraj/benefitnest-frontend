@@ -15,6 +15,13 @@ interface QuestionOption {
     label: string;
     fieldType?: 'text' | 'email' | 'date' | 'textarea' | 'number' | 'percentage';
     value?: string | number;
+    validation?: {
+        required?: boolean;
+        min?: number;
+        max?: number;
+        regex?: string;
+        errorMessage?: string;
+    };
 }
 
 interface SubQuestion {
@@ -673,8 +680,13 @@ const renderPreviewInput = (q: Question) => {
 
 // --- Question Body Renderer ---
 function renderQuestionBody(q: Question, updateFn: (id: string, u: Partial<Question>) => void) {
+            // Validation updater must be declared before use
+            const updateOptionValidation = (optId: string, field: keyof NonNullable<QuestionOption['validation']>, value: any) => {
+                const opts = q.options?.map(o => o.id === optId ? { ...o, validation: { ...o.validation, [field]: value } } : o);
+                updateFn(q.id, { options: opts });
+            };
         // For custom field group logic
-        const updateOptionFieldType = (optId: string, fieldType: string) => {
+        const updateOptionFieldType = (optId: string, fieldType: QuestionOption['fieldType']) => {
             const opts = q.options?.map(o => o.id === optId ? { ...o, fieldType } : o);
             updateFn(q.id, { options: opts });
         };
@@ -705,7 +717,7 @@ function renderQuestionBody(q: Question, updateFn: (id: string, u: Partial<Quest
         case "radio":
         case "checkbox":
         case "dropdown":
-            // Custom field group logic: allow admin to add fields, set type, and value/percentage
+            // Custom field group logic: allow admin to add fields, set type, value/percentage, and validation
             return (
                 <div className="space-y-2">
                     {q.options?.map((opt, i) => (
@@ -718,7 +730,7 @@ function renderQuestionBody(q: Question, updateFn: (id: string, u: Partial<Quest
                             />
                             <select
                                 value={opt.fieldType || 'text'}
-                                onChange={e => updateOptionFieldType(opt.id, e.target.value)}
+                                onChange={e => updateOptionFieldType(opt.id, e.target.value as QuestionOption['fieldType'])}
                                 className="border border-gray-200 rounded px-2 py-1 text-xs"
                             >
                                 <option value="text">Text</option>
@@ -736,6 +748,21 @@ function renderQuestionBody(q: Question, updateFn: (id: string, u: Partial<Quest
                                 placeholder="Value"
                             />
                             <span className="text-xs text-gray-400">{opt.fieldType === 'percentage' ? '%' : ''}</span>
+                            {/* Validation controls */}
+                            <div className="flex flex-col gap-1 ml-2">
+                              <label className="text-[10px] text-gray-400">Validation</label>
+                              <input type="checkbox" checked={!!opt.validation?.required} onChange={e => updateOptionValidation(opt.id, 'required', e.target.checked)} /> <span className="text-[10px]">Required</span>
+                              {(opt.fieldType === 'number' || opt.fieldType === 'percentage') && (
+                                <>
+                                  <input type="number" placeholder="Min" className="w-12 border border-gray-200 rounded px-1 text-xs" value={opt.validation?.min ?? ''} onChange={e => updateOptionValidation(opt.id, 'min', e.target.value ? Number(e.target.value) : undefined)} />
+                                  <input type="number" placeholder="Max" className="w-12 border border-gray-200 rounded px-1 text-xs" value={opt.validation?.max ?? ''} onChange={e => updateOptionValidation(opt.id, 'max', e.target.value ? Number(e.target.value) : undefined)} />
+                                </>
+                              )}
+                              {opt.fieldType === 'text' && (
+                                <input type="text" placeholder="Regex" className="w-24 border border-gray-200 rounded px-1 text-xs" value={opt.validation?.regex ?? ''} onChange={e => updateOptionValidation(opt.id, 'regex', e.target.value)} />
+                              )}
+                              <input type="text" placeholder="Error message" className="w-24 border border-gray-200 rounded px-1 text-xs" value={opt.validation?.errorMessage ?? ''} onChange={e => updateOptionValidation(opt.id, 'errorMessage', e.target.value)} />
+                            </div>
                             <button onClick={() => removeOption(opt.id)} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
                         </div>
                     ))}

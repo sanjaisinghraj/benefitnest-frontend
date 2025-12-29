@@ -10,6 +10,15 @@ interface QuestionOption {
   label: string;
   fieldType?: 'text' | 'email' | 'date' | 'textarea' | 'number' | 'percentage';
   value?: string | number;
+  validation?: {
+    required?: boolean;
+    min?: number;
+    max?: number;
+    regex?: string;
+    errorMessage?: string;
+  };
+  fieldType?: 'text' | 'email' | 'date' | 'textarea' | 'number' | 'percentage';
+  value?: string | number;
 }
 
 interface Question {
@@ -82,11 +91,51 @@ export default function SurveyPage({ params }: { params: { id: string } }) {
 
     // Validation
     for (const q of survey.questions) {
+      // Required check
       if (q.required) {
         const val = answers[q.id];
         if (!val || (Array.isArray(val) && val.length === 0)) {
           alert(`Please answer: ${q.text}`);
           return;
+        }
+      }
+      // Weightage/percentage validation for custom field group
+      if (q.options && q.options.length > 0 && q.options[0].fieldType) {
+        const totalTarget = q.weightageConfig?.totalPoints || 100;
+        const total = q.options.filter(o => o.fieldType === 'number' || o.fieldType === 'percentage').reduce((sum, o) => sum + (Number(answers[`${q.id}_${o.id}`]) || 0), 0);
+        if (q.options.some(o => o.fieldType === 'number' || o.fieldType === 'percentage') && total !== totalTarget) {
+          alert(`Total for \"${q.text}\" must be exactly ${totalTarget}. Currently: ${total}`);
+          return;
+        }
+        // Per-field admin validation
+        for (const opt of q.options) {
+          const val = answers[`${q.id}_${opt.id}`];
+          if (opt.validation) {
+            if (opt.validation.required && (val === undefined || val === '')) {
+              alert(opt.validation.errorMessage || `Field "${opt.label}" is required.`);
+              return;
+            }
+            if (typeof val === 'string' && opt.validation.regex) {
+              try {
+                const re = new RegExp(opt.validation.regex);
+                if (!re.test(val)) {
+                  alert(opt.validation.errorMessage || `Field "${opt.label}" does not match required format.`);
+                  return;
+                }
+              } catch {}
+            }
+            if ((opt.fieldType === 'number' || opt.fieldType === 'percentage') && val !== undefined && val !== '') {
+              const num = Number(val);
+              if (opt.validation.min !== undefined && num < opt.validation.min) {
+                alert(opt.validation.errorMessage || `Field "${opt.label}" must be at least ${opt.validation.min}.`);
+                return;
+              }
+              if (opt.validation.max !== undefined && num > opt.validation.max) {
+                alert(opt.validation.errorMessage || `Field "${opt.label}" must be at most ${opt.validation.max}.`);
+                return;
+              }
+            }
+          }
         }
       }
     }
