@@ -17,8 +17,6 @@ interface QuestionOption {
     regex?: string;
     errorMessage?: string;
   };
-  fieldType?: 'text' | 'email' | 'date' | 'textarea' | 'number' | 'percentage';
-  value?: string | number;
 }
 
 interface Question {
