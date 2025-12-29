@@ -86,9 +86,95 @@ interface Tenant {
 // --- Components ---
 
 function SurveyManager() {
-    // ...existing state and logic here...
-    // ...all the code for fetching, state, handlers, etc...
-    // ...move the return block here...
+    // --- State ---
+    const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
+    const [view, setView] = useState<"list" | "editor">("list");
+    const [surveys, setSurveys] = useState<Survey[]>([]);
+    const [tenants, setTenants] = useState<Tenant[]>([]);
+    const [selectedTenants, setSelectedTenants] = useState<string[]>([]);
+    const [currentSurvey, setCurrentSurvey] = useState<Survey | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+
+    // --- Effects ---
+    useEffect(() => {
+        fetchTenants();
+        fetchSurveys();
+    }, []);
+    useEffect(() => {
+        fetchSurveys();
+    }, [selectedTenants, searchTerm]);
+
+    // --- Helpers ---
+    const getToken = () => {
+        if (typeof window === "undefined") return null;
+        return (
+            document.cookie
+                .split("; ")
+                .find((r) => r.startsWith("admin_token="))
+                ?.split("=")[1] || localStorage.getItem("admin_token")
+        );
+    };
+    const getAuthHeaders = () => ({ Authorization: `Bearer ${getToken()}` });
+
+    // --- Data Fetching ---
+    const fetchTenants = async () => {
+        try {
+            const res = await axios.get(`${API_URL}/api/admin/corporates`, { headers: getAuthHeaders() });
+            if (res.data.success) {
+                setTenants(res.data.data.map((t: any) => ({ id: t.tenant_id, name: t.company_name || t.name, subdomain: t.subdomain })));
+            }
+        } catch (err) {
+            console.warn("Failed to fetch tenants", err);
+        }
+    };
+    const fetchSurveys = async () => {
+        try {
+            setLoading(true);
+            const params: any = { search: searchTerm, limit: 5 };
+            if (selectedTenants.length > 0) params.tenantId = selectedTenants.join(',');
+            const res = await axios.get(`${API_URL}/api/surveys`, { headers: getAuthHeaders(), params });
+            if (res.data.success) {
+                setSurveys(res.data.data);
+            }
+        } catch (err) {
+            console.error("Failed to fetch surveys", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // --- Handlers ---
+    const handleCreateNew = () => {
+        const newSurvey: Survey = {
+            id: crypto.randomUUID(),
+            title: "Untitled Survey",
+            description: "",
+            questions: [],
+            status: "draft",
+            createdAt: new Date().toISOString().split('T')[0],
+            branding: {
+                primaryColor: "#4f46e5",
+                backgroundColor: "#f9fafb",
+                headingColor: "#111827",
+                fontFamily: "Inter"
+            }
+        };
+        setCurrentSurvey(newSurvey);
+        setView("editor");
+    };
+
+    // --- Render ---
+    if (view === "editor" && currentSurvey) {
+        return (
+            <SurveyEditor
+                survey={currentSurvey}
+                onUpdate={setCurrentSurvey}
+                onSave={() => setView("list")}
+                onCancel={() => setView("list")}
+            />
+        );
+    }
     return (
         <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-indigo-50">
             {/* Header (unchanged) */}
