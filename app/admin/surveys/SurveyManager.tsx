@@ -977,6 +977,182 @@ const renderPreviewInput = (q: Question) => {
 
 // --- Question Body Renderer ---
 function renderQuestionBody(q: Question, updateFn: (id: string, u: Partial<Question>) => void) {
+                    case "rating": {
+                        return (
+                            <div className="space-y-2">
+                                <input type="text" value={q.text || ''} onChange={e => updateFn(q.id, { text: e.target.value })} className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent" placeholder="Untitled Question" />
+                                <label className="flex items-center gap-2 text-xs text-gray-500"><input type="checkbox" checked={typeof q.description === 'string'} onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}/> Add Description</label>
+                                {typeof q.description === 'string' && (<input type="text" value={q.description} onChange={e => updateFn(q.id, { description: e.target.value })} className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent" placeholder="Enter description (optional)" />)}
+                                {/* Rating scale config */}
+                                <label className="block text-xs text-gray-500 mt-2">Max Value</label>
+                                <input type="number" min={1} max={10} value={q.scaleConfig?.max || 5} onChange={e => updateFn(q.id, { scaleConfig: { ...q.scaleConfig, max: Number(e.target.value) } })} className="w-20 border border-gray-200 rounded px-2 py-1 text-xs" />
+                                <label className="flex items-center gap-2 text-xs text-gray-500 mt-2"><input type="checkbox" checked={!!q.required} onChange={e => updateFn(q.id, { required: e.target.checked })}/> Required</label>
+                                <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
+                                <div className="flex gap-2 mt-2">
+                                    {Array.from({ length: q.scaleConfig?.max || 5 }).map((_, i) => (
+                                        <div key={i} className="h-10 w-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-400 font-medium bg-white">{i + 1}</div>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    }
+                    case "slider": {
+                        return (
+                            <div className="space-y-2">
+                                <input type="text" value={q.text || ''} onChange={e => updateFn(q.id, { text: e.target.value })} className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent" placeholder="Untitled Question" />
+                                <label className="flex items-center gap-2 text-xs text-gray-500"><input type="checkbox" checked={typeof q.description === 'string'} onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}/> Add Description</label>
+                                {typeof q.description === 'string' && (<input type="text" value={q.description} onChange={e => updateFn(q.id, { description: e.target.value })} className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent" placeholder="Enter description (optional)" />)}
+                                <div className="flex gap-2 mt-2">
+                                    <label className="text-xs text-gray-500">Min</label>
+                                    <input type="number" value={q.scaleConfig?.min || 0} onChange={e => updateFn(q.id, { scaleConfig: { ...q.scaleConfig, min: Number(e.target.value) } })} className="w-16 border border-gray-200 rounded px-2 py-1 text-xs" />
+                                    <label className="text-xs text-gray-500">Max</label>
+                                    <input type="number" value={q.scaleConfig?.max || 10} onChange={e => updateFn(q.id, { scaleConfig: { ...q.scaleConfig, max: Number(e.target.value) } })} className="w-16 border border-gray-200 rounded px-2 py-1 text-xs" />
+                                    <label className="text-xs text-gray-500">Step</label>
+                                    <input type="number" value={q.scaleConfig?.step || 1} onChange={e => updateFn(q.id, { scaleConfig: { ...q.scaleConfig, step: Number(e.target.value) } })} className="w-16 border border-gray-200 rounded px-2 py-1 text-xs" />
+                                </div>
+                                <label className="flex items-center gap-2 text-xs text-gray-500 mt-2"><input type="checkbox" checked={!!q.required} onChange={e => updateFn(q.id, { required: e.target.checked })}/> Required</label>
+                                <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
+                                <input type="range" min={q.scaleConfig?.min || 0} max={q.scaleConfig?.max || 10} step={q.scaleConfig?.step || 1} className="w-full mt-2" disabled />
+                            </div>
+                        );
+                    }
+                    case "nps": {
+                        return (
+                            <div className="space-y-2">
+                                <input type="text" value={q.text || ''} onChange={e => updateFn(q.id, { text: e.target.value })} className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent" placeholder="Untitled Question" />
+                                <label className="flex items-center gap-2 text-xs text-gray-500"><input type="checkbox" checked={typeof q.description === 'string'} onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}/> Add Description</label>
+                                {typeof q.description === 'string' && (<input type="text" value={q.description} onChange={e => updateFn(q.id, { description: e.target.value })} className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent" placeholder="Enter description (optional)" />)}
+                                <label className="flex items-center gap-2 text-xs text-gray-500 mt-2"><input type="checkbox" checked={!!q.required} onChange={e => updateFn(q.id, { required: e.target.checked })}/> Required</label>
+                                <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
+                                <div className="flex gap-1 mt-2 overflow-x-auto pb-2">
+                                    {[0,1,2,3,4,5,6,7,8,9,10].map(v => (
+                                        <div key={v} className="h-10 min-w-[40px] rounded border border-gray-200 flex items-center justify-center font-bold text-sm text-gray-400 bg-white">{v}</div>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    }
+                    case "date":
+                    case "email": {
+                        return (
+                            <div className="space-y-2">
+                                <input type="text" value={q.text || ''} onChange={e => updateFn(q.id, { text: e.target.value })} className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent" placeholder="Untitled Question" />
+                                <label className="flex items-center gap-2 text-xs text-gray-500"><input type="checkbox" checked={typeof q.description === 'string'} onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}/> Add Description</label>
+                                {typeof q.description === 'string' && (<input type="text" value={q.description} onChange={e => updateFn(q.id, { description: e.target.value })} className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent" placeholder="Enter description (optional)" />)}
+                                <label className="flex items-center gap-2 text-xs text-gray-500 mt-2"><input type="checkbox" checked={!!q.required} onChange={e => updateFn(q.id, { required: e.target.checked })}/> Required</label>
+                                <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
+                                <input type={q.type} className="w-full border border-gray-200 rounded px-2 py-1 mt-2 text-gray-400" placeholder={q.type === 'email' ? 'Recipient email' : 'Recipient date'} disabled />
+                            </div>
+                        );
+                    }
+                    case "matrix": {
+                        return (
+                            <div className="space-y-2">
+                                <input type="text" value={q.text || ''} onChange={e => updateFn(q.id, { text: e.target.value })} className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent" placeholder="Untitled Question" />
+                                <label className="flex items-center gap-2 text-xs text-gray-500"><input type="checkbox" checked={typeof q.description === 'string'} onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}/> Add Description</label>
+                                {typeof q.description === 'string' && (<input type="text" value={q.description} onChange={e => updateFn(q.id, { description: e.target.value })} className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent" placeholder="Enter description (optional)" />)}
+                                {/* Matrix rows/columns config */}
+                                <div className="flex gap-2 mt-2">
+                                    <div>
+                                        <label className="block text-xs text-gray-500 mb-1">Rows</label>
+                                        {(q.subQuestions || []).map((row, i) => (
+                                            <div key={row.id} className="flex items-center gap-2 mb-1">
+                                                <input type="text" value={row.label} onChange={e => updateFn(q.id, { subQuestions: (q.subQuestions || []).map(r => r.id === row.id ? { ...r, label: e.target.value } : r) })} className="border-b border-gray-200 text-xs focus:border-indigo-400 outline-none bg-transparent flex-1" placeholder={`Row ${i + 1}`} />
+                                                <button onClick={() => updateFn(q.id, { subQuestions: (q.subQuestions || []).filter(r => r.id !== row.id) })} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
+                                            </div>
+                                        ))}
+                                        <button onClick={() => updateFn(q.id, { subQuestions: [...(q.subQuestions || []), { id: crypto.randomUUID(), label: `Row ${(q.subQuestions?.length || 0) + 1}` }] })} className="text-xs text-indigo-600 mt-1">+ Add Row</button>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-gray-500 mb-1">Columns</label>
+                                        {(q.options || []).map((col, i) => (
+                                            <div key={col.id} className="flex items-center gap-2 mb-1">
+                                                <input type="text" value={col.label} onChange={e => updateOption(col.id, e.target.value)} className="border-b border-gray-200 text-xs focus:border-indigo-400 outline-none bg-transparent flex-1" placeholder={`Col ${i + 1}`} />
+                                                <button onClick={() => removeOption(col.id)} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
+                                            </div>
+                                        ))}
+                                        <button onClick={() => addOption()} className="text-xs text-indigo-600 mt-1">+ Add Column</button>
+                                    </div>
+                                </div>
+                                <label className="flex items-center gap-2 text-xs text-gray-500 mt-2"><input type="checkbox" checked={!!q.required} onChange={e => updateFn(q.id, { required: e.target.checked })}/> Required</label>
+                                <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
+                                {/* Disabled matrix preview */}
+                                <div className="overflow-x-auto mt-2">
+                                    <table className="w-full text-sm text-left">
+                                        <thead><tr className="border-b border-gray-100"><th className="p-2"></th>{(q.options || []).map(col => (<th key={col.id} className="p-2 font-medium text-gray-400 text-center">{col.label}</th>))}</tr></thead>
+                                        <tbody>{(q.subQuestions || []).map(row => (<tr key={row.id} className="border-b border-gray-50"><td className="p-3 font-medium text-gray-400">{row.label}</td>{(q.options || []).map(col => (<td key={col.id} className="p-2 text-center"><input type="radio" disabled /></td>))}</tr>))}</tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        );
+                    }
+                    case "ranking": {
+                        return (
+                            <div className="space-y-2">
+                                <input type="text" value={q.text || ''} onChange={e => updateFn(q.id, { text: e.target.value })} className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent" placeholder="Untitled Question" />
+                                <label className="flex items-center gap-2 text-xs text-gray-500"><input type="checkbox" checked={typeof q.description === 'string'} onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}/> Add Description</label>
+                                {typeof q.description === 'string' && (<input type="text" value={q.description} onChange={e => updateFn(q.id, { description: e.target.value })} className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent" placeholder="Enter description (optional)" />)}
+                                <div className="space-y-1 mt-2">
+                                    {(q.options || []).map((o, i) => (
+                                        <div key={o.id} className="flex items-center gap-2">
+                                            <input type="text" value={o.label} onChange={e => updateOption(o.id, e.target.value)} className="flex-1 border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent" placeholder={`Option ${i + 1}`} />
+                                            <button onClick={() => removeOption(o.id)} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
+                                        </div>
+                                    ))}
+                                    <button onClick={addOption} className="text-xs text-indigo-600 mt-1">+ Add Option</button>
+                                </div>
+                                <label className="flex items-center gap-2 text-xs text-gray-500 mt-2"><input type="checkbox" checked={!!q.required} onChange={e => updateFn(q.id, { required: e.target.checked })}/> Required</label>
+                                <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
+                                <div className="space-y-2 mt-2">
+                                    {(q.options || []).map((o, i) => (
+                                        <div key={o.id} className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
+                                            <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">{i + 1}</div>
+                                            <span className="text-sm text-gray-400">{o.label}</span>
+                                            <div className="ml-auto text-gray-300"><List size={16} /></div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    }
+                    case "file_upload": {
+                        return (
+                            <div className="space-y-2">
+                                <input type="text" value={q.text || ''} onChange={e => updateFn(q.id, { text: e.target.value })} className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent" placeholder="Untitled Question" />
+                                <label className="flex items-center gap-2 text-xs text-gray-500"><input type="checkbox" checked={typeof q.description === 'string'} onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}/> Add Description</label>
+                                {typeof q.description === 'string' && (<input type="text" value={q.description} onChange={e => updateFn(q.id, { description: e.target.value })} className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent" placeholder="Enter description (optional)" />)}
+                                <label className="flex items-center gap-2 text-xs text-gray-500 mt-2"><input type="checkbox" checked={!!q.required} onChange={e => updateFn(q.id, { required: e.target.checked })}/> Required</label>
+                                <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
+                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center text-gray-400 bg-gray-50 mt-2">
+                                    <Upload className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+                                    <p className="text-sm">File upload (disabled in admin mode)</p>
+                                </div>
+                            </div>
+                        );
+                    }
+                    case "weightage": {
+                        return (
+                            <div className="space-y-2">
+                                <input type="text" value={q.text || ''} onChange={e => updateFn(q.id, { text: e.target.value })} className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent" placeholder="Untitled Question" />
+                                <label className="flex items-center gap-2 text-xs text-gray-500"><input type="checkbox" checked={typeof q.description === 'string'} onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}/> Add Description</label>
+                                {typeof q.description === 'string' && (<input type="text" value={q.description} onChange={e => updateFn(q.id, { description: e.target.value })} className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent" placeholder="Enter description (optional)" />)}
+                                {/* Sub-fields (options) */}
+                                <div className="space-y-1 mt-2">
+                                    {(q.options || []).map((o, i) => (
+                                        <div key={o.id} className="flex items-center gap-2">
+                                            <input type="text" value={o.label} onChange={e => updateOption(o.id, e.target.value)} className="flex-1 border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent" placeholder={`Field ${i + 1}`} />
+                                            <button onClick={() => removeOption(o.id)} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
+                                        </div>
+                                    ))}
+                                    <button onClick={addOption} className="text-xs text-indigo-600 mt-1">+ Add Field</button>
+                                </div>
+                                <div className="text-right text-xs text-gray-500 mt-1">Total: {(q.options || []).reduce((sum, o) => sum + (Number(o.value) || 0), 0)} / {q.weightageConfig?.totalPoints || 100}</div>
+                                {((q.options || []).reduce((sum, o) => sum + (Number(o.value) || 0), 0) !== (q.weightageConfig?.totalPoints || 100)) && <div className="text-xs text-red-500">Total must match target</div>}
+                                <label className="flex items-center gap-2 text-xs text-gray-500 mt-2"><input type="checkbox" checked={!!q.required} onChange={e => updateFn(q.id, { required: e.target.checked })}/> Required</label>
+                                <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
+                            </div>
+                        );
+                    }
             // Validation updater must be declared before use
             const updateOptionValidation = (optId: string, field: keyof NonNullable<QuestionOption['validation']>, value: any) => {
                 const opts = q.options?.map(o => o.id === optId ? { ...o, validation: { ...o.validation, [field]: value } } : o);
@@ -1012,58 +1188,148 @@ function renderQuestionBody(q: Question, updateFn: (id: string, u: Partial<Quest
         case "text":
         case "textarea":
         case "radio":
-        case "checkbox":
-        case "dropdown":
-            // Custom field group logic: allow admin to add fields, set type, value/percentage, and validation
+        case "text":
+        case "textarea": {
+            // ...existing code for text/textarea...
             return (
                 <div className="space-y-2">
-                    {q.options?.map((opt, i) => (
-                        <div key={opt.id} className="flex flex-wrap items-center gap-2">
-                            <input 
-                                value={opt.label}
-                                onChange={e => updateOption(opt.id, e.target.value)}
-                                className="flex-1 border border-gray-200 rounded px-2 py-1 text-sm"
-                                placeholder={`Field name (e.g. Name, Age)`}
-                            />
-                            <select
-                                value={opt.fieldType || 'text'}
-                                onChange={e => updateOptionFieldType(opt.id, e.target.value as QuestionOption['fieldType'])}
-                                className="border border-gray-200 rounded px-2 py-1 text-xs"
-                            >
-                                <option value="text">Text</option>
-                                <option value="email">Email</option>
-                                <option value="date">Date</option>
-                                <option value="textarea">Long Text</option>
-                                <option value="number">Number</option>
-                                <option value="percentage">Percentage</option>
-                            </select>
-                            <input
-                                type="number"
-                                value={opt.value ?? ''}
-                                onChange={e => updateOptionValue(opt.id, e.target.value)}
-                                className="w-20 border border-gray-200 rounded px-2 py-1 text-sm"
-                                placeholder="Value"
-                            />
-                            <span className="text-xs text-gray-400">{opt.fieldType === 'percentage' ? '%' : ''}</span>
-                            {/* Validation controls */}
-                            <div className="flex flex-col gap-1 ml-2">
-                              <label className="text-[10px] text-gray-400">Validation</label>
-                              <input type="checkbox" checked={!!opt.validation?.required} onChange={e => updateOptionValidation(opt.id, 'required', e.target.checked)} /> <span className="text-[10px]">Required</span>
-                              {(opt.fieldType === 'number' || opt.fieldType === 'percentage') && (
-                                <>
-                                  <input type="number" placeholder="Min" className="w-12 border border-gray-200 rounded px-1 text-xs" value={opt.validation?.min ?? ''} onChange={e => updateOptionValidation(opt.id, 'min', e.target.value ? Number(e.target.value) : undefined)} />
-                                  <input type="number" placeholder="Max" className="w-12 border border-gray-200 rounded px-1 text-xs" value={opt.validation?.max ?? ''} onChange={e => updateOptionValidation(opt.id, 'max', e.target.value ? Number(e.target.value) : undefined)} />
-                                </>
-                              )}
-                              {opt.fieldType === 'text' && (
-                                <input type="text" placeholder="Regex" className="w-24 border border-gray-200 rounded px-1 text-xs" value={opt.validation?.regex ?? ''} onChange={e => updateOptionValidation(opt.id, 'regex', e.target.value)} />
-                              )}
-                              <input type="text" placeholder="Error message" className="w-24 border border-gray-200 rounded px-1 text-xs" value={opt.validation?.errorMessage ?? ''} onChange={e => updateOptionValidation(opt.id, 'errorMessage', e.target.value)} />
+                    {/* Editable Title */}
+                    <input
+                        type="text"
+                        value={q.text || ''}
+                        onChange={e => updateFn(q.id, { text: e.target.value })}
+                        className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent"
+                        placeholder="Untitled Question"
+                    />
+                    {/* Add Description Checkbox */}
+                    <label className="flex items-center gap-2 text-xs text-gray-500">
+                        <input
+                            type="checkbox"
+                            checked={typeof q.description === 'string'}
+                            onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}
+                        />
+                        Add Description
+                    </label>
+                    {/* Editable Description */}
+                    {typeof q.description === 'string' && (
+                        <input
+                            type="text"
+                            value={q.description}
+                            onChange={e => updateFn(q.id, { description: e.target.value })}
+                            className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent"
+                            placeholder="Enter description (optional)"
+                        />
+                    )}
+                    {/* Required Checkbox */}
+                    <label className="flex items-center gap-2 text-xs text-gray-500 mt-2">
+                        <input
+                            type="checkbox"
+                            checked={!!q.required}
+                            onChange={e => updateFn(q.id, { required: e.target.checked })}
+                        />
+                        Required
+                    </label>
+                    {/* Delete Button */}
+                    <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
+                    {/* Answer Preview (disabled for admin) */}
+                    {q.type === "text" ? (
+                        <input type="text" className="w-full border border-gray-200 rounded px-2 py-1 mt-2" placeholder="Recipient answer (single line)" disabled />
+                    ) : (
+                        <textarea className="w-full border border-gray-200 rounded px-2 py-1 mt-2" rows={3} placeholder="Recipient answer (multi-line)" disabled />
+                    )}
+                </div>
+            );
+        }
+        case "radio":
+        case "checkbox":
+        case "dropdown": {
+            // Admin mode: title, description, required, delete, options
+            return (
+                <div className="space-y-2">
+                    {/* Editable Title */}
+                    <input
+                        type="text"
+                        value={q.text || ''}
+                        onChange={e => updateFn(q.id, { text: e.target.value })}
+                        className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent"
+                        placeholder="Untitled Question"
+                    />
+                    {/* Add Description Checkbox */}
+                    <label className="flex items-center gap-2 text-xs text-gray-500">
+                        <input
+                            type="checkbox"
+                            checked={typeof q.description === 'string'}
+                            onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}
+                        />
+                        Add Description
+                    </label>
+                    {/* Editable Description */}
+                    {typeof q.description === 'string' && (
+                        <input
+                            type="text"
+                            value={q.description}
+                            onChange={e => updateFn(q.id, { description: e.target.value })}
+                            className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent"
+                            placeholder="Enter description (optional)"
+                        />
+                    )}
+                    {/* Option List */}
+                    <div className="space-y-1">
+                        {(q.options || []).map((o, i) => (
+                            <div key={o.id} className="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    value={o.label}
+                                    onChange={e => updateOption(o.id, e.target.value)}
+                                    className="flex-1 border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent"
+                                    placeholder={`Option ${i + 1}`}
+                                />
+                                <button onClick={() => removeOption(o.id)} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
                             </div>
-                            <button onClick={() => removeOption(opt.id)} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
+                        ))}
+                        <button onClick={addOption} className="text-xs text-indigo-600 mt-1">+ Add Option</button>
+                    </div>
+                    {/* Required Checkbox */}
+                    <label className="flex items-center gap-2 text-xs text-gray-500 mt-2">
+                        <input
+                            type="checkbox"
+                            checked={!!q.required}
+                            onChange={e => updateFn(q.id, { required: e.target.checked })}
+                        />
+                        Required
+                    </label>
+                    {/* Delete Button */}
+                    <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
+                    {/* Disabled preview for admin */}
+                    {q.type === "radio" && (
+                        <div className="flex gap-2 mt-2">
+                            {(q.options || []).map((o, i) => (
+                                <label key={o.id} className="flex items-center gap-1 text-gray-400">
+                                    <input type="radio" disabled />
+                                    <span>{o.label}</span>
+                                </label>
+                            ))}
                         </div>
-                    ))}
-                    <button onClick={addOption} className="text-sm text-indigo-600 font-medium hover:underline flex items-center gap-1 mt-2">
+                    )}
+                    {q.type === "checkbox" && (
+                        <div className="flex gap-2 mt-2">
+                            {(q.options || []).map((o, i) => (
+                                <label key={o.id} className="flex items-center gap-1 text-gray-400">
+                                    <input type="checkbox" disabled />
+                                    <span>{o.label}</span>
+                                </label>
+                            ))}
+                        </div>
+                    )}
+                    {q.type === "dropdown" && (
+                        <select className="w-full border border-gray-200 rounded px-2 py-1 mt-2 text-gray-400" disabled>
+                            <option>Select an option...</option>
+                            {(q.options || []).map(o => <option key={o.id}>{o.label}</option>)}
+                        </select>
+                    )}
+                </div>
+            );
+        }
                         <Plus size={14} /> Add Field
                     </button>
                     <div className="flex items-center gap-2 mt-2">
