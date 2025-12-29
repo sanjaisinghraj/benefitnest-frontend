@@ -151,7 +151,7 @@ const AdminDashboard = () => {
       description:
         "Configure GMC, GPA, GTL, OPD, parental, keyman, workmen comp, voluntary, top-up, riders. Manage SI slabs, premium matrix, and EMI options.",
       icon: "📋",
-      link: "/admin/policies",
+      link: "/admin/plan-config",
       color: "#f59e0b",
     },
     // 6. Enrollment Management
