@@ -244,6 +244,7 @@ export default function WellnessAdminPage() {
   };
 
   const handleSave = async () => {
+    const token = getToken();
     if (selectedCorporates.length === 0) {
       setMessage({
         type: "error",
