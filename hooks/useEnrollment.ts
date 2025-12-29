@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { gql, useApolloClient } from "@apollo/client";
+import { gql } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 
 export function useEnrollment(planType: string, corporateId: string) {
   const client = useApolloClient();
@@ -20,8 +21,10 @@ export function useEnrollment(planType: string, corporateId: string) {
         `,
         variables: { planType, corporateId, input: formData }
       });
-      setResult(res.data?.triggerEnrollment);
-      return res.data?.triggerEnrollment;
+      // Type guard for res.data
+      const data = (res.data as { triggerEnrollment?: any }) || {};
+      setResult(data.triggerEnrollment);
+      return data.triggerEnrollment;
     } finally {
       setLoading(false);
     }

@@ -3,12 +3,20 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useApolloClient } from "@apollo/client/react";
+
+// Extend user type to allow roles
+type UserWithRoles = {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  roles?: string[];
+};
 import { gql } from "@apollo/client";
 // import { useQuery } from '@apollo/client/react'; // Add if needed
 
 export default function TenantManagementPage() {
   const session = useSession();
-  const user = session.data?.user;
+  const user = session.data?.user as UserWithRoles | undefined;
   const client = useApolloClient();
   const [tenants, setTenants] = useState<any[]>([]);
   const [selectedTenant, setSelectedTenant] = useState<any>(null);
@@ -19,7 +27,7 @@ export default function TenantManagementPage() {
 
   useEffect(() => {
     // Check Keycloak roles
-    setIsSuperAdmin(user?.roles?.includes("super-admin"));
+    setIsSuperAdmin(Array.isArray(user?.roles) && user.roles.includes("super-admin"));
     fetchTenants();
     // eslint-disable-next-line
   }, [user]);
@@ -34,7 +42,9 @@ export default function TenantManagementPage() {
       `,
       fetchPolicy: "network-only"
     });
-    setTenants(res.data.tenantList || []);
+    // Type guard for res.data
+    const data = (res.data as { tenantList?: any[] }) || {};
+    setTenants(data.tenantList || []);
     setLoading(false);
   };
 

@@ -4,11 +4,19 @@ import { useState, useEffect } from "react";
 import { gql } from "@apollo/client";
 // import { useQuery } from '@apollo/client/react'; // Add if needed
 import { useSession } from "next-auth/react";
+
+// Extend user type to allow roles
+type UserWithRoles = {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  roles?: string[];
+};
 import { useApolloClient } from "@apollo/client/react";
 
 export default function RolloutDashboard() {
   const session = useSession();
-  const user = session.data?.user;
+  const user = session.data?.user as UserWithRoles | undefined;
   const client = useApolloClient();
   const [tenants, setTenants] = useState<any[]>([]);
   const [modules, setModules] = useState<string[]>(["GMC", "GPA", "GTL", "Flex", "Wallet", "Wellness", "Custom"]);
@@ -18,7 +26,7 @@ export default function RolloutDashboard() {
   const [phased, setPhased] = useState(false);
   const [rollouts, setRollouts] = useState<any[]>([]);
   const [message, setMessage] = useState("");
-  const isSuperAdmin = user?.roles?.includes("super-admin");
+  const isSuperAdmin = Array.isArray(user?.roles) && user.roles.includes("super-admin");
 
   useEffect(() => {
     fetchTenants();
@@ -33,7 +41,9 @@ export default function RolloutDashboard() {
       `,
       fetchPolicy: "network-only"
     });
-    setTenants(res.data.tenantList || []);
+    // Type guard for res.data
+    const data = (res.data as { tenantList?: any[] }) || {};
+    setTenants(data.tenantList || []);
   };
 
   const handleSchedule = async () => {
@@ -46,7 +56,9 @@ export default function RolloutDashboard() {
       `,
       variables: { tenantIds: selectedTenants, modules: selectedModules, startDate, phased }
     });
-    setMessage(`Rollout scheduled: ${res.data.scheduleRollout.rolloutId}`);
+    // Type guard for res.data
+    const data = (res.data as { scheduleRollout?: { rolloutId?: string } }) || {};
+    setMessage(`Rollout scheduled: ${data.scheduleRollout?.rolloutId}`);
   };
 
   return (

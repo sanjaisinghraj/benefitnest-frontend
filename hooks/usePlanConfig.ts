@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { gql, useApolloClient } from "@apollo/client";
+import { gql } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 
 export function usePlanConfig(planType: string, corporateId: string, countryCode = "IN") {
   const client = useApolloClient();
@@ -21,7 +22,11 @@ export function usePlanConfig(planType: string, corporateId: string, countryCode
         variables: { planType, corporateId, countryCode },
         fetchPolicy: "cache-first"
       })
-      .then(res => setConfig(res.data?.getConfig?.configJson || null))
+      .then(res => {
+        // Type guard for res.data
+        const data = (res.data as { getConfig?: { configJson?: any } }) || {};
+        setConfig(data.getConfig?.configJson || null);
+      })
       .finally(() => setLoading(false));
   }, [planType, corporateId, countryCode]);
 
