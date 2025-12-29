@@ -1698,15 +1698,8 @@ export default function PortalCustomizationPage() {
         icon={<span style={{ fontSize: 24 }}>🎨</span>}
         showBack={true}
       />
-      <main
-        style={{
-          flex: 1,
-          width: "100%",
-          maxWidth: 1400,
-          margin: "0 auto",
-          padding: 24,
-        }}
-      >
+      {/* Main content ... */}
+      <main style={{ flex: 1 }}>
         {/* Header */}
         <div
           style={{
@@ -1929,7 +1922,7 @@ export default function PortalCustomizationPage() {
             </div>
           </div>
         </div>
-      </header>
+      {/* header ends above, removed redundant closing tag */}
       {showProfileMenu && (
         <div
           style={{ position: "fixed", inset: 0, zIndex: 40 }}
@@ -2414,9 +2407,6 @@ export default function PortalCustomizationPage() {
                         style={{
                           fontSize: "14px",
                           fontWeight: "600",
-                        style={{
-                          fontSize: "14px",
-                          fontWeight: "600",
                           marginBottom: "16px",
                           color: colors.gray[700],
                         }}
@@ -2463,6 +2453,16 @@ export default function PortalCustomizationPage() {
                   <div>
                     <FontSelector
                       label="Heading Font"
+                      value={customizations.heading_font_family}
+                      onChange={(v: string) =>
+                        updateCustomization("heading_font_family", v)
+                      }
+                    />
+                    <FontSelector
+                      label="Body Font"
+                      value={customizations.body_font_family}
+                      onChange={(v: string) =>
+                        updateCustomization("body_font_family", v)
                       value={customizations.heading_font_family}
                       onChange={(v: string) =>
                         updateCustomization("heading_font_family", v)

@@ -9,10 +9,17 @@ type Props = {
   showBack?: boolean;
 };
 
+
 export default function AdminTopBar({ title, subtitle, icon, showBack = true }: Props) {
   const router = useRouter();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+  const [adminProfile, setAdminProfile] = useState<{
+    name: string;
+    email: string;
+    role: string;
+  } | null>(null);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -20,6 +27,27 @@ export default function AdminTopBar({ title, subtitle, icon, showBack = true }: 
   });
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState(false);
+
+  React.useEffect(() => {
+    // Load admin profile from localStorage
+    const token = localStorage.getItem("admin_token");
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        setAdminProfile({
+          name: payload.name || payload.username || "Administrator",
+          email: payload.email || "admin@benefitnest.space",
+          role: payload.role || "Super Admin",
+        });
+      } catch {
+        setAdminProfile({
+          name: "Administrator",
+          email: "admin@benefitnest.space",
+          role: "Super Admin",
+        });
+      }
+    }
+  }, []);
 
   const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
 
@@ -200,6 +228,7 @@ export default function AdminTopBar({ title, subtitle, icon, showBack = true }: 
                   <button
                     onClick={() => {
                       setShowProfileMenu(false);
+                      setShowProfileModal(true);
                     }}
                     style={{
                       width: "100%",
@@ -261,6 +290,199 @@ export default function AdminTopBar({ title, subtitle, icon, showBack = true }: 
           </button>
         </div>
       </div>
+
+      {showProfileModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 200,
+          }}
+          onClick={() => setShowProfileModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "16px",
+              padding: "32px",
+              maxWidth: "450px",
+              width: "90%",
+              boxShadow: "0 25px 60px rgba(0,0,0,0.3)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "24px",
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: "22px",
+                  fontWeight: "700",
+                  color: "#111827",
+                  margin: 0,
+                }}
+              >
+                My Profile
+              </h2>
+              <button
+                onClick={() => setShowProfileModal(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "24px",
+                  cursor: "pointer",
+                  color: "#6b7280",
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div style={{ textAlign: "center", marginBottom: "24px" }}>
+              <div
+                style={{
+                  width: "100px",
+                  height: "100px",
+                  borderRadius: "50%",
+                  background:
+                    "linear-gradient(135deg, #2563eb 0%, #10b981 100%)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 16px",
+                  fontSize: "48px",
+                  color: "white",
+                }}
+              >
+                {adminProfile?.name?.charAt(0)?.toUpperCase() || "A"}
+              </div>
+              <h3
+                style={{
+                  fontSize: "20px",
+                  fontWeight: "600",
+                  color: "#111827",
+                  margin: "0 0 4px 0",
+                }}
+              >
+                {adminProfile?.name || "Administrator"}
+              </h3>
+              <p style={{ fontSize: "14px", color: "#6b7280", margin: 0 }}>
+                {adminProfile?.role || "Super Admin"}
+              </p>
+            </div>
+            <div
+              style={{
+                background: "#f9fafb",
+                borderRadius: "12px",
+                padding: "20px",
+              }}
+            >
+              <div style={{ marginBottom: "16px" }}>
+                <label
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    color: "#6b7280",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                  }}
+                >
+                  Email Address
+                </label>
+                <p
+                  style={{
+                    fontSize: "15px",
+                    color: "#111827",
+                    margin: "4px 0 0 0",
+                  }}
+                >
+                  {adminProfile?.email || "admin@benefitnest.space"}
+                </p>
+              </div>
+              <div style={{ marginBottom: "16px" }}>
+                <label
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    color: "#6b7280",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                  }}
+                >
+                  Role
+                </label>
+                <p
+                  style={{
+                    fontSize: "15px",
+                    color: "#111827",
+                    margin: "4px 0 0 0",
+                  }}
+                >
+                  {adminProfile?.role || "Super Admin"}
+                </p>
+              </div>
+              <div>
+                <label
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    color: "#6b7280",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                  }}
+                >
+                  Account Status
+                </label>
+                <p
+                  style={{
+                    fontSize: "15px",
+                    color: "#10b981",
+                    margin: "4px 0 0 0",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: "8px",
+                      height: "8px",
+                      borderRadius: "50%",
+                      backgroundColor: "#10b981",
+                    }}
+                  ></span>{" "}
+                  Active
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowProfileModal(false)}
+              style={{
+                width: "100%",
+                marginTop: "24px",
+                padding: "14px",
+                backgroundColor: "#2563eb",
+                color: "white",
+                border: "none",
+                borderRadius: "10px",
+                fontSize: "15px",
+                fontWeight: "600",
+                cursor: "pointer",
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
       {showResetPasswordModal && (
         <div
