@@ -655,7 +655,27 @@ export default function MarketplaceSettingsPage() {
   };
 
   // Save handler for marketplace settings
-
+  // Save handler for marketplace settings
+  const handleSave = async () => {
+    if (!selectedCorporate) {
+      showToast("No corporate selected.", "error");
+      return;
+    }
+    setSaving(true);
+    try {
+      await axios.put(
+        `${API_URL}/api/admin/corporates/${selectedCorporate.tenant_id}/marketplace-settings`,
+        settings,
+        { headers: getAuthHeaders() },
+      );
+      setOriginalSettings(settings);
+      showToast("Marketplace settings saved successfully!", "success");
+    } catch (err) {
+      showToast("Failed to save settings", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
   const handleLogout = () => {
     localStorage.removeItem("admin_token");
     router.push("/admin");
