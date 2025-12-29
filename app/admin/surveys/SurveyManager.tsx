@@ -295,73 +295,73 @@ function SurveyEditor({
     const [saving, setSaving] = useState(false);
     // --- Save Handler ---
     const handleSave = async () => {
-        setSaving(true);
-        try {
-            // Validate survey
-            if (!survey.title || !survey.tenantId || survey.questions.length === 0) {
-                showNotification("Please fill all required fields and add at least one question.", "error");
-                setSaving(false);
-                return;
-            }
-            for (const q of survey.questions) {
-                if (q.type === 'weightage') {
-                    const total = q.options?.reduce((sum: number, o: QuestionOption) => sum + (parseFloat(typeof o.value === "string" ? o.value : String(o.value)) || 0), 0) || 0;
-                    if (total !== 100) {
-                        showNotification("Weightage total must be 100.", "error");
+            setSaving(true);
+            try {
+                // Validate survey
+                if (!survey.title || !survey.tenantId || survey.questions.length === 0) {
+                    showNotification("Please fill all required fields and add at least one question.", "error");
+                    setSaving(false);
+                    return;
+                }
+                for (const q of survey.questions) {
+                    if (q.type === 'weightage') {
+                        const total = q.options?.reduce((sum: number, o: QuestionOption) => sum + (parseFloat(typeof o.value === "string" ? o.value : String(o.value)) || 0), 0) || 0;
+                        if (total !== 100) {
+                            showNotification("Weightage total must be 100.", "error");
+                            setSaving(false);
+                            return;
+                        }
+                    }
+                    if (q.required && !q.text) {
+                        showNotification("Required questions must have text.", "error");
                         setSaving(false);
                         return;
                     }
                 }
-                if (q.required && !q.text) {
-                    showNotification("Required questions must have text.", "error");
-                    setSaving(false);
-                    return;
+                // Prepare payload: only allowed fields
+                const payload = {
+                    title: survey.title,
+                    tenantId: survey.tenantId,
+                    status: survey.status,
+                    branding: survey.branding,
+                    isTemplate: survey.isTemplate,
+                    templateCategory: survey.templateCategory,
+                    questions: survey.questions.map((q: Question) => ({
+                        id: q.id,
+                        type: q.type,
+                        text: q.text,
+                        required: q.required,
+                        errorMessage: q.errorMessage,
+                        options: q.options?.map((o: QuestionOption) => ({
+                            label: o.label,
+                            type: o.type,
+                            value: o.value,
+                            required: o.required,
+                            errorMessage: o.errorMessage
+                        })) || []
+                    }))
+                };
+                // Attach auth token
+                let token = null;
+                if (typeof window !== "undefined") {
+                    token = document.cookie.split('; ').find(r => r.startsWith('admin_token='))?.split('=')[1] || localStorage.getItem('admin_token');
                 }
+                const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
+                const res = await axios.post(`${API_URL}/api/surveys`, payload, { headers });
+                if (res.data.success && res.data.data) {
+                    showNotification("Survey saved successfully!", "success");
+                    if (res.data.data.url) setSurveyUrl(res.data.data.url);
+                    else if (res.data.data.tenantSubdomain && res.data.data.id) setSurveyUrl(`https://${res.data.data.tenantSubdomain}.benefitnest.space/employeebenefitsurvey/${res.data.data.id}`);
+                    onSave();
+                } else {
+                    showNotification("Failed to save survey.", "error");
+                }
+            } catch (err) {
+                showNotification("Failed to save survey. Please try again.", "error");
+            } finally {
+                setSaving(false);
             }
-            // Prepare payload: only allowed fields
-            const payload = {
-                title: survey.title,
-                tenantId: survey.tenantId,
-                status: survey.status,
-                branding: survey.branding,
-                isTemplate: survey.isTemplate,
-                templateCategory: survey.templateCategory,
-                questions: survey.questions.map((q: Question) => ({
-                    id: q.id,
-                    type: q.type,
-                    text: q.text,
-                    required: q.required,
-                    errorMessage: q.errorMessage,
-                    options: q.options?.map((o: QuestionOption) => ({
-                        label: o.label,
-                        type: o.type,
-                        value: o.value,
-                        required: o.required,
-                        errorMessage: o.errorMessage
-                    })) || []
-                }))
-            };
-            // Attach auth token
-            let token = null;
-            if (typeof window !== "undefined") {
-                token = document.cookie.split('; ').find(r => r.startsWith('admin_token='))?.split('=')[1] || localStorage.getItem('admin_token');
-            }
-            const headers = token ? { Authorization: `Bearer ${token}` } : {};
-            const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
-            const res = await axios.post(`${API_URL}/api/surveys`, payload, { headers });
-            if (res.data.success && res.data.data) {
-                showNotification("Survey saved successfully!", "success");
-                if (res.data.data.url) setSurveyUrl(res.data.data.url);
-                else if (res.data.data.tenantSubdomain && res.data.data.id) setSurveyUrl(`https://${res.data.data.tenantSubdomain}.benefitnest.space/employeebenefitsurvey/${res.data.data.id}`);
-                onSave();
-            } else {
-                showNotification("Failed to save survey.", "error");
-            }
-        } catch (err) {
-            showNotification("Failed to save survey. Please try again.", "error");
-        } finally {
-            setSaving(false);
-        }
     };
 
     // Helper for notification
@@ -413,13 +413,12 @@ function SurveyEditor({
         }
     };
 
-  // Helper to update branding
-  const updateBranding = (key: keyof BrandingConfig, value: string) => {
-    onUpdate({
-        ...survey,
-        branding: { ...survey.branding, [key]: value }
-    });
-  };
+    // Helper to update branding
+    const updateBranding = (key: keyof BrandingConfig, value: string) => {
+        const updated = { ...survey, branding: { ...survey.branding, [key]: value } };
+        onUpdate(updated);
+        autosaveSurvey(updated);
+    };
 
     const addQuestion = (type: QuestionType) => {
         const newQuestion: Question = {
@@ -433,20 +432,26 @@ function SurveyEditor({
             subQuestions: type === "matrix" ? [{ id: uuidv4(), label: "Row 1" }] : undefined,
             scaleConfig: type === "slider" || type === "nps" ? { min: 0, max: 10, minLabel: "Poor", maxLabel: "Excellent" } : undefined
         };
-        onUpdate({ ...survey, questions: [...survey.questions, newQuestion] });
+        const updated = { ...survey, questions: [...survey.questions, newQuestion] };
+        onUpdate(updated);
+        autosaveSurvey(updated);
     };
 
   // ... (Other CRUD helpers would go here, simplified for brevity but fully functional in logic)
-  const updateQuestion = (id: string, updates: Partial<Question>) => {
-      onUpdate({
-          ...survey,
-          questions: survey.questions.map(q => q.id === id ? { ...q, ...updates } : q)
-      });
-  };
+    const updateQuestion = (id: string, updates: Partial<Question>) => {
+        const updated = {
+            ...survey,
+            questions: survey.questions.map(q => q.id === id ? { ...q, ...updates } : q)
+        };
+        onUpdate(updated);
+        autosaveSurvey(updated);
+    };
 
-  const deleteQuestion = (id: string) => {
-      onUpdate({ ...survey, questions: survey.questions.filter(q => q.id !== id) });
-  };
+    const deleteQuestion = (id: string) => {
+        const updated = { ...survey, questions: survey.questions.filter(q => q.id !== id) };
+        onUpdate(updated);
+        autosaveSurvey(updated);
+    };
 
     return (
         <div className="flex flex-col h-[calc(100vh-100px)] bg-gray-50">
@@ -454,6 +459,12 @@ function SurveyEditor({
             {notification && (
                 <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg text-white z-50 animate-in fade-in slide-in-from-top-2 ${notification.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>{notification.message}</div>
             )}
+            {/* Autosave status */}
+            <div className="fixed top-4 left-4 z-50">
+                {autosaveStatus === 'saving' && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Autosaving...</span>}
+                {autosaveStatus === 'saved' && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">All changes saved</span>}
+                {autosaveStatus === 'error' && <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">Autosave failed</span>}
+            </div>
             {/* Editor Header */}
             <div className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm z-10">
                 <div className="flex items-center gap-4">
@@ -463,7 +474,11 @@ function SurveyEditor({
                     <div>
                         <input 
                             value={survey.title}
-                            onChange={(e) => onUpdate({ ...survey, title: e.target.value })}
+                            onChange={(e) => {
+                                const updated = { ...survey, title: e.target.value };
+                                onUpdate(updated);
+                                autosaveSurvey(updated);
+                            }}
                             className="text-lg font-bold text-gray-900 border-none p-0 focus:ring-0 bg-transparent placeholder-gray-400"
                             placeholder="Survey Title"
                         />
