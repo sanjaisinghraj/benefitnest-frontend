@@ -1,2 +1,2 @@
 // Placeholder for ProductSummaryCard component
-export function ProductSummaryCard() { return null; }
+export function ProductSummaryCard(props: any) { return null; }

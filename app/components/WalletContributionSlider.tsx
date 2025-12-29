@@ -1,2 +1,2 @@
 // Placeholder for WalletContributionSlider component
-export function WalletContributionSlider() { return null; }
+export function WalletContributionSlider(props: any) { return null; }

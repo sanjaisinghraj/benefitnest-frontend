@@ -1,2 +1,2 @@
 // Placeholder for PremiumMatrixTable component
-export function PremiumMatrixTable() { return null; }
+export function PremiumMatrixTable(props: any) { return null; }

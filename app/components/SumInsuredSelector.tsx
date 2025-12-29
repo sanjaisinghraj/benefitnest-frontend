@@ -1,2 +1,2 @@
 // Placeholder for SumInsuredSelector component
-export function SumInsuredSelector() { return null; }
+export function SumInsuredSelector(props: any) { return null; }
