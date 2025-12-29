@@ -11,8 +11,10 @@ type QuestionType =
   | "rating" | "slider" | "nps" | "date" | "email" | "matrix" | "ranking" | "file_upload" | "weightage";
 
 interface QuestionOption {
-  id: string;
-  label: string;
+    id: string;
+    label: string;
+    fieldType?: 'text' | 'email' | 'date' | 'textarea' | 'number' | 'percentage';
+    value?: string | number;
 }
 
 interface SubQuestion {
@@ -671,6 +673,18 @@ const renderPreviewInput = (q: Question) => {
 
 // --- Question Body Renderer ---
 function renderQuestionBody(q: Question, updateFn: (id: string, u: Partial<Question>) => void) {
+        // For custom field group logic
+        const updateOptionFieldType = (optId: string, fieldType: string) => {
+            const opts = q.options?.map(o => o.id === optId ? { ...o, fieldType } : o);
+            updateFn(q.id, { options: opts });
+        };
+        const updateOptionValue = (optId: string, value: string | number) => {
+            const opts = q.options?.map(o => o.id === optId ? { ...o, value } : o);
+            updateFn(q.id, { options: opts });
+        };
+        const totalValue = q.options?.reduce((sum, o) => sum + (Number(o.value) || 0), 0) || 0;
+        const totalTarget = q.weightageConfig?.totalPoints || 100;
+        const showTotalError = totalValue !== totalTarget;
     const addOption = () => {
         const opts = q.options || [];
         updateFn(q.id, { options: [...opts, { id: crypto.randomUUID(), label: `Option ${opts.length + 1}` }] });
@@ -687,34 +701,53 @@ function renderQuestionBody(q: Question, updateFn: (id: string, u: Partial<Quest
 
     switch (q.type) {
         case "text":
-            return <input disabled className="w-full border-b border-gray-200 py-2 bg-transparent text-gray-400 italic" placeholder="Short answer text" />;
         case "textarea":
-            return <div className="w-full border-b border-gray-200 py-2 bg-transparent text-gray-400 italic h-20">Long answer text</div>;
         case "radio":
         case "checkbox":
         case "dropdown":
+            // Custom field group logic: allow admin to add fields, set type, and value/percentage
             return (
                 <div className="space-y-2">
                     {q.options?.map((opt, i) => (
-                        <div key={opt.id} className="flex items-center gap-2">
-                            <div className={`w-4 h-4 border border-gray-300 ${q.type === 'radio' ? 'rounded-full' : 'rounded'}`} />
+                        <div key={opt.id} className="flex flex-wrap items-center gap-2">
                             <input 
                                 value={opt.label}
-                                onChange={(e) => updateOption(opt.id, e.target.value)}
-                                className="flex-1 border-none bg-transparent focus:ring-0 text-sm hover:bg-gray-50 rounded px-2 py-1"
+                                onChange={e => updateOption(opt.id, e.target.value)}
+                                className="flex-1 border border-gray-200 rounded px-2 py-1 text-sm"
+                                placeholder={`Field name (e.g. Name, Age)`}
                             />
+                            <select
+                                value={opt.fieldType || 'text'}
+                                onChange={e => updateOptionFieldType(opt.id, e.target.value)}
+                                className="border border-gray-200 rounded px-2 py-1 text-xs"
+                            >
+                                <option value="text">Text</option>
+                                <option value="email">Email</option>
+                                <option value="date">Date</option>
+                                <option value="textarea">Long Text</option>
+                                <option value="number">Number</option>
+                                <option value="percentage">Percentage</option>
+                            </select>
+                            <input
+                                type="number"
+                                value={opt.value ?? ''}
+                                onChange={e => updateOptionValue(opt.id, e.target.value)}
+                                className="w-20 border border-gray-200 rounded px-2 py-1 text-sm"
+                                placeholder="Value"
+                            />
+                            <span className="text-xs text-gray-400">{opt.fieldType === 'percentage' ? '%' : ''}</span>
                             <button onClick={() => removeOption(opt.id)} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
                         </div>
                     ))}
                     <button onClick={addOption} className="text-sm text-indigo-600 font-medium hover:underline flex items-center gap-1 mt-2">
-                        <Plus size={14} /> Add Option
+                        <Plus size={14} /> Add Field
                     </button>
-                    {q.allowOther && (
-                         <div className="flex items-center gap-2 mt-2 opacity-60">
-                            <div className={`w-4 h-4 border border-gray-300 ${q.type === 'radio' ? 'rounded-full' : 'rounded'}`} />
-                            <span className="text-sm text-gray-500 italic">Other (Respondents can type answer)</span>
-                         </div>
-                    )}
+                    <div className="flex items-center gap-2 mt-2">
+                        <span className="text-xs text-gray-500">Total:</span>
+                        <span className={`text-xs font-bold ${showTotalError ? 'text-red-500' : 'text-green-600'}`}>{totalValue}</span>
+                        <span className="text-xs text-gray-500">/ {totalTarget} {q.options?.some(o => o.fieldType === 'percentage') ? '%' : ''}</span>
+                        {showTotalError && <span className="text-xs text-red-500 ml-2">Total must match target</span>}
+                    </div>
                 </div>
             );
         case "rating":

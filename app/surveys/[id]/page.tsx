@@ -8,11 +8,14 @@ import { CheckCircle, AlertCircle } from "lucide-react";
 interface QuestionOption {
   id: string;
   label: string;
+  fieldType?: 'text' | 'email' | 'date' | 'textarea' | 'number' | 'percentage';
+  value?: string | number;
 }
 
 interface Question {
   id: string;
   type: "text" | "textarea" | "radio" | "checkbox" | "dropdown";
+  options?: QuestionOption[];
   text: string;
   required: boolean;
   options?: QuestionOption[];
@@ -159,78 +162,121 @@ export default function SurveyPage({ params }: { params: { id: string } }) {
                 )}
 
                 <div className="mt-2">
-                  {q.type === "text" && (
-                    <input
-                      type="text"
-                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 border"
-                      placeholder="Your answer"
-                      value={answers[q.id] || ""}
-                      onChange={(e) => handleAnswerChange(q.id, e.target.value)}
-                      required={q.required}
-                    />
-                  )}
-
-                  {q.type === "textarea" && (
-                    <textarea
-                      rows={4}
-                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 border"
-                      placeholder="Your answer"
-                      value={answers[q.id] || ""}
-                      onChange={(e) => handleAnswerChange(q.id, e.target.value)}
-                      required={q.required}
-                    />
-                  )}
-
-                  {q.type === "radio" && q.options && (
-                    <div className="space-y-2">
+                  {/* Dynamic custom field group logic: render all options as fields */}
+                  {q.options && q.options.length > 0 && q.options[0].fieldType && (
+                    <div className="space-y-3">
                       {q.options.map((opt) => (
-                        <label key={opt.id} className="flex items-center space-x-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 cursor-pointer">
-                          <input
-                            type="radio"
-                            name={q.id}
-                            value={opt.id}
-                            checked={answers[q.id] === opt.id}
-                            onChange={() => handleAnswerChange(q.id, opt.id)}
-                            className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            required={q.required}
-                          />
-                          <span className="text-gray-700">{opt.label}</span>
-                        </label>
+                        <div key={opt.id} className="flex flex-wrap items-center gap-2">
+                          <label className="w-32 text-gray-700 text-sm">{opt.label}</label>
+                          {(() => {
+                            switch (opt.fieldType) {
+                              case 'text':
+                                return <input type="text" className="flex-1 rounded-md border-gray-300 p-2" value={answers[`${q.id}_${opt.id}`] || ''} onChange={e => handleAnswerChange(`${q.id}_${opt.id}`, e.target.value)} required={q.required} />;
+                              case 'email':
+                                return <input type="email" className="flex-1 rounded-md border-gray-300 p-2" value={answers[`${q.id}_${opt.id}`] || ''} onChange={e => handleAnswerChange(`${q.id}_${opt.id}`, e.target.value)} required={q.required} />;
+                              case 'date':
+                                return <input type="date" className="flex-1 rounded-md border-gray-300 p-2" value={answers[`${q.id}_${opt.id}`] || ''} onChange={e => handleAnswerChange(`${q.id}_${opt.id}`, e.target.value)} required={q.required} />;
+                              case 'textarea':
+                                return <textarea className="flex-1 rounded-md border-gray-300 p-2" value={answers[`${q.id}_${opt.id}`] || ''} onChange={e => handleAnswerChange(`${q.id}_${opt.id}`, e.target.value)} required={q.required} />;
+                              case 'number':
+                              case 'percentage':
+                                return <input type="number" className="flex-1 rounded-md border-gray-300 p-2" value={answers[`${q.id}_${opt.id}`] || ''} onChange={e => handleAnswerChange(`${q.id}_${opt.id}`, e.target.value)} required={q.required} />;
+                              default:
+                                return <input type="text" className="flex-1 rounded-md border-gray-300 p-2" value={answers[`${q.id}_${opt.id}`] || ''} onChange={e => handleAnswerChange(`${q.id}_${opt.id}`, e.target.value)} required={q.required} />;
+                            }
+                          })()}
+                          {opt.fieldType === 'percentage' && <span className="text-xs text-gray-400">%</span>}
+                        </div>
                       ))}
+                      {/* Total validation for number/percentage fields */}
+                      {(() => {
+                        const totalTarget = q.weightageConfig?.totalPoints || 100;
+                        const total = q.options.filter(o => o.fieldType === 'number' || o.fieldType === 'percentage').reduce((sum, o) => sum + (Number(answers[`${q.id}_${o.id}`]) || 0), 0);
+                        const showError = q.options.some(o => o.fieldType === 'number' || o.fieldType === 'percentage') && total !== totalTarget;
+                        return (
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="text-xs text-gray-500">Total:</span>
+                            <span className={`text-xs font-bold ${showError ? 'text-red-500' : 'text-green-600'}`}>{total}</span>
+                            <span className="text-xs text-gray-500">/ {totalTarget} {q.options.some(o => o.fieldType === 'percentage') ? '%' : ''}</span>
+                            {showError && <span className="text-xs text-red-500 ml-2">Total must match target</span>}
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
-
-                  {q.type === "checkbox" && q.options && (
-                    <div className="space-y-2">
-                      {q.options.map((opt) => (
-                        <label key={opt.id} className="flex items-center space-x-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            value={opt.id}
-                            checked={(answers[q.id] || []).includes(opt.id)}
-                            onChange={(e) => handleCheckboxChange(q.id, opt.id, e.target.checked)}
-                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                          />
-                          <span className="text-gray-700">{opt.label}</span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-
-                  {q.type === "dropdown" && q.options && (
-                    <select
-                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 border"
-                      value={answers[q.id] || ""}
-                      onChange={(e) => handleAnswerChange(q.id, e.target.value)}
-                      required={q.required}
-                    >
-                      <option value="">Select an option</option>
-                      {q.options.map((opt) => (
-                        <option key={opt.id} value={opt.id}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
+                  {/* Fallback to default rendering for other question types */}
+                  {!q.options || !q.options[0].fieldType && (
+                    <>
+                      {q.type === "text" && (
+                        <input
+                          type="text"
+                          className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 border"
+                          placeholder="Your answer"
+                          value={answers[q.id] || ""}
+                          onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+                          required={q.required}
+                        />
+                      )}
+                      {q.type === "textarea" && (
+                        <textarea
+                          rows={4}
+                          className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 border"
+                          placeholder="Your answer"
+                          value={answers[q.id] || ""}
+                          onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+                          required={q.required}
+                        />
+                      )}
+                      {q.type === "radio" && q.options && (
+                        <div className="space-y-2">
+                          {q.options.map((opt) => (
+                            <label key={opt.id} className="flex items-center space-x-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 cursor-pointer">
+                              <input
+                                type="radio"
+                                name={q.id}
+                                value={opt.id}
+                                checked={answers[q.id] === opt.id}
+                                onChange={() => handleAnswerChange(q.id, opt.id)}
+                                className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                required={q.required}
+                              />
+                              <span className="text-gray-700">{opt.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                      {q.type === "checkbox" && q.options && (
+                        <div className="space-y-2">
+                          {q.options.map((opt) => (
+                            <label key={opt.id} className="flex items-center space-x-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                value={opt.id}
+                                checked={(answers[q.id] || []).includes(opt.id)}
+                                onChange={(e) => handleCheckboxChange(q.id, opt.id, e.target.checked)}
+                                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                              />
+                              <span className="text-gray-700">{opt.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                      {q.type === "dropdown" && q.options && (
+                        <select
+                          className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 border"
+                          value={answers[q.id] || ""}
+                          onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+                          required={q.required}
+                        >
+                          <option value="">Select an option</option>
+                          {q.options.map((opt) => (
+                            <option key={opt.id} value={opt.id}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
