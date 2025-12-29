@@ -1,14 +1,21 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Plus, Search, LayoutTemplate } from "lucide-react";
+import { Plus, Search, LayoutTemplate, ArrowLeft, Upload, List, Trash2 } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
 // --- Types ---
 
+
+
+type QuestionType = "text" | "textarea" | "radio" | "checkbox" | "dropdown" | "slider" | "nps" | "matrix" | "ranking" | "weightage" | "email" | "date" | "rating" | "file_upload";
 interface QuestionOption {
     id: string;
     label: string;
     fieldType?: 'text' | 'email' | 'date' | 'textarea' | 'number' | 'percentage';
     value?: string | number;
+    type?: string;
+    required?: boolean;
+    errorMessage?: string;
     validation?: {
         required?: boolean;
         min?: number;
@@ -17,10 +24,9 @@ interface QuestionOption {
         errorMessage?: string;
     };
 }
-
 interface Question {
     id: string;
-    type: "text" | "textarea" | "radio" | "checkbox" | "dropdown" | "slider" | "nps" | "matrix" | "ranking" | "weightage";
+    type: QuestionType;
     options?: QuestionOption[];
     text: string;
     required: boolean;
@@ -28,6 +34,8 @@ interface Question {
     weightageConfig?: { totalPoints?: number };
     subQuestions?: { id: string; label: string }[];
     scaleConfig?: { min: number; max: number; minLabel: string; maxLabel: string };
+    errorMessage?: string;
+    allowOther?: boolean;
 }
 
 interface BrandingConfig {
@@ -78,6 +86,7 @@ function SurveyManager() {
     const [currentSurvey, setCurrentSurvey] = useState<Survey | null>(null);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
+    const [surveyUrl, setSurveyUrl] = useState<string | null>(null);
 
     // --- Effects ---
     useEffect(() => {
@@ -156,6 +165,8 @@ function SurveyManager() {
                 onSave={() => setView("list")}
                 onCancel={() => setView("list")}
                 tenants={tenants}
+                surveyUrl={surveyUrl}
+                setSurveyUrl={setSurveyUrl}
             />
         );
     }
@@ -268,9 +279,9 @@ function SurveyManager() {
 export default SurveyManager;
 
 function SurveyEditor({ 
-    survey, onUpdate, onSave, onCancel, tenants 
+    survey, onUpdate, onSave, onCancel, tenants, surveyUrl, setSurveyUrl 
 }: { 
-    survey: Survey, onUpdate: (s: Survey) => void, onSave: () => void, onCancel: () => void, tenants: Tenant[] 
+    survey: Survey, onUpdate: (s: Survey) => void, onSave: () => void, onCancel: () => void, tenants: Tenant[], surveyUrl: string | null, setSurveyUrl: (url: string | null) => void 
 }) {
     const [activeTab, setActiveTab] = useState<"build" | "design" | "settings" | "preview">("build");
     // AI Design state (moved here)
@@ -294,7 +305,7 @@ function SurveyEditor({
             }
             for (const q of survey.questions) {
                 if (q.type === 'weightage') {
-                    const total = q.options?.reduce((sum, o) => sum + (parseFloat(o.value || "0") || 0), 0) || 0;
+                    const total = q.options?.reduce((sum: number, o: QuestionOption) => sum + (parseFloat(typeof o.value === "string" ? o.value : String(o.value)) || 0), 0) || 0;
                     if (total !== 100) {
                         showNotification("Weightage total must be 100.", "error");
                         setSaving(false);
@@ -315,13 +326,13 @@ function SurveyEditor({
                 branding: survey.branding,
                 isTemplate: survey.isTemplate,
                 templateCategory: survey.templateCategory,
-                questions: survey.questions.map(q => ({
+                questions: survey.questions.map((q: Question) => ({
                     id: q.id,
                     type: q.type,
                     text: q.text,
                     required: q.required,
                     errorMessage: q.errorMessage,
-                    options: q.options?.map(o => ({
+                    options: q.options?.map((o: QuestionOption) => ({
                         label: o.label,
                         type: o.type,
                         value: o.value,
@@ -372,13 +383,13 @@ function SurveyEditor({
             if (res.data.success && res.data.data && Array.isArray(res.data.data.questions)) {
                 // Only use allowed fields and structure
                 const allowedTypes = ["text", "textarea", "radio", "checkbox", "dropdown", "rating", "slider", "nps", "date", "email", "matrix", "ranking", "file_upload", "weightage"];
-                const filteredQuestions = res.data.data.questions.filter(q => allowedTypes.includes(q.type)).map(q => ({
+                const filteredQuestions = res.data.data.questions.filter((q: any) => allowedTypes.includes(q.type)).map((q: any) => ({
                     id: q.id || uuidv4(),
                     type: q.type,
                     text: q.text,
                     required: q.required,
                     errorMessage: q.errorMessage,
-                    options: q.options?.map(o => ({
+                    options: q.options?.map((o: any) => ({
                         label: o.label,
                         type: o.type,
                         value: o.value,
@@ -410,20 +421,20 @@ function SurveyEditor({
     });
   };
 
-  const addQuestion = (type: QuestionType) => {
-    const newQuestion: Question = {
-      id: crypto.randomUUID(),
-      type,
-      text: "",
-      required: false,
-      options: ["radio", "checkbox", "dropdown", "ranking", "weightage"].includes(type) 
-        ? [{ id: crypto.randomUUID(), label: "Option 1" }] 
-        : undefined,
-      subQuestions: type === "matrix" ? [{ id: crypto.randomUUID(), label: "Row 1" }] : undefined,
-      scaleConfig: type === "slider" || type === "nps" ? { min: 0, max: 10, minLabel: "Poor", maxLabel: "Excellent" } : undefined
+    const addQuestion = (type: QuestionType) => {
+        const newQuestion: Question = {
+            id: uuidv4(),
+            type,
+            text: "",
+            required: false,
+            options: ["radio", "checkbox", "dropdown", "ranking", "weightage"].includes(type) 
+                ? [{ id: uuidv4(), label: "Option 1" }] 
+                : undefined,
+            subQuestions: type === "matrix" ? [{ id: uuidv4(), label: "Row 1" }] : undefined,
+            scaleConfig: type === "slider" || type === "nps" ? { min: 0, max: 10, minLabel: "Poor", maxLabel: "Excellent" } : undefined
+        };
+        onUpdate({ ...survey, questions: [...survey.questions, newQuestion] });
     };
-    onUpdate({ ...survey, questions: [...survey.questions, newQuestion] });
-  };
 
   // ... (Other CRUD helpers would go here, simplified for brevity but fully functional in logic)
   const updateQuestion = (id: string, updates: Partial<Question>) => {
@@ -1039,7 +1050,12 @@ function renderQuestionBody(q: Question, updateFn: (id: string, u: Partial<Quest
                             <input 
                                 type="number" 
                                 value={q.scaleConfig?.min ?? 0}
-                                onChange={(e) => updateFn(q.id, { scaleConfig: { ...q.scaleConfig, min: parseInt(e.target.value) } })}
+                                onChange={(e) => updateFn(q.id, { scaleConfig: {
+                                    min: isNaN(parseInt(e.target.value)) ? 0 : parseInt(e.target.value),
+                                    max: typeof q.scaleConfig?.max === 'number' ? q.scaleConfig.max : 10,
+                                    minLabel: q.scaleConfig?.minLabel ?? "Poor",
+                                    maxLabel: q.scaleConfig?.maxLabel ?? "Excellent"
+                                } })}
                                 className="w-full border-b border-gray-200 py-1 bg-transparent text-sm"
                             />
                         </div>
@@ -1048,7 +1064,12 @@ function renderQuestionBody(q: Question, updateFn: (id: string, u: Partial<Quest
                             <input 
                                 type="number" 
                                 value={q.scaleConfig?.max ?? 100}
-                                onChange={(e) => updateFn(q.id, { scaleConfig: { ...q.scaleConfig, max: parseInt(e.target.value) } })}
+                                onChange={(e) => updateFn(q.id, { scaleConfig: {
+                                    min: typeof q.scaleConfig?.min === 'number' ? q.scaleConfig.min : 0,
+                                    max: isNaN(parseInt(e.target.value)) ? 10 : parseInt(e.target.value),
+                                    minLabel: q.scaleConfig?.minLabel ?? "Poor",
+                                    maxLabel: q.scaleConfig?.maxLabel ?? "Excellent"
+                                } })}
                                 className="w-full border-b border-gray-200 py-1 bg-transparent text-sm"
                             />
                         </div>
@@ -1058,7 +1079,12 @@ function renderQuestionBody(q: Question, updateFn: (id: string, u: Partial<Quest
                             <label className="text-xs font-semibold text-gray-500 uppercase">Min Label</label>
                             <input 
                                 value={q.scaleConfig?.minLabel || ''}
-                                onChange={(e) => updateFn(q.id, { scaleConfig: { ...q.scaleConfig, minLabel: e.target.value } })}
+                                onChange={(e) => updateFn(q.id, { scaleConfig: {
+                                    min: typeof q.scaleConfig?.min === 'number' ? q.scaleConfig.min : 0,
+                                    max: typeof q.scaleConfig?.max === 'number' ? q.scaleConfig.max : 10,
+                                    minLabel: e.target.value,
+                                    maxLabel: q.scaleConfig?.maxLabel ?? "Excellent"
+                                } })}
                                 className="w-full border-b border-gray-200 py-1 bg-transparent text-sm"
                                 placeholder="e.g. Poor"
                             />
@@ -1067,7 +1093,12 @@ function renderQuestionBody(q: Question, updateFn: (id: string, u: Partial<Quest
                             <label className="text-xs font-semibold text-gray-500 uppercase">Max Label</label>
                             <input 
                                 value={q.scaleConfig?.maxLabel || ''}
-                                onChange={(e) => updateFn(q.id, { scaleConfig: { ...q.scaleConfig, maxLabel: e.target.value } })}
+                                onChange={(e) => updateFn(q.id, { scaleConfig: {
+                                    min: typeof q.scaleConfig?.min === 'number' ? q.scaleConfig.min : 0,
+                                    max: typeof q.scaleConfig?.max === 'number' ? q.scaleConfig.max : 10,
+                                    minLabel: q.scaleConfig?.minLabel ?? "Poor",
+                                    maxLabel: e.target.value
+                                } })}
                                 className="w-full border-b border-gray-200 py-1 bg-transparent text-sm"
                                 placeholder="e.g. Excellent"
                             />
