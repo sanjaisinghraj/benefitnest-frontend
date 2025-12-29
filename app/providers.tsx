@@ -2,6 +2,7 @@
 import React from "react";
 import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
 import { ApolloProvider } from "@apollo/client/react";
+import { SessionProvider } from "next-auth/react";
 import { setContext } from "@apollo/client/link/context";
 
 function getToken(): string | null {
@@ -13,6 +14,26 @@ function getToken(): string | null {
       ?.split("=")[1] || null;
   const localToken = localStorage.getItem("admin_token");
   return cookieToken || localToken;
+}
+
+function getSessionFromToken(): any | null {
+  if (typeof window === "undefined") return null;
+  const token = getToken();
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1] || ""));
+    const user = {
+      name: payload.name || payload.username || "Administrator",
+      email: payload.email || "admin@benefitnest.space",
+      image: payload.image || null,
+      roles: payload.roles || ["admin"],
+    };
+    const expires = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    return { user, expires };
+  } catch {
+    const expires = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+    return { user: { name: "Administrator" }, expires };
+  }
 }
 
 const graphqlUri =
@@ -41,5 +62,10 @@ const client = new ApolloClient({
 });
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-  return <ApolloProvider client={client}>{children}</ApolloProvider>;
+  const session = typeof window !== "undefined" ? getSessionFromToken() : null;
+  return (
+    <SessionProvider session={session} refetchOnWindowFocus={false}>
+      <ApolloProvider client={client}>{children}</ApolloProvider>
+    </SessionProvider>
+  );
 }

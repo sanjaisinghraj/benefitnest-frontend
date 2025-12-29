@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { usePlanConfig } from "../../hooks/usePlanConfig";
 import { useOverrides } from "../../hooks/useOverrides";
@@ -39,7 +39,10 @@ export default function PlanConfigClient() {
     corporateId,
     countryCode,
   ) as any;
-  const effectiveConfig = (useOverrides as any)(config, countryCode) as any;
+  const effectiveConfig = useMemo(
+    () => (useOverrides as any)(config, countryCode) as any,
+    [config, countryCode],
+  );
 
   useEffect(() => {
     setForm({});
@@ -58,30 +61,44 @@ export default function PlanConfigClient() {
   };
 
   const handleSave = async () => {
-    setLoading(true);
-    await client.mutate({
-      mutation: gql`
-        mutation UpdateConfig(
-          $planType: String!
-          $corporateId: String!
-          $input: JSON!
-        ) {
-          updateConfig(
-            planType: $planType
-            corporateId: $corporateId
-            newConfig: $input
+    try {
+      setLoading(true);
+      const res = await client.mutate({
+        mutation: gql`
+          mutation UpdateConfig(
+            $planType: String!
+            $corporateId: String!
+            $input: JSON!
           ) {
-            status
+            updateConfig(
+              planType: $planType
+              corporateId: $corporateId
+              newConfig: $input
+            ) {
+              status
+            }
           }
-        }
-      `,
-      variables: {
-        planType,
-        corporateId,
-        input: { ...effectiveConfig, ...form },
-      },
-    });
-    setLoading(false);
+        `,
+        variables: {
+          planType,
+          corporateId,
+          input: { ...effectiveConfig, ...form },
+        },
+      });
+      const status =
+        (res?.data as any)?.updateConfig?.status ??
+        (res as any)?.status ??
+        "unknown";
+      if (typeof window !== "undefined") {
+        alert(`Configuration saved: ${status}`);
+      }
+    } catch (err: any) {
+      if (typeof window !== "undefined") {
+        alert(`Failed to save configuration`);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (sessionState.status === "loading")
