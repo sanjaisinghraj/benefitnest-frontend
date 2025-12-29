@@ -133,52 +133,58 @@ export default function PlanConfigClient() {
           }}
         >
           <div style={{ flex: 2 }}>
-            {FamilyDefinitionForm &&
-              React.createElement(FamilyDefinitionForm, {
-                value: form.family,
-                onChange: (v: any) => handleField("family", v),
-                config: effectiveConfig,
-                branding,
-                errors,
-              })}
-            {SumInsuredSelector &&
-              React.createElement(SumInsuredSelector, {
-                value: form.sumInsured,
-                onChange: (v: any) => handleField("sumInsured", v),
-                config: effectiveConfig,
-                branding,
-                errors,
-              })}
-            {PremiumMatrixTable &&
-              React.createElement(PremiumMatrixTable, {
-                config: effectiveConfig,
-                selection: form,
-                branding,
-              })}
-            {RiderOptions &&
-              React.createElement(RiderOptions, {
-                value: form.riders,
-                onChange: (v: any) => handleField("riders", v),
-                config: effectiveConfig,
-                branding,
-                errors,
-              })}
-            {WalletContributionSlider &&
-              React.createElement(WalletContributionSlider, {
-                value: form.wallet,
-                onChange: (v: any) => handleField("wallet", v),
-                config: effectiveConfig,
-                branding,
-                errors,
-              })}
-            {PaymentMethodSelector &&
-              React.createElement(PaymentMethodSelector, {
-                value: form.payment,
-                onChange: (v: any) => handleField("payment", v),
-                config: effectiveConfig,
-                branding,
-                errors,
-              })}
+            {FamilyDefinitionForm && (
+              <FamilyDefinitionForm
+                value={form.family}
+                onChange={(v: any) => handleField("family", v)}
+                config={effectiveConfig as any}
+                branding={branding as any}
+                errors={errors as any}
+              />
+            )}
+            {SumInsuredSelector && (
+              <SumInsuredSelector
+                value={form.sumInsured}
+                onChange={(v: any) => handleField("sumInsured", v)}
+                config={effectiveConfig as any}
+                branding={branding as any}
+                errors={errors as any}
+              />
+            )}
+            {PremiumMatrixTable && (
+              <PremiumMatrixTable
+                config={effectiveConfig as any}
+                selection={form as any}
+                branding={branding as any}
+              />
+            )}
+            {RiderOptions && (
+              <RiderOptions
+                value={form.riders}
+                onChange={(v: any) => handleField("riders", v)}
+                config={effectiveConfig as any}
+                branding={branding as any}
+                errors={errors as any}
+              />
+            )}
+            {WalletContributionSlider && (
+              <WalletContributionSlider
+                value={form.wallet}
+                onChange={(v: any) => handleField("wallet", v)}
+                config={effectiveConfig as any}
+                branding={branding as any}
+                errors={errors as any}
+              />
+            )}
+            {PaymentMethodSelector && (
+              <PaymentMethodSelector
+                value={form.payment}
+                onChange={(v: any) => handleField("payment", v)}
+                config={effectiveConfig as any}
+                branding={branding as any}
+                errors={errors as any}
+              />
+            )}
             <button
               onClick={handleSave}
               disabled={loading}
@@ -188,12 +194,13 @@ export default function PlanConfigClient() {
             </button>
           </div>
           <div style={{ flex: 1, minWidth: 320 }}>
-            {ProductSummaryCard &&
-              React.createElement(ProductSummaryCard, {
-                config: effectiveConfig,
-                selection: form,
-                branding,
-              })}
+            {ProductSummaryCard && (
+              <ProductSummaryCard
+                config={effectiveConfig as any}
+                selection={form as any}
+                branding={branding as any}
+              />
+            )}
           </div>
         </div>
       ) : (

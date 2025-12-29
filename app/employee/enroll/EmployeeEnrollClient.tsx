@@ -51,13 +51,9 @@ export default function EmployeeEnrollClient() {
   // Derive branding from effectiveConfig without calling setState inside an effect
   const branding = useMemo<Branding>(
     () => ({
-      // @ts-expect-error - effectiveConfig shape is dynamic and not statically typed
       font: (effectiveConfig as any)?.branding?.font,
-      // @ts-expect-error - dynamic
       background: (effectiveConfig as any)?.branding?.background,
-      // @ts-expect-error - dynamic
       color: (effectiveConfig as any)?.branding?.color,
-      // @ts-expect-error - dynamic
       logo: (effectiveConfig as any)?.branding?.logo,
     }),
     [effectiveConfig],

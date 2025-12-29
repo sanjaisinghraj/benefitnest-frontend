@@ -17,7 +17,7 @@ const RESERVED_SUBDOMAINS = [
 // Main domain (without subdomain)
 const MAIN_DOMAIN = "benefitnest.space";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   const hostname = request.headers.get("host") || "";
 
@@ -90,7 +90,7 @@ export function middleware(request: NextRequest) {
   return response;
 }
 
-// Configure which paths middleware runs on
+// Configure which paths proxy runs on
 export const config = {
   matcher: [
     /*
@@ -103,3 +103,4 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico|.*\\..*|api/).*)",
   ],
 };
+
