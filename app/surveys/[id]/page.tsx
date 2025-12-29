@@ -26,6 +26,7 @@ interface Question {
   text: string;
   required: boolean;
   imageUrl?: string;
+  weightageConfig?: { totalPoints?: number };
 }
 
 interface Survey {
