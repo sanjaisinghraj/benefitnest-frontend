@@ -360,7 +360,7 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
         autosaveTimeout.current = setTimeout(async () => {
             try {
                 // Prepare payload
-                const payload = {
+                const payload: any = {
                     title: updatedSurvey.title,
                     tenantId: updatedSurvey.tenantId,
                     status: updatedSurvey.status,
@@ -388,20 +388,19 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                         })) || []
                     }))
                 };
-                
+                // Only send id if it exists (for update)
+                if (updatedSurvey.id) payload.id = updatedSurvey.id;
                 let token = null;
                 if (typeof window !== "undefined") {
                     token = document.cookie.split('; ').find(r => r.startsWith('admin_token='))?.split('=')[1] || localStorage.getItem('admin_token');
                 }
                 const headers = token ? { Authorization: `Bearer ${token}` } : {};
                 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
-                
-                // Use updatedSurvey.id to determine if it's an update or create, but API might handle upsert
-                // Assuming POST to /api/surveys handles upsert based on ID if present in payload or logic
-                // For safety, we should probably check if it exists or just rely on backend
-                // The original code used POST for save, so we stick to that.
-                await axios.post(`${API_URL}/api/surveys`, { ...payload, id: updatedSurvey.id }, { headers });
-                
+                const res = await axios.post(`${API_URL}/api/surveys`, payload, { headers });
+                // If new survey, update local state with new id
+                if (!updatedSurvey.id && res.data.success && res.data.data && res.data.data.id) {
+                    onUpdate({ ...updatedSurvey, id: res.data.data.id });
+                }
                 setAutosaveStatus('saved');
                 setTimeout(() => setAutosaveStatus('idle'), 1500);
             } catch (err) {
@@ -409,7 +408,7 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                 setTimeout(() => setAutosaveStatus('idle'), 2000);
             }
         }, 1000); // 1s debounce
-    }, []);
+    }, [onUpdate]);
 
     const handleSave = async () => {
         setSaving(true);
@@ -420,10 +419,8 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                 setSaving(false);
                 return;
             }
-            
             // Prepare payload
-            const payload = {
-                id: survey.id,
+            const payload: any = {
                 title: survey.title,
                 tenantId: survey.tenantId,
                 status: survey.status,
@@ -451,24 +448,25 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                     })) || []
                 }))
             };
-
+            // Only send id if it exists (for update)
+            if (survey.id) payload.id = survey.id;
             let token = null;
             if (typeof window !== "undefined") {
                 token = document.cookie.split('; ').find(r => r.startsWith('admin_token='))?.split('=')[1] || localStorage.getItem('admin_token');
             }
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
             const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
-            
             const res = await axios.post(`${API_URL}/api/surveys`, payload, { headers });
-            
             if (res.data.success && res.data.data) {
+                // If new survey, update local state with new id
+                if (!survey.id && res.data.data.id) {
+                    onUpdate({ ...survey, id: res.data.data.id });
+                }
                 showNotification("Survey saved successfully!", "success");
-                
                 const tenant = tenants.find(t => t.id === survey.tenantId);
                 if (tenant) {
-                    setSurveyUrl(`https://${tenant.subdomain}.benefitnest.space/employeebenefitsurvey/${survey.id}`);
+                    setSurveyUrl(`https://${tenant.subdomain}.benefitnest.space/employeebenefitsurvey/${survey.id || res.data.data.id}`);
                 }
-                
                 onSave();
             } else {
                 showNotification("Failed to save survey.", "error");
