@@ -1,6 +1,8 @@
 "use client";
+import React from "react";
 import AdminTopBar from "../components/AdminTopBar";
 import AdminFooter from "../components/AdminFooter";
+import SurveyManager from "./SurveyManager";
 
 export default function Page() {
   return (
@@ -12,7 +14,7 @@ export default function Page() {
         showBack={true}
       />
       <main style={{ flex: 1, width: "100%", maxWidth: 1400, margin: "0 auto", padding: 24 }}>
-        {/* ...existing content... */}
+        <SurveyManager />
       </main>
       <AdminFooter />
     </div>
