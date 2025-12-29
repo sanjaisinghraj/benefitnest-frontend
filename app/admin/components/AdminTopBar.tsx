@@ -7,10 +7,11 @@ type Props = {
   subtitle?: string;
   icon?: React.ReactNode;
   showBack?: boolean;
+  actions?: React.ReactNode;
 };
 
 
-export default function AdminTopBar({ title, subtitle, icon, showBack = true }: Props) {
+export default function AdminTopBar({ title, subtitle, icon, showBack = true, actions }: Props) {
   const router = useRouter();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -177,6 +178,7 @@ export default function AdminTopBar({ title, subtitle, icon, showBack = true }: 
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          {actions}
           <div style={{ position: "relative" }}>
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
