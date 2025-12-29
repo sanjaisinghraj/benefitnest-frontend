@@ -25,7 +25,6 @@ interface Question {
   options?: QuestionOption[];
   text: string;
   required: boolean;
-  options?: QuestionOption[];
   imageUrl?: string;
 }
 
