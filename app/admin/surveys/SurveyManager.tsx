@@ -80,46 +80,59 @@ function SurveyManager() {
         // --- Delete Survey Handler ---
         const handleDeleteSurvey = async (survey: Survey) => {
             if (!window.confirm(`Are you sure you want to delete the survey "${survey.title}"? This action cannot be undone.`)) return;
-            try {
-                setLoading(true);
-                const res = await axios.delete(`${API_URL}/api/surveys/${survey.id}`, { headers: getAuthHeaders() });
-                if (res.data.success) {
-                    setSurveys(surveys.filter(s => s.id !== survey.id));
-                    alert('Survey deleted successfully.');
-                } else {
-                    alert('Failed to delete survey.');
+            switch (q.type) {
+                case "text":
+                case "textarea": {
+                    // Admin mode: inline title, add description, required, delete
+                    return (
+                        <div className="space-y-2">
+                            {/* Editable Title */}
+                            <input
+                                type="text"
+                                value={q.text || ''}
+                                onChange={e => updateFn(q.id, { text: e.target.value })}
+                                className="w-full border-b border-gray-300 text-lg font-semibold focus:border-indigo-500 outline-none bg-transparent"
+                                placeholder="Untitled Question"
+                            />
+                            {/* Add Description Checkbox */}
+                            <label className="flex items-center gap-2 text-xs text-gray-500">
+                                <input
+                                    type="checkbox"
+                                    checked={typeof q.description === 'string'}
+                                    onChange={e => updateFn(q.id, { description: e.target.checked ? '' : undefined })}
+                                />
+                                Add Description
+                            </label>
+                            {/* Editable Description */}
+                            {typeof q.description === 'string' && (
+                                <input
+                                    type="text"
+                                    value={q.description}
+                                    onChange={e => updateFn(q.id, { description: e.target.value })}
+                                    className="w-full border-b border-gray-200 text-sm focus:border-indigo-400 outline-none bg-transparent"
+                                    placeholder="Enter description (optional)"
+                                />
+                            )}
+                            {/* Required Checkbox */}
+                            <label className="flex items-center gap-2 text-xs text-gray-500 mt-2">
+                                <input
+                                    type="checkbox"
+                                    checked={!!q.required}
+                                    onChange={e => updateFn(q.id, { required: e.target.checked })}
+                                />
+                                Required
+                            </label>
+                            {/* Delete Button */}
+                            <button onClick={() => updateFn(q.id, { _delete: true })} className="text-red-500 text-xs font-medium mt-2">Delete</button>
+                            {/* Answer Preview (disabled for admin) */}
+                            {q.type === "text" ? (
+                                <input type="text" className="w-full border border-gray-200 rounded px-2 py-1 mt-2" placeholder="Recipient answer (single line)" disabled />
+                            ) : (
+                                <textarea className="w-full border border-gray-200 rounded px-2 py-1 mt-2" rows={3} placeholder="Recipient answer (multi-line)" disabled />
+                            )}
+                        </div>
+                    );
                 }
-            } catch (err) {
-                alert('Error deleting survey.');
-            } finally {
-                setLoading(false);
-            }
-        };
-    // --- State ---
-    const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
-    const [view, setView] = useState<"list" | "editor">("list");
-    const [surveys, setSurveys] = useState<Survey[]>([]);
-    const [tenants, setTenants] = useState<Tenant[]>([]);
-    const [selectedTenants, setSelectedTenants] = useState<string[]>([]);
-    const [currentSurvey, setCurrentSurvey] = useState<Survey | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [surveyUrl, setSurveyUrl] = useState<string | null>(null);
-
-    // --- Effects ---
-    useEffect(() => {
-        fetchTenants();
-        fetchSurveys();
-    }, []);
-    useEffect(() => {
-        fetchSurveys();
-    }, [selectedTenants, searchTerm]);
-
-    // --- Helpers ---
-    const getToken = () => {
-        if (typeof window === "undefined") return null;
-        return (
-            document.cookie
                 .split("; ")
                 .find((r) => r.startsWith("admin_token="))
                 ?.split("=")[1] || localStorage.getItem("admin_token")
