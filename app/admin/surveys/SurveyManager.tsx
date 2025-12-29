@@ -1,11 +1,49 @@
 "use client";
-// ...existing code...
-  headingBold?: boolean;
-  headingItalic?: boolean;
-  questionColor?: string;
-  questionSize?: "text-sm" | "text-base" | "text-lg";
-  questionBold?: boolean;
-  questionItalic?: boolean;
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { Plus, Search, LayoutTemplate } from "lucide-react";
+// --- Types ---
+
+interface QuestionOption {
+    id: string;
+    label: string;
+    fieldType?: 'text' | 'email' | 'date' | 'textarea' | 'number' | 'percentage';
+    value?: string | number;
+    validation?: {
+        required?: boolean;
+        min?: number;
+        max?: number;
+        regex?: string;
+        errorMessage?: string;
+    };
+}
+
+interface Question {
+    id: string;
+    type: "text" | "textarea" | "radio" | "checkbox" | "dropdown" | "slider" | "nps" | "matrix" | "ranking" | "weightage";
+    options?: QuestionOption[];
+    text: string;
+    required: boolean;
+    imageUrl?: string;
+    weightageConfig?: { totalPoints?: number };
+    subQuestions?: { id: string; label: string }[];
+    scaleConfig?: { min: number; max: number; minLabel: string; maxLabel: string };
+}
+
+interface BrandingConfig {
+    headingColor?: string;
+    headingSize?: "text-sm" | "text-base" | "text-lg";
+    headingBold?: boolean;
+    headingItalic?: boolean;
+    questionColor?: string;
+    questionSize?: "text-sm" | "text-base" | "text-lg";
+        questionBold?: boolean;
+        questionItalic?: boolean;
+        primaryColor?: string;
+        backgroundColor?: string;
+        fontFamily?: string;
+        logoUrl?: string;
+        bannerUrl?: string;
 }
 
 interface Survey {
