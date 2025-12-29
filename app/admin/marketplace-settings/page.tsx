@@ -635,6 +635,10 @@ export default function MarketplaceSettingsPage() {
   const handleCorporateSelect = async (corp: Corporate) => {
     if (hasUnsavedChanges && !confirm("You have unsaved changes. Continue?"))
       return;
+    if (!selectedCorporate) {
+      showToast("No corporate selected.", "error");
+      return;
+    }
     try {
       await axios.put(
         `${API_URL}/api/admin/corporates/${selectedCorporate.tenant_id}/marketplace-settings`,

@@ -1,13 +1,13 @@
 "use client";
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import axios from "axios";
-import { FamilyDefinitionForm } from "../../components/FamilyDefinitionForm";
-import { SumInsuredSelector } from "../../components/SumInsuredSelector";
-import { PremiumMatrixTable } from "../../components/PremiumMatrixTable";
-import { RiderOptions } from "../../components/RiderOptions";
-import { WalletContributionSlider } from "../../components/WalletContributionSlider";
-import { PaymentMethodSelector } from "../../components/PaymentMethodSelector";
-import { ProductSummaryCard } from "../../components/ProductSummaryCard";
+import { FamilyDefinitionForm } from "../components/FamilyDefinitionForm";
+import { SumInsuredSelector } from "../components/SumInsuredSelector";
+import { PremiumMatrixTable } from "../components/PremiumMatrixTable";
+import { RiderOptions } from "../components/RiderOptions";
+import { WalletContributionSlider } from "../components/WalletContributionSlider";
+import { PaymentMethodSelector } from "../components/PaymentMethodSelector";
+import { ProductSummaryCard } from "../components/ProductSummaryCard";
 
 export default function PlanConfigClient() {
   const API_URL =
