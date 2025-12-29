@@ -256,7 +256,7 @@ export default function WellnessAdminPage() {
             body: JSON.stringify({ ...config, tenant_id: tenantId }),
           });
           return { tenantId, success: res.ok };
-        }),
+        })
       );
 
       const successCount = results.filter((r) => r.success).length;
