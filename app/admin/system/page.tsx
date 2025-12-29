@@ -1,26 +1,11 @@
 "use client";
 import React from "react";
-import { useRouter } from "next/navigation";
+import AdminTopBar from "../components/AdminTopBar";
 
 export default function Page() {
-  const router = useRouter();
   return (
     <div style={{ padding: 24 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-        <button
-          onClick={() => router.push("/admin/dashboard")}
-          style={{
-            background: "#f3f4f6",
-            border: "none",
-            padding: "8px 12px",
-            borderRadius: 8,
-            cursor: "pointer",
-          }}
-        >
-          ← Dashboard
-        </button>
-        <h1 style={{ fontSize: 24, fontWeight: 800 }}>System Configuration</h1>
-      </div>
+      <AdminTopBar title="System Configuration" />
       <p style={{ color: "#4b5563" }}>
         Configure notifications, API keys, SSO providers, and feature toggles.
       </p>
