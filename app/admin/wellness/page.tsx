@@ -3,7 +3,29 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+
 const API_URL = "https://benefitnest-backend.onrender.com";
+
+interface WellnessConfig {
+  tenant_id: string;
+  wellness_enabled: boolean;
+  health_risk_assessment_enabled: boolean;
+  mental_wellbeing_enabled: boolean;
+  ai_wellness_coach_enabled: boolean;
+  personalized_plans_enabled: boolean;
+  knowledge_hub_enabled: boolean;
+  preventive_care_enabled: boolean;
+  financial_wellbeing_enabled: boolean;
+  habit_tracking_enabled: boolean;
+  journaling_enabled: boolean;
+  ai_provider: string;
+  ai_enabled: boolean;
+  ai_guardrails_strict: boolean;
+  require_consent: boolean;
+  consent_text: string;
+  anonymize_hr_reports: boolean;
+  data_retention_days: number;
+}
 
 interface Corporate {
   tenant_id: string;
