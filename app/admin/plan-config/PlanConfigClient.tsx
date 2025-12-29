@@ -207,21 +207,32 @@ export default function PlanConfigClient() {
         const configs = configResp.data?.data || configResp.data || [];
         const ptId = policyTypes.find((p) => p.value === planType)?.id;
         
+        let loadedConfigs = [];
         if (ptId) {
           const relevantConfigs = configs.filter((x: any) => x.policy_type_id === ptId);
           if (relevantConfigs.length > 0) {
-            setConfigKV(relevantConfigs);
-          } else {
-            setConfigKV([
-              { config_key: "sum_insured_default", config_type: "NUMBER", value: "", is_required: true },
-              { config_key: "co_pay_percent", config_type: "NUMBER", value: "", is_required: false },
-              { config_key: "deductible_amount", config_type: "NUMBER", value: "", is_required: false },
-              { config_key: "room_category_limit", config_type: "STRING", value: "", is_required: false },
-              { config_key: "maternity_limit", config_type: "NUMBER", value: "", is_required: false },
-              { config_key: "newborn_cover", config_type: "BOOLEAN", value: false, is_required: false },
-            ]);
+            loadedConfigs = relevantConfigs;
           }
         }
+
+        // Ensure default keys exist
+        const requiredKeys = [
+          { config_key: "family_definition", config_type: "STRING", value: null },
+          { config_key: "sum_insured_list", config_type: "STRING", value: [] },
+          { config_key: "premium_matrix", config_type: "STRING", value: null },
+          { config_key: "rider_options", config_type: "STRING", value: [] },
+          { config_key: "wallet_contribution", config_type: "NUMBER", value: 50 },
+          { config_key: "payment_method", config_type: "STRING", value: "POSTPAID_INVOICE" },
+        ];
+
+        const finalConfigs = [...loadedConfigs];
+        requiredKeys.forEach(def => {
+            if (!finalConfigs.find((c: any) => c.config_key === def.config_key)) {
+                finalConfigs.push({ ...def, is_required: false, is_active: true });
+            }
+        });
+        setConfigKV(finalConfigs);
+
       } catch (error) {
         console.error("Error fetching plan details:", error);
       } finally {
@@ -381,6 +392,34 @@ export default function PlanConfigClient() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const getConfigValue = (key: string, defaultVal: any) => {
+    const item = configKV.find((x) => x.config_key === key);
+    if (!item) return defaultVal;
+    if (item.config_type === "BOOLEAN") return item.value === "true" || item.value === true;
+    if (item.config_type === "NUMBER") return Number(item.value);
+    try {
+        if (typeof item.value === "string" && (item.value.startsWith("{") || item.value.startsWith("["))) {
+            return JSON.parse(item.value);
+        }
+    } catch {}
+    return item.value;
+  };
+
+  const updateConfig = (key: string, val: any, type: string = "STRING") => {
+    setConfigKV((prev) => {
+      const existingIndex = prev.findIndex((x) => x.config_key === key);
+      const valueToStore = typeof val === "object" ? JSON.stringify(val) : val;
+      
+      if (existingIndex >= 0) {
+        const copy = [...prev];
+        copy[existingIndex] = { ...copy[existingIndex], value: valueToStore, config_type: type };
+        return copy;
+      } else {
+        return [...prev, { config_key: key, value: valueToStore, config_type: type, is_required: false, is_active: true }];
+      }
+    });
   };
 
   return (
@@ -914,119 +953,32 @@ export default function PlanConfigClient() {
             </div>
           </div>
 
-          <div
-            style={{
-              backgroundColor: "white",
-              border: "1px solid #e5e7eb",
-              borderRadius: 12,
-              padding: 16,
-            }}
-          >
-            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>
-              Configuration
-            </div>
-            <div style={{ display: "grid", gap: 12 }}>
-              {configKV.map((row, idx) => (
-                <div key={idx} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 8 }}>
-                  <input
-                    value={row.config_key}
-                    readOnly
-                    style={{
-                      width: "100%",
-                      padding: "10px 12px",
-                      border: "1px solid #d1d5db",
-                      borderRadius: 8,
-                      fontSize: 14,
-                      backgroundColor: "#f9fafb",
-                    }}
-                  />
-                  <select
-                    value={row.config_type}
-                    onChange={(e) =>
-                      setConfigKV((list: any[]) =>
-                        list.map((r, i) =>
-                          i === idx ? { ...r, config_type: e.target.value } : r,
-                        ),
-                      )
-                    }
-                    style={{
-                      width: "100%",
-                      padding: "10px 12px",
-                      border: "1px solid #d1d5db",
-                      borderRadius: 8,
-                      fontSize: 14,
-                      backgroundColor: "white",
-                    }}
-                  >
-                    <option value="STRING">STRING</option>
-                    <option value="NUMBER">NUMBER</option>
-                    <option value="BOOLEAN">BOOLEAN</option>
-                  </select>
-                  {row.config_type === "BOOLEAN" ? (
-                    <select
-                      value={row.value ? "true" : "false"}
-                      onChange={(e) =>
-                        setConfigKV((list: any[]) =>
-                          list.map((r, i) =>
-                            i === idx ? { ...r, value: e.target.value === "true" } : r,
-                          ),
-                        )
-                      }
-                      style={{
-                        width: "100%",
-                        padding: "10px 12px",
-                        border: "1px solid #d1d5db",
-                        borderRadius: 8,
-                        fontSize: 14,
-                        backgroundColor: "white",
-                      }}
-                    >
-                      <option value="true">true</option>
-                      <option value="false">false</option>
-                    </select>
-                  ) : (
-                    <input
-                      value={row.value ?? ""}
-                      onChange={(e) =>
-                        setConfigKV((list: any[]) =>
-                          list.map((r, i) =>
-                            i === idx ? { ...r, value: e.target.value } : r,
-                          ),
-                        )
-                      }
-                      style={{
-                        width: "100%",
-                        padding: "10px 12px",
-                        border: "1px solid #d1d5db",
-                        borderRadius: 8,
-                        fontSize: 14,
-                      }}
-                    />
-                  )}
-                  <select
-                    value={row.is_required ? "true" : "false"}
-                    onChange={(e) =>
-                      setConfigKV((list: any[]) =>
-                        list.map((r, i) =>
-                          i === idx ? { ...r, is_required: e.target.value === "true" } : r,
-                        ),
-                      )
-                    }
-                    style={{
-                      width: "100%",
-                      padding: "10px 12px",
-                      border: "1px solid #d1d5db",
-                      borderRadius: 8,
-                      fontSize: 14,
-                      backgroundColor: "white",
-                    }}
-                  >
-                    <option value="true">Required</option>
-                    <option value="false">Optional</option>
-                  </select>
-                </div>
-              ))}
-            </div>
+          {/* New Advanced Configuration Section */}
+          <div style={{ display: "grid", gap: 16 }}>
+            <FamilyDefinitionForm
+              value={getConfigValue("family_definition", null)}
+              onChange={(v) => updateConfig("family_definition", v)}
+            />
+            <SumInsuredSelector
+              value={getConfigValue("sum_insured_list", [])}
+              onChange={(v) => updateConfig("sum_insured_list", v)}
+            />
+            <PremiumMatrixTable
+              value={getConfigValue("premium_matrix", null)}
+              onChange={(v) => updateConfig("premium_matrix", v)}
+            />
+            <RiderOptions
+              value={getConfigValue("rider_options", [])}
+              onChange={(v) => updateConfig("rider_options", v)}
+            />
+            <WalletContributionSlider
+              value={getConfigValue("wallet_contribution", 50)}
+              onChange={(v) => updateConfig("wallet_contribution", v, "NUMBER")}
+            />
+            <PaymentMethodSelector
+              value={getConfigValue("payment_method", "POSTPAID_INVOICE")}
+              onChange={(v) => updateConfig("payment_method", v)}
+            />
           </div>
         </div>
 
@@ -1058,21 +1010,13 @@ export default function PlanConfigClient() {
                 <strong>Contract:</strong> {contract.status || "DRAFT"} •{" "}
                 {contract.billing_frequency || "-"}
               </div>
-              <div>
-                <strong>Key Rules:</strong>{" "}
-                {configKV.find((r) => r.config_key === "sum_insured_default")?.value || "-"}
-                {" / "}
-                {configKV.find((r) => r.config_key === "co_pay_percent")?.value || "-"}
-                {" / "}
-                {configKV.find((r) => r.config_key === "deductible_amount")?.value || "-"}
-              </div>
             </div>
           </div>
 
           <div style={{ marginTop: 16 }}>
             {ProductSummaryCard && (
               <ProductSummaryCard
-                config={{}}
+                config={configKV}
                 selection={form as any}
                 branding={branding as any}
               />
