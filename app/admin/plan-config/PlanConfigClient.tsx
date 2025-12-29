@@ -5,6 +5,7 @@ import { usePlanConfig } from "../../hooks/usePlanConfig";
 import { useOverrides } from "../../hooks/useOverrides";
 import { gql } from "@apollo/client";
 import { useApolloClient } from "@apollo/client/react";
+import AdminTopBar from "../components/AdminTopBar";
 import { FamilyDefinitionForm } from "../../components/FamilyDefinitionForm";
 import { SumInsuredSelector } from "../../components/SumInsuredSelector";
 import { PremiumMatrixTable } from "../../components/PremiumMatrixTable";
@@ -114,11 +115,8 @@ export default function PlanConfigClient() {
         color: branding?.color || "#222",
       }}
     >
-      <header
-        style={{ display: "flex", alignItems: "center", gap: 16, padding: 16 }}
-      >
-        {branding?.logo && <img src={branding.logo} alt="Logo" height={40} />}
-        <h1>Benefit Plan Configuration</h1>
+      <AdminTopBar title="Policy & Product Setup" />
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 16 }}>
         <select value={planType} onChange={(e) => setPlanType(e.target.value)}>
           <option value="GMC">Group Medical (GMC)</option>
           <option value="GPA">Personal Accident (GPA)</option>
@@ -127,17 +125,14 @@ export default function PlanConfigClient() {
           <option value="Wallet">Wallet</option>
           <option value="Custom">Custom</option>
         </select>
-        <select
-          value={countryCode}
-          onChange={(e) => setCountryCode(e.target.value)}
-        >
+        <select value={countryCode} onChange={(e) => setCountryCode(e.target.value)}>
           <option value="IN">India</option>
           <option value="SG">Singapore</option>
           <option value="AE">UAE</option>
           <option value="US">USA</option>
           <option value="GLOBAL">Global</option>
         </select>
-      </header>
+      </div>
       {configLoading || loading ? (
         <div style={{ padding: 32 }}>Loading...</div>
       ) : effectiveConfig ? (
