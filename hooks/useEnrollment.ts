@@ -12,14 +12,22 @@ export function useEnrollment(planType: string, corporateId: string) {
     try {
       const res = await client.mutate({
         mutation: gql`
-          mutation TriggerEnrollment($planType: String!, $corporateId: String!, $input: JSON!) {
-            triggerEnrollment(planType: $planType, corporateId: $corporateId, input: $input) {
+          mutation TriggerEnrollment(
+            $planType: String!
+            $corporateId: String!
+            $input: JSON!
+          ) {
+            triggerEnrollment(
+              planType: $planType
+              corporateId: $corporateId
+              input: $input
+            ) {
               message
               status
             }
           }
         `,
-        variables: { planType, corporateId, input: formData }
+        variables: { planType, corporateId, input: formData },
       });
       // Type guard for res.data
       const data = (res.data as { triggerEnrollment?: any }) || {};

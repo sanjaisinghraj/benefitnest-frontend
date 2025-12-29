@@ -1,0 +1,204 @@
+"use client";
+import React, { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { usePlanConfig } from "../../hooks/usePlanConfig";
+import { useOverrides } from "../../hooks/useOverrides";
+import { gql } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
+import { FamilyDefinitionForm } from "../../components/FamilyDefinitionForm";
+import { SumInsuredSelector } from "../../components/SumInsuredSelector";
+import { PremiumMatrixTable } from "../../components/PremiumMatrixTable";
+import { RiderOptions } from "../../components/RiderOptions";
+import { WalletContributionSlider } from "../../components/WalletContributionSlider";
+import { PaymentMethodSelector } from "../../components/PaymentMethodSelector";
+import { ProductSummaryCard } from "../../components/ProductSummaryCard";
+
+export default function PlanConfigClient() {
+  const sessionState = useSession();
+  const session = sessionState?.data;
+  const user = session?.user;
+
+  const [planType, setPlanType] = useState("GMC");
+  const [countryCode, setCountryCode] = useState("IN");
+  const [corporateId, setCorporateId] = useState("");
+  const [branding, setBranding] = useState<any>({});
+  const [form, setForm] = useState<any>({});
+  const [errors, setErrors] = useState<any>({});
+  const [preview, setPreview] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const client = useApolloClient();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const host = window.location.hostname;
+    setCorporateId(host.split(".")[0]);
+  }, []);
+
+  const { config, loading: configLoading } = (usePlanConfig as any)(
+    planType,
+    corporateId,
+    countryCode,
+  ) as any;
+  const effectiveConfig = (useOverrides as any)(config, countryCode) as any;
+
+  useEffect(() => {
+    setForm({});
+    setPreview(effectiveConfig);
+    setBranding({
+      font: (effectiveConfig?.branding as any)?.font,
+      background: (effectiveConfig?.branding as any)?.background,
+      color: (effectiveConfig?.branding as any)?.color,
+      logo: (effectiveConfig?.branding as any)?.logo,
+    });
+  }, [effectiveConfig]);
+
+  const handleField = (field: string, value: any) => {
+    setForm((prev: any) => ({ ...prev, [field]: value }));
+    setPreview({ ...effectiveConfig, ...form, [field]: value });
+  };
+
+  const handleSave = async () => {
+    setLoading(true);
+    await client.mutate({
+      mutation: gql`
+        mutation UpdateConfig(
+          $planType: String!
+          $corporateId: String!
+          $input: JSON!
+        ) {
+          updateConfig(
+            planType: $planType
+            corporateId: $corporateId
+            newConfig: $input
+          ) {
+            status
+          }
+        }
+      `,
+      variables: {
+        planType,
+        corporateId,
+        input: { ...effectiveConfig, ...form },
+      },
+    });
+    setLoading(false);
+  };
+
+  if (sessionState.status === "loading")
+    return <div style={{ padding: 32 }}>Loading session...</div>;
+  if (sessionState.status === "unauthenticated")
+    return <div style={{ padding: 32 }}>Please sign in.</div>;
+
+  return (
+    <div
+      style={{
+        fontFamily: branding?.font || "inherit",
+        background: branding?.background || "#fff",
+        color: branding?.color || "#222",
+      }}
+    >
+      <header
+        style={{ display: "flex", alignItems: "center", gap: 16, padding: 16 }}
+      >
+        {branding?.logo && <img src={branding.logo} alt="Logo" height={40} />}
+        <h1>Benefit Plan Configuration</h1>
+        <select value={planType} onChange={(e) => setPlanType(e.target.value)}>
+          <option value="GMC">Group Medical (GMC)</option>
+          <option value="GPA">Personal Accident (GPA)</option>
+          <option value="GTL">Term Life (GTL)</option>
+          <option value="Flex">Flex</option>
+          <option value="Wallet">Wallet</option>
+          <option value="Custom">Custom</option>
+        </select>
+        <select
+          value={countryCode}
+          onChange={(e) => setCountryCode(e.target.value)}
+        >
+          <option value="IN">India</option>
+          <option value="SG">Singapore</option>
+          <option value="AE">UAE</option>
+          <option value="US">USA</option>
+          <option value="GLOBAL">Global</option>
+        </select>
+      </header>
+      {configLoading || loading ? (
+        <div style={{ padding: 32 }}>Loading...</div>
+      ) : effectiveConfig ? (
+        <div
+          style={{
+            display: "flex",
+            gap: 32,
+            alignItems: "flex-start",
+            padding: 32,
+          }}
+        >
+          <div style={{ flex: 2 }}>
+            {FamilyDefinitionForm &&
+              React.createElement(FamilyDefinitionForm, {
+                value: form.family,
+                onChange: (v: any) => handleField("family", v),
+                config: effectiveConfig,
+                branding,
+                errors,
+              })}
+            {SumInsuredSelector &&
+              React.createElement(SumInsuredSelector, {
+                value: form.sumInsured,
+                onChange: (v: any) => handleField("sumInsured", v),
+                config: effectiveConfig,
+                branding,
+                errors,
+              })}
+            {PremiumMatrixTable &&
+              React.createElement(PremiumMatrixTable, {
+                config: effectiveConfig,
+                selection: form,
+                branding,
+              })}
+            {RiderOptions &&
+              React.createElement(RiderOptions, {
+                value: form.riders,
+                onChange: (v: any) => handleField("riders", v),
+                config: effectiveConfig,
+                branding,
+                errors,
+              })}
+            {WalletContributionSlider &&
+              React.createElement(WalletContributionSlider, {
+                value: form.wallet,
+                onChange: (v: any) => handleField("wallet", v),
+                config: effectiveConfig,
+                branding,
+                errors,
+              })}
+            {PaymentMethodSelector &&
+              React.createElement(PaymentMethodSelector, {
+                value: form.payment,
+                onChange: (v: any) => handleField("payment", v),
+                config: effectiveConfig,
+                branding,
+                errors,
+              })}
+            <button
+              onClick={handleSave}
+              disabled={loading}
+              style={{ marginTop: 24 }}
+            >
+              Save Configuration
+            </button>
+          </div>
+          <div style={{ flex: 1, minWidth: 320 }}>
+            {ProductSummaryCard &&
+              React.createElement(ProductSummaryCard, {
+                config: effectiveConfig,
+                selection: form,
+                branding,
+              })}
+          </div>
+        </div>
+      ) : (
+        <div style={{ padding: 32 }}>No configuration found.</div>
+      )}
+    </div>
+  );
+}

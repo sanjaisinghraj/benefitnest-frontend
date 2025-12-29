@@ -1,5 +1,11 @@
 import React from "react";
-export function RiderOptions({ value, onChange, config, branding, errors }: any) {
+export function RiderOptions({
+  value,
+  onChange,
+  config,
+  branding,
+  errors,
+}: any) {
   const riders = config?.riders || [];
   return (
     <div style={{ ...branding }}>
@@ -10,7 +16,7 @@ export function RiderOptions({ value, onChange, config, branding, errors }: any)
           <input
             type="checkbox"
             checked={!!value[r.name]}
-            onChange={e => onChange({ ...value, [r.name]: e.target.checked })}
+            onChange={(e) => onChange({ ...value, [r.name]: e.target.checked })}
           />
         </div>
       ))}

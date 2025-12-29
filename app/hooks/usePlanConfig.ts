@@ -1,2 +1,4 @@
 // Placeholder for usePlanConfig hook
-export function usePlanConfig() { return {}; }
+export function usePlanConfig() {
+  return {};
+}

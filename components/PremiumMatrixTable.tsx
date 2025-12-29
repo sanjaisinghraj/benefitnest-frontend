@@ -15,7 +15,15 @@ export function PremiumMatrixTable({ config, selection, branding }: any) {
         </thead>
         <tbody>
           {matrix.premiums?.map((row: any, idx: number) => (
-            <tr key={idx} style={selection?.age_band === row.age_band && selection?.family_size === row.family_size ? { background: '#e0f7fa' } : {}}>
+            <tr
+              key={idx}
+              style={
+                selection?.age_band === row.age_band &&
+                selection?.family_size === row.family_size
+                  ? { background: "#e0f7fa" }
+                  : {}
+              }
+            >
               <td>{row.age_band}</td>
               <td>{row.family_size}</td>
               <td>{row.premium.toLocaleString()}</td>

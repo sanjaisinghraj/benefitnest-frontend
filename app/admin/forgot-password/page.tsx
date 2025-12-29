@@ -14,9 +14,7 @@ export default function ForgotPasswordPage() {
 
     // Backend integration will be added later
     setTimeout(() => {
-      alert(
-        "If this email exists, a password reset link will be sent."
-      );
+      alert("If this email exists, a password reset link will be sent.");
       setLoading(false);
       router.push("/admin");
     }, 1000);
@@ -30,7 +28,8 @@ export default function ForgotPasswordPage() {
         </h1>
 
         <p className="text-sm text-slate-600 mb-6">
-          Enter your admin email. If it is registered, you will receive a reset link.
+          Enter your admin email. If it is registered, you will receive a reset
+          link.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">

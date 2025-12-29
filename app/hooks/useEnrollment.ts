@@ -1,2 +1,4 @@
 // Placeholder for useEnrollment hook
-export function useEnrollment() { return {}; }
+export function useEnrollment() {
+  return {};
+}

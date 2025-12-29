@@ -17,7 +17,7 @@ export default function AdminPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    
+
     // Captcha is optional for now - just proceed with login
     // if (!captchaToken) {
     //   setError("Please complete captcha");
@@ -38,7 +38,7 @@ export default function AdminPage() {
             rememberMe,
             captchaToken,
           }),
-        }
+        },
       );
 
       const data = await res.json();
@@ -51,7 +51,7 @@ export default function AdminPage() {
 
       // Get token from response (could be at root level or nested)
       const token = data.token || data.data?.token;
-      
+
       if (!token) {
         setError("No token received from server");
         setLoading(false);
@@ -63,9 +63,9 @@ export default function AdminPage() {
       document.cookie = `admin_token=${token}; path=/; ${
         rememberMe ? "max-age=2592000;" : ""
       }`;
-      
+
       // localStorage (for API calls in React components)
-      localStorage.setItem('admin_token', token);
+      localStorage.setItem("admin_token", token);
 
       router.push("/admin/dashboard");
     } catch (err) {
@@ -79,7 +79,6 @@ export default function AdminPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 bg-white rounded-2xl shadow-xl overflow-hidden">
-
         {/* LEFT PANEL */}
         <div className="hidden lg:flex flex-col justify-between p-10 bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
           <div>
@@ -95,7 +94,8 @@ export default function AdminPage() {
 
             <p className="text-blue-100 mb-6 leading-relaxed">
               Securely manage corporates, employees, benefits, claims,
-              analytics, integrations and platform configurations — all from one place.
+              analytics, integrations and platform configurations — all from one
+              place.
             </p>
 
             <ul className="space-y-3 text-sm">

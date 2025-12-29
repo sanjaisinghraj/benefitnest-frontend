@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import MastersManagement from './MastersManagement';
+import MastersManagement from "./MastersManagement";
 
 export default function MastersPage() {
   return <MastersManagement />;

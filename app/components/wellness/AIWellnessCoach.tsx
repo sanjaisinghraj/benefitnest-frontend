@@ -1,24 +1,48 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 
-const API_URL = 'https://benefitnest-backend.onrender.com';
+const API_URL = "https://benefitnest-backend.onrender.com";
 
 interface Message {
   id: string;
-  type: 'user' | 'assistant' | 'system';
+  type: "user" | "assistant" | "system";
   content: string;
   timestamp: Date;
   guardrail_triggered?: boolean;
 }
 
 const suggestedTopics = [
-  { icon: '🏋️', label: 'Exercise tips', prompt: 'What are some simple exercises I can do at my desk?' },
-  { icon: '😴', label: 'Better sleep', prompt: 'How can I improve my sleep quality?' },
-  { icon: '🧘', label: 'Stress relief', prompt: 'What are quick stress relief techniques for work?' },
-  { icon: '🥗', label: 'Healthy eating', prompt: 'Suggest some healthy snack options for the office' },
-  { icon: '💧', label: 'Hydration', prompt: 'How much water should I drink daily and why?' },
-  { icon: '🧠', label: 'Mental wellness', prompt: 'How can I practice mindfulness during a busy day?' }
+  {
+    icon: "🏋️",
+    label: "Exercise tips",
+    prompt: "What are some simple exercises I can do at my desk?",
+  },
+  {
+    icon: "😴",
+    label: "Better sleep",
+    prompt: "How can I improve my sleep quality?",
+  },
+  {
+    icon: "🧘",
+    label: "Stress relief",
+    prompt: "What are quick stress relief techniques for work?",
+  },
+  {
+    icon: "🥗",
+    label: "Healthy eating",
+    prompt: "Suggest some healthy snack options for the office",
+  },
+  {
+    icon: "💧",
+    label: "Hydration",
+    prompt: "How much water should I drink daily and why?",
+  },
+  {
+    icon: "🧠",
+    label: "Mental wellness",
+    prompt: "How can I practice mindfulness during a busy day?",
+  },
 ];
 
 const disclaimer = `I'm an AI wellness assistant here to provide general wellness information and support. 
@@ -27,9 +51,9 @@ For any health concerns, please consult a healthcare provider.`;
 
 export default function AIWellnessCoach() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [sessionId, setSessionId] = useState<string>('');
+  const [sessionId, setSessionId] = useState<string>("");
   const [showDisclaimer, setShowDisclaimer] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -37,15 +61,15 @@ export default function AIWellnessCoach() {
   useEffect(() => {
     // Generate session ID
     setSessionId(crypto.randomUUID());
-    
+
     // Initial greeting
     setMessages([
       {
-        id: '1',
-        type: 'assistant',
+        id: "1",
+        type: "assistant",
         content: `Hello! 👋 I'm your AI Wellness Coach. I'm here to help you with questions about nutrition, exercise, sleep, stress management, and overall wellbeing.\n\nHow can I assist you today?`,
-        timestamp: new Date()
-      }
+        timestamp: new Date(),
+      },
     ]);
   }, []);
 
@@ -54,80 +78,81 @@ export default function AIWellnessCoach() {
   }, [messages]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const handleSend = async (customPrompt?: string) => {
     const userMessage = customPrompt || input.trim();
     if (!userMessage || loading) return;
 
-    setInput('');
+    setInput("");
     setShowDisclaimer(false);
 
     // Add user message
     const userMsg: Message = {
       id: crypto.randomUUID(),
-      type: 'user',
+      type: "user",
       content: userMessage,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
-    setMessages(prev => [...prev, userMsg]);
+    setMessages((prev) => [...prev, userMsg]);
 
     try {
       setLoading(true);
 
-      const token = localStorage.getItem('employeeToken') || localStorage.getItem('token');
-      
+      const token =
+        localStorage.getItem("employeeToken") || localStorage.getItem("token");
+
       const res = await fetch(`${API_URL}/api/wellness/coach/chat`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           session_id: sessionId,
           message: userMessage,
           context: {
-            previous_messages: messages.slice(-5).map(m => ({
+            previous_messages: messages.slice(-5).map((m) => ({
               role: m.type,
-              content: m.content
-            }))
-          }
-        })
+              content: m.content,
+            })),
+          },
+        }),
       });
 
       if (res.ok) {
         const data = await res.json();
-        
+
         const assistantMsg: Message = {
           id: crypto.randomUUID(),
-          type: 'assistant',
+          type: "assistant",
           content: data.response,
           timestamp: new Date(),
-          guardrail_triggered: data.guardrail_triggered
+          guardrail_triggered: data.guardrail_triggered,
         };
-        setMessages(prev => [...prev, assistantMsg]);
+        setMessages((prev) => [...prev, assistantMsg]);
 
         // Log to AI audit (done server-side)
       } else {
         // Fallback response if API fails
         const fallbackMsg: Message = {
           id: crypto.randomUUID(),
-          type: 'assistant',
+          type: "assistant",
           content: getFallbackResponse(userMessage),
-          timestamp: new Date()
+          timestamp: new Date(),
         };
-        setMessages(prev => [...prev, fallbackMsg]);
+        setMessages((prev) => [...prev, fallbackMsg]);
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error("Error sending message:", error);
       const errorMsg: Message = {
         id: crypto.randomUUID(),
-        type: 'system',
-        content: 'Sorry, I encountered an error. Please try again.',
-        timestamp: new Date()
+        type: "system",
+        content: "Sorry, I encountered an error. Please try again.",
+        timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMsg]);
+      setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setLoading(false);
       inputRef.current?.focus();
@@ -135,7 +160,7 @@ export default function AIWellnessCoach() {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
@@ -145,11 +170,11 @@ export default function AIWellnessCoach() {
     setSessionId(crypto.randomUUID());
     setMessages([
       {
-        id: '1',
-        type: 'assistant',
+        id: "1",
+        type: "assistant",
         content: `Chat cleared. How can I help you today?`,
-        timestamp: new Date()
-      }
+        timestamp: new Date(),
+      },
     ]);
     setShowDisclaimer(true);
   };
@@ -164,7 +189,9 @@ export default function AIWellnessCoach() {
           </div>
           <div>
             <h3 className="font-semibold text-gray-900">AI Wellness Coach</h3>
-            <p className="text-xs text-gray-500">Powered by AI • All interactions logged</p>
+            <p className="text-xs text-gray-500">
+              Powered by AI • All interactions logged
+            </p>
           </div>
         </div>
         <button
@@ -172,8 +199,18 @@ export default function AIWellnessCoach() {
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500 hover:text-gray-700"
           title="Clear chat"
         >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
           </svg>
         </button>
       </div>
@@ -193,18 +230,18 @@ export default function AIWellnessCoach() {
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex ${msg.type === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
               className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                msg.type === 'user'
-                  ? 'bg-teal-500 text-white'
-                  : msg.type === 'system'
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-gray-100 text-gray-800'
+                msg.type === "user"
+                  ? "bg-teal-500 text-white"
+                  : msg.type === "system"
+                    ? "bg-red-100 text-red-700"
+                    : "bg-gray-100 text-gray-800"
               }`}
             >
-              {msg.type === 'assistant' && (
+              {msg.type === "assistant" && (
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-sm">🤖</span>
                   <span className="text-xs text-gray-500">AI Coach</span>
@@ -216,8 +253,13 @@ export default function AIWellnessCoach() {
                   ℹ️ This response was moderated for safety
                 </p>
               )}
-              <p className={`text-xs mt-1 ${msg.type === 'user' ? 'text-teal-100' : 'text-gray-400'}`}>
-                {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              <p
+                className={`text-xs mt-1 ${msg.type === "user" ? "text-teal-100" : "text-gray-400"}`}
+              >
+                {msg.timestamp.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </p>
             </div>
           </div>
@@ -229,9 +271,18 @@ export default function AIWellnessCoach() {
               <div className="flex items-center gap-2">
                 <span className="text-sm">🤖</span>
                 <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  <div
+                    className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                    style={{ animationDelay: "0ms" }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                    style={{ animationDelay: "150ms" }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                    style={{ animationDelay: "300ms" }}
+                  ></div>
                 </div>
               </div>
             </div>
@@ -271,20 +322,31 @@ export default function AIWellnessCoach() {
             placeholder="Ask me about wellness, nutrition, exercise, sleep..."
             rows={1}
             className="flex-1 resize-none border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 max-h-32"
-            style={{ minHeight: '48px' }}
+            style={{ minHeight: "48px" }}
           />
           <button
             onClick={() => handleSend()}
             disabled={loading || !input.trim()}
             className="p-3 bg-teal-500 text-white rounded-xl hover:bg-teal-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+              />
             </svg>
           </button>
         </div>
         <p className="text-xs text-gray-400 mt-2 text-center">
-          AI responses are logged for quality assurance. You can skip or ignore any suggestion.
+          AI responses are logged for quality assurance. You can skip or ignore
+          any suggestion.
         </p>
       </div>
     </div>
@@ -294,26 +356,43 @@ export default function AIWellnessCoach() {
 // Fallback responses when API is unavailable
 function getFallbackResponse(message: string): string {
   const lowerMsg = message.toLowerCase();
-  
-  if (lowerMsg.includes('exercise') || lowerMsg.includes('workout') || lowerMsg.includes('fitness')) {
+
+  if (
+    lowerMsg.includes("exercise") ||
+    lowerMsg.includes("workout") ||
+    lowerMsg.includes("fitness")
+  ) {
     return `Great question about exercise! Here are some general tips:\n\n🏃 Start with 30 minutes of moderate activity most days\n🏋️ Include both cardio and strength training\n🧘 Don't forget stretching and flexibility\n⚡ Start small and gradually increase intensity\n\nWould you like more specific exercise recommendations?`;
   }
-  
-  if (lowerMsg.includes('sleep') || lowerMsg.includes('rest') || lowerMsg.includes('tired')) {
+
+  if (
+    lowerMsg.includes("sleep") ||
+    lowerMsg.includes("rest") ||
+    lowerMsg.includes("tired")
+  ) {
     return `Sleep is crucial for wellbeing! Here are some tips:\n\n😴 Aim for 7-9 hours per night\n📵 Avoid screens 1 hour before bed\n🌡️ Keep your room cool and dark\n⏰ Maintain a consistent sleep schedule\n☕ Limit caffeine after noon\n\nWould you like more sleep hygiene tips?`;
   }
-  
-  if (lowerMsg.includes('stress') || lowerMsg.includes('anxious') || lowerMsg.includes('overwhelmed')) {
+
+  if (
+    lowerMsg.includes("stress") ||
+    lowerMsg.includes("anxious") ||
+    lowerMsg.includes("overwhelmed")
+  ) {
     return `Managing stress is important. Here are some quick techniques:\n\n🧘 Deep breathing: 4 counts in, 7 hold, 8 out\n🚶 Take a short walk\n📝 Write down what's bothering you\n🎵 Listen to calming music\n💭 Practice mindfulness for 5 minutes\n\nRemember, if stress feels overwhelming, please reach out to a mental health professional.`;
   }
-  
-  if (lowerMsg.includes('water') || lowerMsg.includes('hydrat')) {
+
+  if (lowerMsg.includes("water") || lowerMsg.includes("hydrat")) {
     return `Staying hydrated is essential!\n\n💧 Aim for 8 glasses (2 liters) daily\n🥤 Keep a water bottle at your desk\n⏰ Set reminders to drink water\n🍉 Eat water-rich fruits and vegetables\n☕ Limit caffeine and sugary drinks\n\nSigns of dehydration: headaches, fatigue, dry mouth. Drink up! 💧`;
   }
-  
-  if (lowerMsg.includes('eat') || lowerMsg.includes('diet') || lowerMsg.includes('nutrition') || lowerMsg.includes('food')) {
+
+  if (
+    lowerMsg.includes("eat") ||
+    lowerMsg.includes("diet") ||
+    lowerMsg.includes("nutrition") ||
+    lowerMsg.includes("food")
+  ) {
     return `Good nutrition fuels your body and mind:\n\n🥗 Fill half your plate with vegetables\n🍎 Eat a variety of colorful fruits\n🍗 Include lean proteins\n🌾 Choose whole grains\n🥜 Add healthy fats like nuts and olive oil\n\nWould you like specific meal ideas or tips?`;
   }
-  
+
   return `Thank you for your question! While I'd love to provide a detailed response, I'm currently in offline mode.\n\nIn the meantime, here are some general wellness tips:\n\n✅ Stay hydrated\n✅ Get regular exercise\n✅ Prioritize sleep\n✅ Practice stress management\n✅ Eat a balanced diet\n\nPlease try again in a moment or ask about a specific topic!`;
 }
