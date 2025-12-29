@@ -634,14 +634,20 @@ export default function MarketplaceSettingsPage() {
 
   const handleCorporateSelect = (corp: Corporate) => {
     if (hasUnsavedChanges && !confirm("You have unsaved changes. Continue?"))
-      return;
-    setSelectedCorporate(corp);
-    fetchMarketplaceSettings(corp.tenant_id);
-  };
-
-  const handleSave = async () => {
-    if (!selectedCorporate) return;
-    setSaving(true);
+      return (
+        <div style={{ minHeight: "100vh", background: "#f9fafb", display: "flex", flexDirection: "column" }}>
+          <AdminTopBar
+            title="Marketplace Settings"
+            subtitle="Configure marketplace partners, product catalog, and integrations."
+            icon={<span style={{ fontSize: 24 }}>🛒</span>}
+            showBack={true}
+          />
+          <main style={{ flex: 1, width: "100%", maxWidth: 1400, margin: "0 auto", padding: 24 }}>
+            {/* ...existing content... */}
+          </main>
+          <AdminFooter />
+        </div>
+      );
     try {
       await axios.put(
         `${API_URL}/api/admin/corporates/${selectedCorporate.tenant_id}/marketplace-settings`,

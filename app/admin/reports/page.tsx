@@ -1070,14 +1070,20 @@ export default function ReportsAnalyticsPage() {
   const loadAnalytics = useCallback(async () => {
     if (selectedCorporates.length === 0) {
       setAnalytics(null);
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch(`${API_URL}/api/admin/claims-analytics`, {
-        method: "POST",
+      return (
+        <div style={{ minHeight: "100vh", background: "#f9fafb", display: "flex", flexDirection: "column" }}>
+          <AdminTopBar
+            title="Reports & Analytics"
+            subtitle="Download reports, configure analytics dashboards, and schedule exports."
+            icon={<span style={{ fontSize: 24 }}>📊</span>}
+            showBack={true}
+          />
+          <main style={{ flex: 1, width: "100%", maxWidth: 1400, margin: "0 auto", padding: 24 }}>
+            {/* ...existing content... */}
+          </main>
+          <AdminFooter />
+        </div>
+      );
         headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
         body: JSON.stringify({ tenantIds: selectedCorporates }),
       });

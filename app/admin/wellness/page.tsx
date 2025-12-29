@@ -231,14 +231,20 @@ export default function WellnessAdminPage() {
         type: "error",
         text: "Please select at least one corporate",
       });
-      return;
-    }
-
-    try {
-      setSaving(true);
-      const token = getToken();
-
-      // Save to all selected corporates
+      return (
+        <div style={{ minHeight: "100vh", background: "#f9fafb", display: "flex", flexDirection: "column" }}>
+          <AdminTopBar
+            title="Wellness Programs"
+            subtitle="Configure wellness partners, challenges, rewards, and analytics."
+            icon={<span style={{ fontSize: 24 }}>💪</span>}
+            showBack={true}
+          />
+          <main style={{ flex: 1, width: "100%", maxWidth: 1400, margin: "0 auto", padding: 24 }}>
+            {/* ...existing content... */}
+          </main>
+          <AdminFooter />
+        </div>
+      );
       const results = await Promise.all(
         selectedCorporates.map(async (tenantId) => {
           const res = await fetch(`${API_URL}/api/wellness/config`, {
