@@ -1,69 +1,73 @@
 "use client";
-
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { Plus, Trash2, Search, LayoutTemplate, ArrowLeft, Upload, List } from "lucide-react";
-
-// --- Types ---
-
-type QuestionType = 
-  | "text" | "textarea" | "radio" | "checkbox" | "dropdown" 
-  | "rating" | "slider" | "nps" | "date" | "email" | "matrix" | "ranking" | "file_upload" | "weightage";
-
-interface QuestionOption {
-    id: string;
-    label: string;
-    fieldType?: 'text' | 'email' | 'date' | 'textarea' | 'number' | 'percentage';
-    value?: string | number;
-    validation?: {
-        required?: boolean;
-        min?: number;
-        max?: number;
-        regex?: string;
-        errorMessage?: string;
-    };
-}
-
-interface SubQuestion {
-  id: string;
-  label: string;
-}
-
-interface ScaleConfig {
-  min?: number;
-  max?: number;
-  minLabel?: string;
-  maxLabel?: string;
-  step?: number;
-}
-
-interface WeightageConfig {
-  totalPoints?: number;
-}
-
-interface Question {
-  id: string;
-  type: QuestionType;
-  text: string;
-  required: boolean;
-  options?: QuestionOption[];
-  subQuestions?: SubQuestion[]; // For Matrix rows
-  imageUrl?: string;
-  validationRules?: any;
-  allowOther?: boolean;
-  scaleConfig?: ScaleConfig;
-  weightageConfig?: WeightageConfig;
-}
-
-interface BrandingConfig {
-  primaryColor?: string;
-  backgroundColor?: string;
-  headingColor?: string;
-  fontFamily?: string;
-  logoUrl?: string;
-  bannerUrl?: string;
-  // Font Customization
-  headingSize?: "text-xl" | "text-2xl" | "text-3xl" | "text-4xl";
+    // For text/textarea/email/date types, show only a single answer box and validation controls
+    if (["text", "textarea", "email", "date"].includes(q.type)) {
+        return (
+            <div className="flex flex-col gap-2 mt-2">
+                <input
+                    type={q.type === "textarea" ? "textarea" : "text"}
+                    className="border rounded px-2 py-1"
+                    placeholder="Answer"
+                    disabled
+                />
+                {/* Validation controls */}
+                <div className="flex flex-col gap-1">
+                    <label className="flex items-center gap-1 text-xs text-gray-500">
+                        <input type="checkbox" checked={q.required} onChange={e => updateFn(q.id, { required: e.target.checked })} /> Required
+                    </label>
+                    <input type="text" value={q.errorMessage || ""} onChange={e => updateFn(q.id, { errorMessage: e.target.value })} placeholder="Error message" className="border rounded px-2 py-1 text-xs" />
+                </div>
+            </div>
+        );
+    }
+    // Render options for types that need them
+    if (["radio", "checkbox", "dropdown", "weightage", "matrix", "ranking"].includes(q.type)) {
+        return (
+            <div>
+                {q.options?.map((opt, idx) => (
+                    <div key={opt.id || idx} className="flex items-center gap-2 mb-2">
+                        <input
+                            type="text"
+                            value={opt.label}
+                            onChange={e => updateFn(q.id, { options: q.options.map((o, i) => i === idx ? { ...o, label: e.target.value } : o) })}
+                            className="border rounded px-2 py-1 w-1/2"
+                            placeholder={`Option ${idx + 1}`}
+                        />
+                        <select
+                            value={opt.type || "text"}
+                            onChange={e => updateFn(q.id, { options: q.options.map((o, i) => i === idx ? { ...o, type: e.target.value } : o) })}
+                            className="border rounded px-2 py-1"
+                        >
+                            <option value="text">Text</option>
+                            <option value="value">Value</option>
+                        </select>
+                        <input
+                            type="text"
+                            value={opt.value || ""}
+                            onChange={e => updateFn(q.id, { options: q.options.map((o, i) => i === idx ? { ...o, value: e.target.value } : o) })}
+                            className="border rounded px-2 py-1 w-1/4"
+                            placeholder="Value"
+                        />
+                        {/* Option-level validation */}
+                        <div className="flex flex-col gap-1 ml-2">
+                            <label className="flex items-center gap-1 text-xs text-gray-500">
+                                <input type="checkbox" checked={opt.required} onChange={e => updateFn(q.id, { options: q.options.map((o, i) => i === idx ? { ...o, required: e.target.checked } : o) })} /> Required
+                            </label>
+                            <input type="text" value={opt.errorMessage || ""} onChange={e => updateFn(q.id, { options: q.options.map((o, i) => i === idx ? { ...o, errorMessage: e.target.value } : o) })} placeholder="Error message" className="border rounded px-2 py-1 text-xs" />
+                        </div>
+                        <button onClick={() => updateFn(q.id, { options: q.options.filter((_, i) => i !== idx) })} className="text-gray-400 hover:text-red-500 ml-2">
+                            🗑️
+                        </button>
+                    </div>
+                ))}
+                <button onClick={() => updateFn(q.id, { options: [...(q.options || []), { label: "", type: "text", value: "", required: false }] })} className="text-indigo-600 text-xs font-medium mt-2">+ Add Field</button>
+                {/* Weightage validation summary */}
+                {q.type === "weightage" && (
+                    <div className="mt-2 text-xs text-red-500">Total: {q.options.reduce((sum, o) => sum + (parseFloat(o.value) || 0), 0)} / 100 {q.options.reduce((sum, o) => sum + (parseFloat(o.value) || 0), 0) !== 100 ? "Total must match target" : ""}</div>
+                )}
+            </div>
+        );
+    }
+    // ...existing code...
   headingBold?: boolean;
   headingItalic?: boolean;
   questionColor?: string;
@@ -312,18 +316,62 @@ function SurveyEditor({
     const handleSave = async () => {
         setSaving(true);
         try {
-            const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
-            // Attach tenantId if not present
-            const payload = { ...survey, tenantId: survey.tenantId };
+            // Validate survey
+            if (!survey.title || !survey.tenantId || survey.questions.length === 0) {
+                showNotification("Please fill all required fields and add at least one question.", "error");
+                setSaving(false);
+                return;
+            }
+            for (const q of survey.questions) {
+                if (q.type === 'weightage') {
+                    const total = q.options?.reduce((sum, o) => sum + (parseFloat(o.value || "0") || 0), 0) || 0;
+                    if (total !== 100) {
+                        showNotification("Weightage total must be 100.", "error");
+                        setSaving(false);
+                        return;
+                    }
+                }
+                if (q.required && !q.text) {
+                    showNotification("Required questions must have text.", "error");
+                    setSaving(false);
+                    return;
+                }
+            }
+            // Prepare payload: only allowed fields
+            const payload = {
+                title: survey.title,
+                tenantId: survey.tenantId,
+                status: survey.status,
+                branding: survey.branding,
+                isTemplate: survey.isTemplate,
+                templateCategory: survey.templateCategory,
+                questions: survey.questions.map(q => ({
+                    id: q.id,
+                    type: q.type,
+                    text: q.text,
+                    required: q.required,
+                    errorMessage: q.errorMessage,
+                    options: q.options?.map(o => ({
+                        label: o.label,
+                        type: o.type,
+                        value: o.value,
+                        required: o.required,
+                        errorMessage: o.errorMessage
+                    })) || []
+                }))
+            };
             // Attach auth token
             let token = null;
             if (typeof window !== "undefined") {
                 token = document.cookie.split('; ').find(r => r.startsWith('admin_token='))?.split('=')[1] || localStorage.getItem('admin_token');
             }
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
             const res = await axios.post(`${API_URL}/api/surveys`, payload, { headers });
-            if (res.data.success) {
+            if (res.data.success && res.data.data) {
                 showNotification("Survey saved successfully!", "success");
+                if (res.data.data.url) setSurveyUrl(res.data.data.url);
+                else if (res.data.data.tenantSubdomain && res.data.data.id) setSurveyUrl(`https://${res.data.data.tenantSubdomain}.benefitnest.space/employeebenefitsurvey/${res.data.data.id}`);
                 onSave();
             } else {
                 showNotification("Failed to save survey.", "error");
@@ -346,23 +394,36 @@ function SurveyEditor({
         if (!aiPrompt) return;
         setGeneratingAi(true);
         try {
-            // Replace with your backend AI endpoint
             const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
             const res = await axios.post(`${API_URL}/api/surveys/ai-generate`, {
                 prompt: aiPrompt,
                 surveyType: aiSurveyType
             });
-            if (res.data.success) {
-                const generated = res.data.data;
+            if (res.data.success && res.data.data && Array.isArray(res.data.data.questions)) {
+                // Only use allowed fields and structure
+                const allowedTypes = ["text", "textarea", "radio", "checkbox", "dropdown", "rating", "slider", "nps", "date", "email", "matrix", "ranking", "file_upload", "weightage"];
+                const filteredQuestions = res.data.data.questions.filter(q => allowedTypes.includes(q.type)).map(q => ({
+                    id: q.id || uuidv4(),
+                    type: q.type,
+                    text: q.text,
+                    required: q.required,
+                    errorMessage: q.errorMessage,
+                    options: q.options?.map(o => ({
+                        label: o.label,
+                        type: o.type,
+                        value: o.value,
+                        required: o.required,
+                        errorMessage: o.errorMessage
+                    })) || []
+                }));
                 onUpdate({
                     ...survey,
-                    ...generated,
-                    id: survey.id, // keep current id
-                    status: "draft",
-                    createdAt: survey.createdAt,
+                    questions: filteredQuestions
                 });
                 setAiModalOpen(false);
                 showNotification("Survey generated successfully!");
+            } else {
+                showNotification("AI did not return valid questions.", "error");
             }
         } catch (err) {
             showNotification("Failed to generate survey. Try again.", "error");
