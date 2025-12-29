@@ -91,7 +91,6 @@ interface Tenant {
 
 export default function SurveyManager() {
   const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
-  
   // State
   const [view, setView] = useState<"list" | "editor">("list");
   const [surveys, setSurveys] = useState<Survey[]>([]);
@@ -121,10 +120,17 @@ export default function SurveyManager() {
     fetchSurveys();
   }, [selectedTenants, searchTerm, statusFilter]);
 
-  const getAuthHeaders = () => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null;
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  };
+    // Robust getToken and getAuthHeaders (matches portal-customization/page.tsx)
+    const getToken = () => {
+        if (typeof window === "undefined") return null;
+        return (
+            document.cookie
+                .split("; ")
+                .find((r) => r.startsWith("admin_token="))
+                ?.split("=")[1] || localStorage.getItem("admin_token")
+        );
+    };
+    const getAuthHeaders = () => ({ Authorization: `Bearer ${getToken()}` });
 
   const fetchTenants = async () => {
     try {
