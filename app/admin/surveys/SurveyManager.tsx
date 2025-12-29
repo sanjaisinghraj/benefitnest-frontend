@@ -293,6 +293,54 @@ function SurveyEditor({
     // Notification (optional, can be lifted up if needed)
     const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
     const [saving, setSaving] = useState(false);
+
+    // --- Debounced Autosave ---
+    const autosaveTimeout = React.useRef<NodeJS.Timeout | null>(null);
+    const [autosaveStatus, setAutosaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
+    const autosaveSurvey = React.useCallback((updatedSurvey: Survey) => {
+        if (autosaveTimeout.current) clearTimeout(autosaveTimeout.current);
+        setAutosaveStatus('saving');
+        autosaveTimeout.current = setTimeout(async () => {
+            try {
+                // Prepare payload (same as handleSave)
+                const payload = {
+                    title: updatedSurvey.title,
+                    tenantId: updatedSurvey.tenantId,
+                    status: updatedSurvey.status,
+                    branding: updatedSurvey.branding,
+                    isTemplate: updatedSurvey.isTemplate,
+                    templateCategory: updatedSurvey.templateCategory,
+                    questions: updatedSurvey.questions.map((q: Question) => ({
+                        id: q.id,
+                        type: q.type,
+                        text: q.text,
+                        required: q.required,
+                        errorMessage: q.errorMessage,
+                        options: q.options?.map((o: QuestionOption) => ({
+                            label: o.label,
+                            type: o.type,
+                            value: o.value,
+                            required: o.required,
+                            errorMessage: o.errorMessage
+                        })) || []
+                    }))
+                };
+                let token = null;
+                if (typeof window !== "undefined") {
+                    token = document.cookie.split('; ').find(r => r.startsWith('admin_token='))?.split('=')[1] || localStorage.getItem('admin_token');
+                }
+                const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
+                await axios.post(`${API_URL}/api/surveys`, payload, { headers });
+                setAutosaveStatus('saved');
+                setTimeout(() => setAutosaveStatus('idle'), 1500);
+            } catch (err) {
+                setAutosaveStatus('error');
+                setTimeout(() => setAutosaveStatus('idle'), 2000);
+            }
+        }, 1000); // 1s debounce
+    }, []);
     // --- Save Handler ---
     const handleSave = async () => {
             setSaving(true);
