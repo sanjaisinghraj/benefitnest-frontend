@@ -233,6 +233,8 @@ export default function WellnessAdminPage() {
         text: "Please select at least one corporate",
       });
       return;
+    }
+    try {
       const results = await Promise.all(
         selectedCorporates.map(async (tenantId) => {
           const res = await fetch(`${API_URL}/api/wellness/config`, {
