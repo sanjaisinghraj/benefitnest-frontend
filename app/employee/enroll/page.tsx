@@ -14,7 +14,8 @@ import { PaymentMethodSelector } from "../../components/PaymentMethodSelector";
 import { ProductSummaryCard } from "../../components/ProductSummaryCard";
 
 export default function EmployeeEnrollPage() {
-  const { user, token } = useSession();
+  const session = useSession();
+  const user = session.data?.user;
   const [planType, setPlanType] = useState("GMC");
   const [countryCode, setCountryCode] = useState("IN");
   const [corporateId, setCorporateId] = useState("");

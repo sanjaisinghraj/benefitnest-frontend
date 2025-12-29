@@ -2,11 +2,13 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useApolloClient } from "@apollo/client/react";
 import { gql } from "@apollo/client";
 // import { useQuery } from '@apollo/client/react'; // Add if needed
 
 export default function TenantManagementPage() {
-  const { user, token } = useSession();
+  const session = useSession();
+  const user = session.data?.user;
   const client = useApolloClient();
   const [tenants, setTenants] = useState<any[]>([]);
   const [selectedTenant, setSelectedTenant] = useState<any>(null);

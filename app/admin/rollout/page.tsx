@@ -4,9 +4,11 @@ import { useState, useEffect } from "react";
 import { gql } from "@apollo/client";
 // import { useQuery } from '@apollo/client/react'; // Add if needed
 import { useSession } from "next-auth/react";
+import { useApolloClient } from "@apollo/client/react";
 
 export default function RolloutDashboard() {
-  const { user, token } = useSession();
+  const session = useSession();
+  const user = session.data?.user;
   const client = useApolloClient();
   const [tenants, setTenants] = useState<any[]>([]);
   const [modules, setModules] = useState<string[]>(["GMC", "GPA", "GTL", "Flex", "Wallet", "Wellness", "Custom"]);
