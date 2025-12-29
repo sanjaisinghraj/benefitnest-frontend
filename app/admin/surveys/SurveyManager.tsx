@@ -185,6 +185,8 @@ function SurveyManager() {
 
 // --- Survey Editor Component ---
 
+export default SurveyManager;
+
 function SurveyEditor({ 
   survey, onUpdate, onSave, onCancel 
 }: { 
