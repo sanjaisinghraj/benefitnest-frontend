@@ -1,36 +1,11 @@
+"use client";
+import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import { Plus, Search, LayoutTemplate, ArrowLeft, Upload, List, Trash2 } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
+
+// Define Types First
 type QuestionType = "text" | "textarea" | "radio" | "checkbox" | "dropdown" | "slider" | "nps" | "matrix" | "ranking" | "weightage" | "email" | "date" | "rating" | "file_upload";
-    return (
-        <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-indigo-50">
-            {/* Header */}
-            <header className="w-full py-6 bg-white shadow-sm border-b border-gray-100">
-                <div className="max-w-7xl mx-auto flex justify-between items-center px-6">
-                    <h1 className="text-3xl font-extrabold text-indigo-700 tracking-tight">Survey Manager</h1>
-                    <button
-                        onClick={handleCreateNew}
-                        className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 transition-colors shadow-md font-semibold text-lg"
-                    >
-                        <Plus size={22} /> New Survey
-                    </button>
-                </div>
-            </header>
-            {/* Main Content */}
-            <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-10 pb-32">
-                {/* ...existing code... */}
-            </main>
-            {/* Footer */}
-            <footer className="w-full py-6 bg-white border-t border-gray-100">
-                <div className="max-w-7xl mx-auto px-6 text-center text-gray-400 text-sm">
-                    &copy; {new Date().getFullYear()} Insurance Platform. All rights reserved.
-                </div>
-            </footer>
-        </div>
-    );
-    weightageConfig?: { totalPoints?: number };
-    subQuestions?: { id: string; label: string }[];
-    scaleConfig?: { min: number; max: number; minLabel: string; maxLabel: string };
-    errorMessage?: string;
-    allowOther?: boolean;
-}
 
 interface BrandingConfig {
     headingColor?: string;
@@ -47,11 +22,20 @@ interface BrandingConfig {
     logoUrl?: string;
     bannerUrl?: string;
 }
-"use client";
-import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
-import { Plus, Search, LayoutTemplate, ArrowLeft, Upload, List, Trash2 } from "lucide-react";
-import { v4 as uuidv4 } from "uuid";
+
+interface Question {
+    id: string;
+    type: QuestionType;
+    text: string;
+    description?: string;
+    required: boolean;
+    options?: { id: string; label: string; value?: string; type?: string; required?: boolean; errorMessage?: string }[];
+    weightageConfig?: { totalPoints?: number };
+    subQuestions?: { id: string; label: string }[];
+    scaleConfig?: { min: number; max: number; minLabel: string; maxLabel: string };
+    errorMessage?: string;
+    allowOther?: boolean;
+}
 
 interface Survey {
     id: string;
@@ -79,8 +63,8 @@ interface Tenant {
 }
 
 // --- SurveyManager Component ---
+export default function SurveyManager() {
 
-function SurveyManager() {
     // --- State ---
     const [tenants, setTenants] = useState<Tenant[]>([]);
     const [surveys, setSurveys] = useState<Survey[]>([]);
