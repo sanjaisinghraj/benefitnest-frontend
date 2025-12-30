@@ -502,7 +502,8 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                 return;
             }
             try {
-                const checkRes = await axios.get(`${API_URL}/api/surveys`, { headers: getAuthHeaders(), params: { tenantId: survey.tenantId, limit: 1000 } });
+                const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
+                const checkRes = await axios.get(`${apiUrl}/api/surveys`, { headers: getAuthHeaders(), params: { tenantId: survey.tenantId, limit: 1000 } });
                 if (checkRes.data.success && Array.isArray(checkRes.data.data)) {
                     const exists = checkRes.data.data.some((s: any) => s.survey_url === proposedUrl && s.id !== survey.id);
                     if (exists) {
