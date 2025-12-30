@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import ReCAPTCHA from "react-google-recaptcha";
+import Script from "next/script";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -10,10 +10,12 @@ export default function AdminPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [entered, setEntered] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<HTMLDivElement | null>(null);
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!;
 
   useEffect(() => {
     const t = setTimeout(() => setEntered(true), 150);
@@ -24,11 +26,7 @@ export default function AdminPage() {
     e.preventDefault();
     setError(null);
 
-    // Captcha is optional for now - just proceed with login
-    // if (!captchaToken) {
-    //   setError("Please complete captcha");
-    //   return;
-    // }
+    // Captcha optional during testing
 
     setLoading(true);
 
@@ -165,8 +163,7 @@ export default function AdminPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm
-                  focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -179,8 +176,7 @@ export default function AdminPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm
-                  focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -203,16 +199,27 @@ export default function AdminPage() {
               </button>
             </div>
 
-            <ReCAPTCHA
-              sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
-              onChange={(token) => setCaptchaToken(token)}
+            <Script
+              src="https://www.google.com/recaptcha/api.js?render=explicit"
+              strategy="afterInteractive"
+              onLoad={() => {
+                const g = (window as any).grecaptcha;
+                if (g && recaptchaRef.current) {
+                  g.render(recaptchaRef.current, {
+                    sitekey: siteKey,
+                    callback: (tok: string) => setCaptchaToken(tok),
+                    "expired-callback": () => setCaptchaToken(null),
+                    "error-callback": () => setCaptchaToken(null),
+                  });
+                }
+              }}
             />
+            <div ref={recaptchaRef} className="g-recaptcha" />
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-blue-600 text-white py-2.5 font-semibold
-                hover:bg-blue-700 transition disabled:opacity-60"
+              className="w-full rounded-lg bg-blue-600 text-white py-2.5 font-semibold hover:bg-blue-700 transition disabled:opacity-60"
             >
               {loading ? "Signing in..." : "Sign in to Admin"}
             </button>
