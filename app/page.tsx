@@ -306,39 +306,21 @@ export default function Page() {
               />
               
               {/* Floating Badge 1 */}
-              <div className="absolute -left-8 top-1/4 bg-white/90 backdrop-blur p-4 rounded-2xl shadow-xl border border-white/50 animate-float" style={{ animationDelay: '1s' }}>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-xl">🛡️</div>
-                  <div>
-                    <p className="text-xs text-slate-500 font-medium">Claims Processed</p>
-                    <p className="text-lg font-bold text-slate-900">98.5%</p>
-                  </div>
-                </div>
+              <div className="absolute -left-8 bottom-1/4 bg-white/80 backdrop-blur p-3 rounded-xl shadow-xl border border-white/60 animate-float" style={{ animationDelay: '3s' }}>
+                <p className="text-sm font-semibold text-slate-700">Innovation, perfectly packed.</p>
               </div>
 
               {/* Floating Badge 2 */}
-              <div className="absolute -right-8 bottom-1/3 bg-white/90 backdrop-blur p-4 rounded-2xl shadow-xl border border-white/50 animate-float" style={{ animationDelay: '2s' }}>
-                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-xl">👥</div>
-                  <div>
-                    <p className="text-xs text-slate-500 font-medium">Active Employees</p>
-                    <p className="text-lg font-bold text-slate-900">12,500+</p>
-                  </div>
-                </div>
+              <div className="absolute -right-8 bottom-1/4 bg-white/80 backdrop-blur p-3 rounded-xl shadow-xl border border-white/60 animate-float" style={{ animationDelay: '4s' }}>
+                <p className="text-sm font-semibold text-slate-700">Efficiency within.</p>
               </div>
 
               {/* Floating Messaging Boxes */}
-              <div className="absolute left-0 -bottom-8 bg-white/80 backdrop-blur p-3 rounded-xl shadow-xl border border-white/60 animate-float" style={{ animationDelay: '0.5s' }}>
-                <p className="text-sm font-semibold text-slate-700">Innovation, perfectly packed.</p>
-              </div>
               <div className="absolute -left-6 top-6 bg-white/80 backdrop-blur p-3 rounded-xl shadow-xl border border-white/60 animate-float" style={{ animationDelay: '1.1s' }}>
                 <p className="text-sm font-semibold text-slate-700">Global quality. Local touch.</p>
               </div>
               <div className="absolute right-6 top-6 bg-white/80 backdrop-blur p-3 rounded-xl shadow-xl border border-white/60 animate-float" style={{ animationDelay: '1.7s' }}>
                 <p className="text-sm font-semibold text-slate-700">Your brand, elegantly boxed.</p>
-              </div>
-              <div className="absolute right-0 bottom-10 bg-white/80 backdrop-blur p-3 rounded-xl shadow-xl border border-white/60 animate-float" style={{ animationDelay: '2.3s' }}>
-                <p className="text-sm font-semibold text-slate-700">Efficiency within.</p>
               </div>
               <div className="absolute left-1/2 -translate-x-1/2 -top-8 bg-white/80 backdrop-blur p-3 rounded-xl shadow-xl border border-white/60 animate-float" style={{ animationDelay: '2.9s' }}>
                 <p className="text-sm font-semibold text-slate-700">Scalable in every detail.</p>
