@@ -23,13 +23,23 @@ interface BrandingConfig {
     bannerUrl?: string;
 }
 
+interface QuestionOption {
+    id: string;
+    label: string;
+    value?: string;
+    type?: string;
+    required?: boolean;
+    errorMessage?: string;
+    fieldType?: string;
+}
+
 interface Question {
     id: string;
     type: QuestionType;
     text: string;
     description?: string;
     required: boolean;
-    options?: { id: string; label: string; value?: string; type?: string; required?: boolean; errorMessage?: string }[];
+    options?: QuestionOption[];
     weightageConfig?: { totalPoints?: number };
     subQuestions?: { id: string; label: string }[];
     scaleConfig?: { min: number; max: number; minLabel: string; maxLabel: string };
@@ -338,8 +348,6 @@ export default function SurveyManager() {
         </div>
     );
 }
-
-export default SurveyManager;
 
 // --- Survey Editor Component ---
 
