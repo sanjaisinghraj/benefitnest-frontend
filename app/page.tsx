@@ -15,10 +15,25 @@ export default function Page() {
       setScrolled(window.scrollY > 50);
     };
 
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("in-view");
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    const elements = document.querySelectorAll(".reveal-on-scroll");
+    elements.forEach((el) => observer.observe(el));
+
     window.addEventListener("scroll", handleScroll);
     return () => {
       clearTimeout(timer);
       window.removeEventListener("scroll", handleScroll);
+      elements.forEach((el) => observer.unobserve(el));
     };
   }, []);
 
@@ -75,6 +90,38 @@ export default function Page() {
         .animate-ticker {
           animation: ticker 30s linear infinite;
         }
+
+        /* SCROLL REVEAL ANIMATIONS */
+        .reveal-on-scroll {
+          opacity: 0;
+          transition: all 1s cubic-bezier(0.5, 0, 0, 1);
+        }
+        
+        .reveal-flip {
+          transform: perspective(1000px) rotateY(30deg) translateY(50px);
+        }
+        
+        .reveal-flip.in-view {
+          opacity: 1;
+          transform: perspective(1000px) rotateY(0deg) translateY(0);
+        }
+
+        .reveal-pop {
+          transform: scale(0.8) translateY(30px);
+        }
+        
+        .reveal-pop.in-view {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+
+        .card-3d-hover {
+          transition: transform 0.5s;
+          transform-style: preserve-3d;
+        }
+        .card-3d-hover:hover {
+          transform: translateY(-10px) rotateX(5deg);
+        }
       `}</style>
 
       {/* BACKGROUND BLOBS */}
@@ -114,9 +161,6 @@ export default function Page() {
                 className="h-10 relative z-10"
               />
             </div>
-            <span className={`font-bold text-xl tracking-tight ${scrolled ? 'text-slate-900' : 'text-slate-900'}`}>
-              BenefitNest
-            </span>
           </a>
 
           {/* DESKTOP MENU */}
@@ -124,34 +168,68 @@ export default function Page() {
             {[
               {
                 name: "Platform",
-                items: ["Employee Portal", "Admin Dashboard", "Claims Engine"],
+                items: [
+                  { label: "Employee Portal", emoji: "💻", desc: "Self-service hub" },
+                  { label: "Admin Dashboard", emoji: "🎛️", desc: "Central control" },
+                  { label: "Claims Engine", emoji: "⚙️", desc: "Automated processing" },
+                ]
               },
               {
                 name: "Features",
-                items: ["Enrollments", "Claims", "Analytics", "AI Support"],
+                items: [
+                  { label: "Enrollments", emoji: "📝", desc: "Easy onboarding" },
+                  { label: "Claims", emoji: "🏥", desc: "Fast settlements" },
+                  { label: "Analytics", emoji: "📊", desc: "Data insights" },
+                  { label: "AI Support", emoji: "🤖", desc: "24/7 assistance" },
+                ]
               },
-              { name: "Services", items: ["Implementation", "Support"] },
-              { name: "Resources", items: ["Guides", "Reports"] },
+              {
+                name: "Services",
+                items: [
+                  { label: "Implementation", emoji: "🚀", desc: "Quick setup" },
+                  { label: "Support", emoji: "🤝", desc: "Expert help" },
+                ]
+              },
+              {
+                name: "Resources",
+                items: [
+                  { label: "Guides", emoji: "📚", desc: "Best practices" },
+                  { label: "Reports", emoji: "📑", desc: "Industry trends" },
+                ]
+              },
             ].map((menu) => (
               <div key={menu.name} className="relative group">
-                <button className="flex items-center gap-1 font-medium text-slate-600 hover:text-blue-600 transition py-2">
+                <button className="flex items-center gap-1.5 font-semibold text-slate-600 hover:text-blue-600 transition-all duration-300 py-2 group-hover:scale-105">
                   {menu.name}
-                  <svg className="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 transition-transform duration-300 group-hover:rotate-180 text-slate-400 group-hover:text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
                 
                 {/* MEGA MENU DROPDOWN */}
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/50 p-2 opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200">
-                  {menu.items.map((item) => (
-                    <a
-                      key={item}
-                      href="#"
-                      className="block px-4 py-3 rounded-xl hover:bg-blue-50 text-sm font-medium text-slate-700 hover:text-blue-700 transition-colors"
-                    >
-                      {item}
-                    </a>
-                  ))}
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-72 bg-white/80 backdrop-blur-2xl rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] border border-white/60 p-3 opacity-0 translate-y-4 scale-95 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:scale-100 group-hover:pointer-events-auto transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] origin-top z-50">
+                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white/80 backdrop-blur-2xl rotate-45 border-t border-l border-white/60"></div>
+                  <div className="relative flex flex-col gap-1">
+                    {menu.items.map((item, idx) => (
+                      <a
+                        key={item.label}
+                        href="#"
+                        className="group/item flex items-center gap-4 px-4 py-3 rounded-2xl hover:bg-white hover:shadow-lg hover:shadow-blue-100/50 transition-all duration-300 border border-transparent hover:border-blue-50"
+                        style={{ transitionDelay: `${idx * 50}ms` }}
+                      >
+                        <span className="text-2xl filter drop-shadow-sm group-hover/item:scale-110 transition-transform duration-300">{item.emoji}</span>
+                        <div>
+                          <p className="text-sm font-bold text-slate-800 group-hover/item:text-blue-600 transition-colors">{item.label}</p>
+                          <p className="text-[11px] font-medium text-slate-400 group-hover/item:text-slate-500 transition-colors">{item.desc}</p>
+                        </div>
+                        <div className="ml-auto opacity-0 -translate-x-2 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all duration-300">
+                           <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                           </svg>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}
@@ -283,57 +361,88 @@ export default function Page() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Feature 1 (Large) */}
-              <div className="md:col-span-2 group relative bg-white rounded-[2rem] shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-100">
+              {/* Feature 1 (Large - Total Reward) */}
+              <div className="md:col-span-2 group relative bg-white rounded-[2.5rem] shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-100">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="p-10 relative z-10">
-                  <h3 className="text-2xl font-bold mb-4">Total Reward Statement</h3>
-                  <p className="text-slate-600 mb-8 max-w-md">Give employees a complete view of their compensation package including salary, benefits, insurance, and perks.</p>
-                  <img src="/images/marketing/feature-total-reward.jpg" className="w-full rounded-xl shadow-lg transform group-hover:scale-[1.02] transition-transform duration-500" alt="Total Reward" />
+                <div className="relative z-10 grid md:grid-cols-2 h-full">
+                  <div className="p-10 flex flex-col justify-center">
+                    <div className="mb-6 inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-100 text-blue-600">
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <h3 className="text-3xl font-bold mb-4 text-slate-900 tracking-tight">Total Reward Statement</h3>
+                    <p className="text-slate-600 mb-8 text-lg leading-relaxed">Give employees a complete view of their compensation package including salary, benefits, insurance, and perks.</p>
+                    <a href="#" className="inline-flex items-center font-semibold text-blue-600 hover:text-blue-700 transition-colors">
+                      Learn more <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                    </a>
+                  </div>
+                  <div className="relative h-full min-h-[320px] bg-slate-50 overflow-hidden">
+                    <img 
+                      src="/images/marketing/Dashboard showing salary, insurance, perks, and benefits.jpg" 
+                      className="absolute inset-0 w-full h-full object-cover object-left-top transform group-hover:scale-105 transition-transform duration-700" 
+                      alt="Total Reward Dashboard" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-l from-transparent to-white/10 pointer-events-none"></div>
+                  </div>
                 </div>
               </div>
 
-              {/* Feature 2 */}
-              <div className="group relative bg-white rounded-[2rem] shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-100">
+              {/* Feature 2 (HR Analytics) */}
+              <div className="group relative bg-white rounded-[2.5rem] shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-100 flex flex-col">
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="p-10 relative z-10 h-full flex flex-col">
-                  <h3 className="text-2xl font-bold mb-4">HR Analytics</h3>
-                  <p className="text-slate-600 mb-8">Real-time insights into utilization, costs, and engagement.</p>
-                  <div className="mt-auto">
-                    <img src="/images/marketing/feature-insights.jpg" className="w-full rounded-xl shadow-lg transform group-hover:scale-[1.02] transition-transform duration-500" alt="Analytics" />
+                <div className="p-8 pt-10 relative z-10">
+                  <div className="mb-4 inline-flex items-center justify-center w-10 h-10 rounded-xl bg-purple-100 text-purple-600">
+                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                   </div>
+                  <h3 className="text-2xl font-bold mb-3 text-slate-900">HR Analytics</h3>
+                  <p className="text-slate-600 text-base mb-6 leading-relaxed">Real-time insights into utilization, costs, and engagement.</p>
+                </div>
+                <div className="mt-auto relative h-64 w-full overflow-hidden bg-slate-50">
+                  <img src="/images/marketing/feature-insights.jpg" className="w-full h-full object-cover object-top transform group-hover:scale-110 transition-transform duration-700" alt="Analytics" />
                 </div>
               </div>
 
-              {/* Feature 3 */}
-              <div className="group relative bg-white rounded-[2rem] shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-100">
+              {/* Feature 3 (Claims) */}
+              <div className="group relative bg-white rounded-[2.5rem] shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-100 flex flex-col">
                  <div className="absolute inset-0 bg-gradient-to-br from-pink-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                 <div className="p-10 relative z-10 h-full flex flex-col">
-                  <h3 className="text-2xl font-bold mb-4">Claims & Reimbursements</h3>
-                  <p className="text-slate-600 mb-8">Paperless submission with AI-powered fraud detection.</p>
-                  <div className="mt-auto">
-                    <img src="/images/marketing/feature-reimbursement.jpg" className="w-full rounded-xl shadow-lg transform group-hover:scale-[1.02] transition-transform duration-500" alt="Claims" />
+                 <div className="p-8 pt-10 relative z-10">
+                  <div className="mb-4 inline-flex items-center justify-center w-10 h-10 rounded-xl bg-pink-100 text-pink-600">
+                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                   </div>
+                  <h3 className="text-2xl font-bold mb-3 text-slate-900">Claims & Reimbursements</h3>
+                  <p className="text-slate-600 text-base mb-6 leading-relaxed">Paperless submission with AI-powered fraud detection.</p>
                 </div>
+                 <div className="mt-auto relative h-64 w-full overflow-hidden bg-slate-50">
+                    <img src="/images/marketing/feature-reimbursement.jpg" className="w-full h-full object-cover object-top transform group-hover:scale-110 transition-transform duration-700" alt="Claims" />
+                  </div>
               </div>
 
-               {/* Feature 4 (Large) */}
-               <div className="md:col-span-2 group relative bg-white rounded-[2rem] shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-100">
+               {/* Feature 4 (Large - One Place) */}
+               <div className="md:col-span-2 group relative bg-white rounded-[2.5rem] shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-100">
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="p-10 relative z-10 grid md:grid-cols-2 gap-8 items-center">
-                  <div>
-                    <h3 className="text-2xl font-bold mb-4">One Place for Everything</h3>
-                    <p className="text-slate-600 mb-6">From health insurance to gym memberships, manage it all in one unified dashboard.</p>
-                    <ul className="space-y-3">
+                <div className="relative z-10 grid md:grid-cols-2 h-full">
+                  <div className="p-10 flex flex-col justify-center">
+                     <div className="mb-6 inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-600">
+                       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                     </div>
+                    <h3 className="text-3xl font-bold mb-4 text-slate-900 tracking-tight">One Place for Everything</h3>
+                    <p className="text-slate-600 mb-8 text-lg leading-relaxed">From health insurance to gym memberships, manage it all in one unified dashboard.</p>
+                    <ul className="space-y-4">
                       {['Unified Login', 'Mobile App Access', '24/7 Support'].map(item => (
-                        <li key={item} className="flex items-center gap-2 text-slate-700 font-medium">
-                          <span className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</span>
+                        <li key={item} className="flex items-center gap-3 text-slate-700 font-medium text-lg">
+                          <span className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm">✓</span>
                           {item}
                         </li>
                       ))}
                     </ul>
                   </div>
-                  <img src="/images/marketing/feature-oneplace.jpg" className="w-full rounded-xl shadow-lg transform group-hover:scale-[1.02] transition-transform duration-500" alt="One Place" />
+                  <div className="relative h-full min-h-[350px] bg-slate-50 overflow-hidden">
+                    <img 
+                      src="/images/marketing/feature-oneplace.jpg" 
+                      className="absolute inset-0 w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-700" 
+                      alt="One Place Dashboard" 
+                    />
+                     <div className="absolute inset-0 bg-gradient-to-l from-transparent to-white/10 pointer-events-none"></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -357,8 +466,12 @@ export default function Page() {
                 { img: "feature-comms.jpg", title: "Communications", desc: "Automated emails, WhatsApp alerts, and push notifications." },
                 { img: "feature-support.jpg", title: "Expert Support", desc: "Dedicated account managers and 24/7 helpdesk." },
                 { img: "feature-consulting.jpg", title: "Consulting", desc: "Strategic benefits advisory and plan design." },
-              ].map((item) => (
-                <div key={item.title} className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-6 hover:bg-white/20 transition-all duration-300 group">
+              ].map((item, index) => (
+                <div 
+                  key={item.title} 
+                  className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-6 hover:bg-white/20 transition-all duration-300 group reveal-on-scroll reveal-flip"
+                  style={{ transitionDelay: `${index * 150}ms` }}
+                >
                   <div className="h-40 mb-6 overflow-hidden rounded-xl">
                     <img src={`/images/marketing/${item.img}`} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" alt={item.title} />
                   </div>
@@ -384,10 +497,17 @@ export default function Page() {
                   { img: "overview-recognition.jpg", title: "Recognition" },
                   { img: "overview-mobile.jpg", title: "Mobile" },
                   { img: "overview-ai.jpg", title: "AI Assistant" },
-               ].map((item) => (
-                 <div key={item.title} className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col items-center">
-                    <img src={`/images/marketing/${item.img}`} className="h-16 w-auto object-contain mb-4" alt={item.title} />
-                    <h5 className="font-bold text-slate-700">{item.title}</h5>
+               ].map((item, index) => (
+                 <div 
+                   key={item.title} 
+                   className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col items-center group card-3d-hover reveal-on-scroll reveal-pop"
+                   style={{ transitionDelay: `${index * 100}ms` }}
+                 >
+                    <div className="relative mb-4">
+                      <div className="absolute inset-0 bg-blue-100 rounded-full blur-xl opacity-0 group-hover:opacity-60 transition-opacity duration-500"></div>
+                      <img src={`/images/marketing/${item.img}`} className="h-16 w-auto object-contain relative z-10 transform group-hover:scale-110 transition-transform duration-500" alt={item.title} />
+                    </div>
+                    <h5 className="font-bold text-slate-700 group-hover:text-blue-600 transition-colors">{item.title}</h5>
                  </div>
                ))}
              </div>
@@ -425,11 +545,10 @@ export default function Page() {
 
         {/* FOOTER */}
         <footer className="bg-slate-950 text-slate-400 py-16 border-t border-slate-900">
-          <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12 mb-12">
+          <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-12 mb-12">
             <div>
               <div className="flex items-center gap-2 mb-6">
                 <img src="/images/marketing/logo.png" alt="BenefitNest" className="h-8 grayscale opacity-50" />
-                <span className="font-bold text-slate-200 text-lg">BenefitNest</span>
               </div>
               <p className="text-sm leading-relaxed">
                 The most comprehensive employee benefits platform for modern organizations.
@@ -437,9 +556,8 @@ export default function Page() {
             </div>
             
             {[
-              { title: "Platform", links: ["Employee Portal", "Admin Dashboard", "Claims Engine", "Analytics"] },
-              { title: "Company", links: ["About Us", "Careers", "Press", "Contact"] },
-              { title: "Legal", links: ["Privacy Policy", "Terms of Service", "Security", "Compliance"] },
+              { title: "Company", links: ["Contact", "About Us"] },
+              { title: "Legal", links: ["Privacy Policy", "Terms & Conditions", "Security"] },
             ].map((col) => (
               <div key={col.title}>
                 <h4 className="text-slate-200 font-bold mb-6">{col.title}</h4>

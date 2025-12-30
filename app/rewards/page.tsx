@@ -23,6 +23,21 @@ export default function RewardsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans overflow-x-hidden">
+      {/* ANIMATIONS */}
+      <style jsx global>{`
+        @keyframes blob {
+          0% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+      `}</style>
       
       {/* HEADER */}
       <header className="bg-white/90 backdrop-blur border-b border-gray-200 sticky top-0 z-50">
@@ -103,15 +118,23 @@ export default function RewardsPage() {
           </div>
 
           {/* RIGHT: Animation Box */}
-          <div className="relative h-[500px] w-full bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 overflow-hidden flex flex-col justify-center">
+          <div className="relative h-[500px] w-full bg-white/60 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] border border-white/50 p-8 overflow-hidden flex flex-col justify-center group hover:shadow-[0_20px_60px_-10px_rgba(59,130,246,0.15)] transition-all duration-500">
             
+            {/* Background Effects */}
+            <div className="absolute inset-0 opacity-30 pointer-events-none">
+                <div className="absolute top-[-50%] left-[-20%] w-[500px] h-[500px] bg-gradient-to-br from-red-200 to-pink-200 rounded-full blur-[100px] animate-blob mix-blend-multiply filter opacity-70 transition-opacity duration-1000" style={{ opacity: showProblem ? 0.6 : 0 }}></div>
+                <div className="absolute bottom-[-20%] right-[-20%] w-[500px] h-[500px] bg-gradient-to-tr from-green-200 to-blue-200 rounded-full blur-[100px] animate-blob animation-delay-2000 mix-blend-multiply filter opacity-70 transition-opacity duration-1000" style={{ opacity: showProblem ? 0 : 0.6 }}></div>
+            </div>
+
             {/* PROBLEM STATE */}
-            <div className={`absolute inset-0 p-10 flex flex-col justify-center transition-all duration-1000 ease-in-out ${showProblem ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full'}`}>
-               <div className="mb-6 flex items-center gap-3 text-red-500">
-                  <X className="w-8 h-8" />
-                  <h3 className="text-2xl font-bold">The Old Way</h3>
+            <div className={`absolute inset-0 p-12 flex flex-col justify-center transition-all duration-1000 ease-in-out ${showProblem ? 'opacity-100 translate-x-0 scale-100 blur-none' : 'opacity-0 -translate-x-[10%] scale-95 blur-sm'}`}>
+               <div className="mb-8 flex items-center gap-4 text-red-500">
+                  <div className="p-3 bg-red-50 rounded-2xl shadow-sm">
+                    <X className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-3xl font-extrabold tracking-tight text-slate-800">The Old Way</h3>
                </div>
-               <ul className="space-y-6">
+               <ul className="space-y-5">
                  {[
                    "Employees feel unnoticed",
                    "Recognition is manual & inconsistent",
@@ -119,8 +142,8 @@ export default function RewardsPage() {
                    "No visibility into impact or ROI",
                    "Disconnected tools & spreadsheets"
                  ].map((item, i) => (
-                   <li key={i} className="flex items-center gap-4 text-gray-500 text-lg">
-                     <div className="w-2 h-2 rounded-full bg-red-300" />
+                   <li key={i} className="flex items-center gap-4 text-slate-600 text-lg font-medium transition-all duration-500" style={{ transitionDelay: `${i * 100}ms`, opacity: showProblem ? 1 : 0, transform: showProblem ? 'translateX(0)' : 'translateX(-20px)' }}>
+                     <div className="w-2.5 h-2.5 rounded-full bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.5)]" />
                      {item}
                    </li>
                  ))}
@@ -128,12 +151,14 @@ export default function RewardsPage() {
             </div>
 
             {/* SOLUTION STATE */}
-            <div className={`absolute inset-0 p-10 flex flex-col justify-center transition-all duration-1000 ease-in-out ${!showProblem ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'}`}>
-               <div className="mb-6 flex items-center gap-3 text-green-600">
-                  <CheckCircle className="w-8 h-8" />
-                  <h3 className="text-2xl font-bold">The BenefitNest Way</h3>
+            <div className={`absolute inset-0 p-12 flex flex-col justify-center transition-all duration-1000 ease-in-out ${!showProblem ? 'opacity-100 translate-x-0 scale-100 blur-none' : 'opacity-0 translate-x-[10%] scale-95 blur-sm'}`}>
+               <div className="mb-8 flex items-center gap-4 text-green-600">
+                  <div className="p-3 bg-green-50 rounded-2xl shadow-sm">
+                    <CheckCircle className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-3xl font-extrabold tracking-tight text-slate-800">The BenefitNest Way</h3>
                </div>
-               <ul className="space-y-6">
+               <ul className="space-y-5">
                  {[
                    "Real-time recognition",
                    "Structured reward programs",
@@ -141,9 +166,9 @@ export default function RewardsPage() {
                    "Automated milestones",
                    "Engagement analytics"
                  ].map((item, i) => (
-                   <li key={i} className="flex items-center gap-4 text-gray-800 font-medium text-lg">
-                     <div className="p-1 rounded-full bg-green-100 text-green-600">
-                       <CheckCircle className="w-4 h-4" />
+                   <li key={i} className="flex items-center gap-4 text-slate-700 font-semibold text-lg transition-all duration-500" style={{ transitionDelay: `${i * 100}ms`, opacity: !showProblem ? 1 : 0, transform: !showProblem ? 'translateX(0)' : 'translateX(20px)' }}>
+                     <div className="p-1.5 rounded-full bg-green-100 text-green-600 shadow-sm">
+                       <CheckCircle className="w-5 h-5" />
                      </div>
                      {item}
                    </li>
@@ -152,7 +177,7 @@ export default function RewardsPage() {
             </div>
 
             {/* Progress Bar Animation */}
-            <div className="absolute bottom-0 left-0 h-1 bg-blue-600 transition-all duration-[4000ms] ease-linear" style={{ width: showProblem ? '0%' : '100%', opacity: showProblem ? 0 : 1 }}></div>
+            <div className="absolute bottom-0 left-0 h-1.5 bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-[4000ms] ease-linear shadow-[0_0_15px_rgba(59,130,246,0.5)]" style={{ width: showProblem ? '0%' : '100%', opacity: showProblem ? 0 : 1 }}></div>
           </div>
 
         </div>
