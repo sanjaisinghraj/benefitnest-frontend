@@ -1,30 +1,30 @@
 type QuestionType = "text" | "textarea" | "radio" | "checkbox" | "dropdown" | "slider" | "nps" | "matrix" | "ranking" | "weightage" | "email" | "date" | "rating" | "file_upload";
-
-interface QuestionOption {
-    id: string;
-    label: string;
-    fieldType?: 'text' | 'email' | 'date' | 'textarea' | 'number' | 'percentage';
-    value?: string | number;
-    type?: string;
-    required?: boolean;
-    errorMessage?: string;
-    validation?: {
-        required?: boolean;
-        min?: number;
-        max?: number;
-        regex?: string;
-        errorMessage?: string;
-    };
-}
-
-interface Question {
-    id: string;
-    type: QuestionType;
-    options?: QuestionOption[];
-    text: string;
-    description?: string;
-    required: boolean;
-    imageUrl?: string;
+    return (
+        <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-indigo-50">
+            {/* Header */}
+            <header className="w-full py-6 bg-white shadow-sm border-b border-gray-100">
+                <div className="max-w-7xl mx-auto flex justify-between items-center px-6">
+                    <h1 className="text-3xl font-extrabold text-indigo-700 tracking-tight">Survey Manager</h1>
+                    <button
+                        onClick={handleCreateNew}
+                        className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 transition-colors shadow-md font-semibold text-lg"
+                    >
+                        <Plus size={22} /> New Survey
+                    </button>
+                </div>
+            </header>
+            {/* Main Content */}
+            <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-10 pb-32">
+                {/* ...existing code... */}
+            </main>
+            {/* Footer */}
+            <footer className="w-full py-6 bg-white border-t border-gray-100">
+                <div className="max-w-7xl mx-auto px-6 text-center text-gray-400 text-sm">
+                    &copy; {new Date().getFullYear()} Insurance Platform. All rights reserved.
+                </div>
+            </footer>
+        </div>
+    );
     weightageConfig?: { totalPoints?: number };
     subQuestions?: { id: string; label: string }[];
     scaleConfig?: { min: number; max: number; minLabel: string; maxLabel: string };
@@ -819,10 +819,15 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                             <h2 className="text-xl font-bold text-gray-900 mb-4">Survey Settings</h2>
                             <div className="grid grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Template</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1" title="If checked, this survey will be available as a reusable template for future surveys.">Template</label>
                                     <div className="flex items-center gap-2">
-                                        <input type="checkbox" checked={!!survey.isTemplate} onChange={e => onUpdate({ ...survey, isTemplate: e.target.checked })} /> 
-                                        <span>Mark as Template</span>
+                                        <input 
+                                            type="checkbox" 
+                                            checked={!!survey.isTemplate} 
+                                            onChange={e => onUpdate({ ...survey, isTemplate: e.target.checked })}
+                                            title="Mark this survey as a template for reuse"
+                                        /> 
+                                        <span title="Mark this survey as a template for reuse">Mark as Template</span>
                                     </div>
                                 </div>
                                 <div>

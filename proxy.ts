@@ -20,9 +20,47 @@ const MAIN_DOMAIN = "benefitnest.space";
 export function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   const hostname = request.headers.get("host") || "";
+  const { pathname } = url;
 
   // Remove port if present (for local development)
   const hostWithoutPort = hostname.split(":")[0];
+
+  // Extract subdomain
+  // e.g., kindmaster.benefitnest.space → kindmaster
+  let subdomain = "";
+
+  if (hostWithoutPort.endsWith(MAIN_DOMAIN)) {
+    const parts = hostWithoutPort.replace(`.${MAIN_DOMAIN}`, "").split(".");
+    subdomain = parts[0];
+  }
+
+  // --- ADMIN PROTECTION START ---
+  // Protect both /admin routes (main domain) and admin.benefitnest.space subdomain
+  const isAdminSubdomain = subdomain === 'admin';
+  const isAdminPath = pathname.startsWith('/admin');
+
+  if (isAdminSubdomain || isAdminPath) {
+    // Define public paths that don't require authentication
+    // If on admin subdomain, root '/' is likely the login page.
+    // If on main domain, '/admin' is the login page.
+    const isPublic = 
+      pathname === '/' || 
+      pathname === '/admin' || 
+      pathname === '/admin/login' || 
+      pathname.startsWith('/admin/forgot-password') ||
+      pathname.startsWith('/login'); // Fallback
+
+    if (!isPublic) {
+      const token = request.cookies.get('admin_token')?.value;
+
+      if (!token) {
+        // Redirect to appropriate login page
+        const loginPath = isAdminSubdomain ? '/' : '/admin';
+        return NextResponse.redirect(new URL(loginPath, request.url));
+      }
+    }
+  }
+  // --- ADMIN PROTECTION END ---
 
   // Check if it's localhost (development)
   if (hostWithoutPort === "localhost" || hostWithoutPort === "127.0.0.1") {
@@ -36,15 +74,6 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Extract subdomain
-  // e.g., kindmaster.benefitnest.space → kindmaster
-  let subdomain = "";
-
-  if (hostWithoutPort.endsWith(MAIN_DOMAIN)) {
-    const parts = hostWithoutPort.replace(`.${MAIN_DOMAIN}`, "").split(".");
-    subdomain = parts[0];
-  }
-
   // No subdomain or reserved subdomain - serve main site
   if (
     !subdomain ||
@@ -55,7 +84,7 @@ export function proxy(request: NextRequest) {
   }
 
   // Valid tenant subdomain detected!
-  const pathname = url.pathname;
+  // Note: 'pathname' is already destructured from url at the top
 
   // Already on dynamic subdomain route - skip
   if (pathname.startsWith(`/${subdomain}`)) {
