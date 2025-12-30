@@ -60,6 +60,7 @@ interface Survey {
     templateCategory?: string;
     questionCount?: number;
     survey_url?: string;
+    slug?: string;
     start_date?: string;
     end_date?: string;
     startDate?: string;
@@ -84,6 +85,8 @@ export default function SurveyManager() {
     const [currentSurvey, setCurrentSurvey] = useState<Survey | null>(null);
     const [view, setView] = useState<'list' | 'editor'>("list");
     const [surveyUrl, setSurveyUrl] = useState<string | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<Survey | null>(null);
+    const [deleting, setDeleting] = useState(false);
     
     // API URL
     const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
@@ -179,18 +182,25 @@ export default function SurveyManager() {
         }
     };
 
-    const handleDeleteSurvey = async (survey: Survey) => {
-        if (!window.confirm(`Are you sure you want to delete the survey "${survey.title}"? This action cannot be undone.`)) return;
+    const handleDeleteSurvey = (survey: Survey) => {
+        setDeleteTarget(survey);
+    };
+
+    const confirmDeleteSurvey = async () => {
+        if (!deleteTarget) return;
         try {
-            const res = await axios.delete(`${API_URL}/api/surveys/${survey.id}`, { headers: getAuthHeaders() });
+            setDeleting(true);
+            const res = await axios.delete(`${API_URL}/api/surveys/${deleteTarget.id}`, { headers: getAuthHeaders() });
             if (res.data.success) {
-                setSurveys(surveys.filter(s => s.id !== survey.id));
+                setSurveys(surveys.filter(s => s.id !== deleteTarget.id));
+                setDeleteTarget(null);
             } else {
-                alert("Failed to delete survey");
+                // keep modal open, show failure
             }
         } catch (err) {
-            console.error("Error deleting survey", err);
-            alert("Error deleting survey");
+            // keep modal open, show failure
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -263,10 +273,10 @@ export default function SurveyManager() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     {surveys.map(survey => {
                         const tenant = tenants.find(t => t.id === survey.tenantId);
-                        const link = survey.survey_url || (tenant ? `https://${tenant.subdomain}.benefitnest.space/employeebenefitsurvey/${survey.id}` : null);
+                        const link = survey.survey_url || (tenant ? `https://${tenant.subdomain}.benefitnest.space/${survey.slug || `survey-${survey.id}`}` : null);
                         return (
-                        <div key={survey.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all flex flex-col h-[460px] group overflow-hidden">
-                            <div className="relative h-40 w-full flex-shrink-0">
+                        <div key={survey.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all flex flex-col h-[420px] group overflow-hidden">
+                            <div className="relative h-28 w-full flex-shrink-0">
                                 {survey.branding?.bannerUrl ? (
                                     <img src={survey.branding.bannerUrl} alt="Banner" className="absolute inset-0 w-full h-full object-cover" />
                                 ) : (
@@ -293,6 +303,14 @@ export default function SurveyManager() {
                                     {(survey.questions?.length || survey.questionCount) && <span className="px-2 py-1 rounded-full bg-indigo-50 text-indigo-700">{survey.questions?.length || survey.questionCount} Questions</span>}
                                     {survey.isTemplate && <span className="px-2 py-1 rounded-full bg-yellow-50 text-yellow-700">Template</span>}
                                 </div>
+                                {link && (
+                                    <div className="mt-3 text-xs text-gray-600">
+                                        <span className="font-semibold">URL:</span>{" "}
+                                        <a href={link} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline break-all">
+                                            {link}
+                                        </a>
+                                    </div>
+                                )}
                                 <div className="mt-auto pt-6 flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <button
@@ -312,14 +330,23 @@ export default function SurveyManager() {
                                             </a>
                                         )}
                                     </div>
-                                    {link && (
+                                    <div className="flex items-center gap-2">
+                                        {link && (
+                                            <button
+                                                onClick={() => navigator.clipboard.writeText(link)}
+                                                className="px-3 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50"
+                                            >
+                                                Copy Link
+                                            </button>
+                                        )}
                                         <button
-                                            onClick={() => navigator.clipboard.writeText(link)}
-                                            className="px-3 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50"
+                                            onClick={() => handleDeleteSurvey(survey)}
+                                            className="px-3 py-2.5 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-100"
+                                            title="Delete Survey"
                                         >
-                                            Copy Link
+                                            Delete
                                         </button>
-                                    )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -336,6 +363,38 @@ export default function SurveyManager() {
                     )}
                 </div>
             </main>
+            {/* Delete Confirmation Modal */}
+            {deleteTarget && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+                        <div className="px-6 py-4 border-b border-gray-100">
+                            <h3 className="text-lg font-extrabold text-gray-900">Delete Survey</h3>
+                        </div>
+                        <div className="px-6 py-5">
+                            <p className="text-gray-700">
+                                Are you sure you want to delete 
+                                <span className="font-semibold"> "{deleteTarget.title}"</span>? This action cannot be undone.
+                            </p>
+                        </div>
+                        <div className="px-6 py-4 flex justify-end gap-3 border-t border-gray-100">
+                            <button
+                                onClick={() => setDeleteTarget(null)}
+                                className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200"
+                                disabled={deleting}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDeleteSurvey}
+                                className="px-4 py-2 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 disabled:opacity-50"
+                                disabled={deleting}
+                            >
+                                {deleting ? "Deleting..." : "Delete"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             {/* Footer */}
             <footer className="w-full py-6 bg-white border-t border-gray-100 mt-auto">
                 <div className="max-w-7xl mx-auto px-6 text-center text-gray-400 text-sm">
@@ -429,10 +488,31 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
         setSaving(true);
         try {
             // Validate survey
-            if (!survey.title || !survey.tenantId || survey.questions.length === 0) {
+            if (!survey.title || !survey.tenantId || survey.questions.length === 0 || !survey.slug) {
                 showNotification("Please fill all required fields and add at least one question.", "error");
                 setSaving(false);
                 return;
+            }
+            // Build URL and check uniqueness
+            const tenant = tenants.find(t => t.id === survey.tenantId);
+            const proposedUrl = tenant ? `https://${tenant.subdomain}.benefitnest.space/${survey.slug}` : undefined;
+            if (!proposedUrl) {
+                showNotification("Corporate not selected.", "error");
+                setSaving(false);
+                return;
+            }
+            try {
+                const checkRes = await axios.get(`${API_URL}/api/surveys`, { headers: getAuthHeaders(), params: { tenantId: survey.tenantId, limit: 1000 } });
+                if (checkRes.data.success && Array.isArray(checkRes.data.data)) {
+                    const exists = checkRes.data.data.some((s: any) => s.survey_url === proposedUrl && s.id !== survey.id);
+                    if (exists) {
+                        showNotification("This survey URL name already exists. Please choose a different name.", "error");
+                        setSaving(false);
+                        return;
+                    }
+                }
+            } catch {
+                // If check fails, continue; backend may enforce uniqueness
             }
             // Prepare payload
             const payload: any = {
@@ -442,6 +522,8 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                 branding: survey.branding,
                 isTemplate: survey.isTemplate,
                 templateCategory: survey.templateCategory,
+                survey_url: proposedUrl,
+                slug: survey.slug,
                 questions: survey.questions.map((q: Question) => ({
                     id: q.id,
                     type: q.type,
@@ -475,13 +557,10 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
             if (res.data.success && res.data.data) {
                 // If new survey, update local state with new id
                 if (!survey.id && res.data.data.id) {
-                    onUpdate({ ...survey, id: res.data.data.id });
+                    onUpdate({ ...survey, id: res.data.data.id, survey_url: proposedUrl });
                 }
                 showNotification("Survey saved successfully!", "success");
-                const tenant = tenants.find(t => t.id === survey.tenantId);
-                if (tenant) {
-                    setSurveyUrl(`https://${tenant.subdomain}.benefitnest.space/employeebenefitsurvey/${survey.id || res.data.data.id}`);
-                }
+                setSurveyUrl(proposedUrl || null);
                 onSave();
             } else {
                 showNotification("Failed to save survey.", "error");
@@ -624,17 +703,37 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                             </select>
                         </div>
                         <div className="flex items-center gap-2 mt-2">
-                            <label className="text-xs text-gray-500">Tenant:</label>
+                            <label className="text-xs text-gray-500">Corporate Name:</label>
                             <select
                                 value={survey.tenantId || ''}
                                 onChange={e => onUpdate({ ...survey, tenantId: e.target.value })}
                                 className="text-xs text-gray-500 border border-gray-200 rounded px-2 py-1 bg-white"
                             >
-                                <option value="">Select Tenant</option>
+                                <option value="">Select Corporate</option>
                                 {tenants.map(t => (
                                     <option key={t.id} value={t.id}>{t.name || t.subdomain}</option>
                                 ))}
                             </select>
+                        </div>
+                        <div className="flex items-center gap-2 mt-2">
+                            <label className="text-xs text-gray-500">Survey URL Name:</label>
+                            <input
+                                value={survey.slug || ''}
+                                onChange={(e) => {
+                                    const raw = e.target.value || '';
+                                    const slug = raw.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
+                                    const updated = { ...survey, slug };
+                                    onUpdate(updated);
+                                    autosaveSurvey(updated);
+                                }}
+                                placeholder="e.g., employee-engagement-2025"
+                                className="text-xs text-gray-700 border border-gray-200 rounded px-2 py-1 bg-white"
+                            />
+                            {survey.tenantId && (
+                                <span className="text-[11px] text-gray-500">
+                                    Preview: https://{(tenants.find(t => t.id === survey.tenantId)?.subdomain) || 'tenant'}.benefitnest.space/{survey.slug || 'your-survey'}
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -643,7 +742,7 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                         onClick={() => setAiModalOpen(true)}
                         className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md"
                     >
-                        <span role="img" aria-label="AI">✨</span> AI Design
+                        <span role="img" aria-label="AI">✨</span> AI Magic
                     </button>
                     <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 font-medium shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                         <span role="img" aria-label="Save">💾</span> {saving ? "Saving..." : "Save"}
@@ -725,17 +824,32 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                             {/* Question Builder */}
                             <div className="flex justify-between items-center mb-6">
                                 <h2 className="text-xl font-bold text-gray-900">Questions</h2>
-                                <div className="flex gap-2 flex-wrap">
-                                    {['text','textarea','radio','checkbox','dropdown','rating','slider','nps','date','email','matrix','ranking','file_upload','weightage'].map(type => (
-                                        <button
-                                            key={type}
-                                            onClick={() => addQuestion(type as QuestionType)}
-                                            className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-medium hover:bg-indigo-200"
-                                        >
-                                            {type.charAt(0).toUpperCase() + type.slice(1)}
-                                        </button>
-                                    ))}
-                                </div>
+                            <div className="flex gap-2 flex-wrap">
+                                {[
+                                    { t: 'text', label: 'Text', emoji: '🔤' },
+                                    { t: 'textarea', label: 'Textarea', emoji: '🗒️' },
+                                    { t: 'radio', label: 'Radio', emoji: '🔘' },
+                                    { t: 'checkbox', label: 'Checkbox', emoji: '☑️' },
+                                    { t: 'dropdown', label: 'Dropdown', emoji: '▾' },
+                                    { t: 'rating', label: 'Rating', emoji: '⭐' },
+                                    { t: 'slider', label: 'Slider', emoji: '🎚️' },
+                                    { t: 'nps', label: 'NPS', emoji: '📈' },
+                                    { t: 'date', label: 'Date', emoji: '📅' },
+                                    { t: 'email', label: 'Email', emoji: '✉️' },
+                                    { t: 'matrix', label: 'Matrix', emoji: '🧱' },
+                                    { t: 'ranking', label: 'Ranking', emoji: '🔢' },
+                                    { t: 'file_upload', label: 'File', emoji: '📎' },
+                                    { t: 'weightage', label: 'Weightage', emoji: '⚖️' },
+                                ].map(({ t, label, emoji }) => (
+                                    <button
+                                        key={t}
+                                        onClick={() => addQuestion(t as QuestionType)}
+                                        className="px-3 py-1.5 rounded-full bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border border-indigo-100 text-xs font-semibold hover:from-indigo-100 hover:to-purple-100 transition"
+                                    >
+                                        <span className="mr-1">{emoji}</span> {label}
+                                    </button>
+                                ))}
+                            </div>
                             </div>
                             <div className="space-y-6">
                                 {survey.questions.length === 0 && (
