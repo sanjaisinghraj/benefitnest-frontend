@@ -87,9 +87,15 @@ export default function SurveyManager() {
     const [surveyUrl, setSurveyUrl] = useState<string | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<Survey | null>(null);
     const [deleting, setDeleting] = useState(false);
+    const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
     
     // API URL
     const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
+
+    const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
+        setNotification({ message, type });
+        setTimeout(() => setNotification(null), 3000);
+    };
 
     const getToken = () => {
         if (typeof window === "undefined") return null;
@@ -408,6 +414,14 @@ export default function SurveyManager() {
                     </div>
                 </div>
             )}
+            
+            {/* Notification */}
+            {notification && (
+                <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg text-white z-50 animate-in fade-in slide-in-from-top-2 ${notification.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+                    {notification.message}
+                </div>
+            )}
+
             {/* Footer */}
             <footer className="w-full py-6 bg-white border-t border-gray-100 mt-auto">
                 <div className="max-w-7xl mx-auto px-6 text-center text-gray-400 text-sm">
@@ -440,6 +454,16 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
     const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
     const [autosaveStatus, setAutosaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
     const autosaveTimeout = useRef<NodeJS.Timeout | null>(null);
+
+    const getToken = () => {
+        if (typeof window === "undefined") return null;
+        const cookieToken = document.cookie
+            .split("; ")
+            .find((r) => r.startsWith("admin_token="));
+        return (cookieToken ? cookieToken.split("=")[1] : null) || localStorage.getItem("admin_token");
+    };
+
+    const getAuthHeaders = () => ({ Authorization: `Bearer ${getToken()}` });
 
     const autosaveSurvey = React.useCallback((updatedSurvey: Survey) => {
         if (autosaveTimeout.current) clearTimeout(autosaveTimeout.current);
@@ -754,7 +778,7 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => setAiModalOpen(true)}
-                        className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md"
+                        className="flex items-center gap-2 bg-gradient-to-r from-amber-500 via-red-500 to-pink-500 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all shadow-md"
                     >
                         <span role="img" aria-label="AI">✨</span> AI Magic
                     </button>
@@ -767,15 +791,15 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
             {/* AI Modal */}
             {aiModalOpen && (
                 <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-md animate-in fade-in duration-300">
-                    <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-300 border border-purple-100">
-                        <div className="bg-gradient-to-br from-purple-600 to-indigo-700 p-8 text-white relative overflow-hidden">
+                    <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-300 border border-pink-100">
+                        <div className="bg-gradient-to-br from-amber-500 via-red-500 to-pink-500 p-8 text-white relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-4 opacity-10">
                                 <span className="text-9xl">✨</span>
                             </div>
                             <h2 className="text-3xl font-extrabold mb-2 flex items-center gap-3 relative z-10">
                                 <span className="text-4xl">✨</span> AI Magic
                             </h2>
-                            <p className="text-purple-100 relative z-10 font-medium">
+                            <p className="text-white/90 relative z-10 font-medium">
                                 Describe your survey needs and let our AI build it instantly.
                             </p>
                         </div>
@@ -815,7 +839,7 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                                 <button
                                     onClick={handleGenerateAI}
                                     disabled={generatingAi || !aiPrompt}
-                                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-purple-200 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-amber-500 via-red-500 to-pink-500 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-red-200 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                                 >
                                     {generatingAi ? (
                                         <>
