@@ -275,76 +275,88 @@ export default function SurveyManager() {
                         const tenant = tenants.find(t => t.id === survey.tenantId);
                         const link = survey.survey_url || (tenant ? `https://${tenant.subdomain}.benefitnest.space/${survey.slug || `survey-${survey.id}`}` : null);
                         return (
-                        <div key={survey.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all flex flex-col h-[420px] group overflow-hidden">
-                            <div className="relative h-28 w-full flex-shrink-0">
+                        <div key={survey.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl hover:-translate-y-1 transition-all flex flex-col h-[380px] group overflow-hidden relative">
+                            {/* Card Banner */}
+                            <div className="relative h-24 w-full flex-shrink-0 overflow-hidden">
                                 {survey.branding?.bannerUrl ? (
-                                    <img src={survey.branding.bannerUrl} alt="Banner" className="absolute inset-0 w-full h-full object-cover" />
+                                    <img src={survey.branding.bannerUrl} alt="Banner" className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" />
                                 ) : (
-                                    <div className="absolute inset-0" style={{ backgroundColor: survey.branding?.primaryColor || '#6366f1' }} />
+                                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600" />
                                 )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-black/0"></div>
-                                <div className="absolute top-3 left-3 flex items-center gap-2">
-                                    {survey.branding?.logoUrl && (
-                                        <img src={survey.branding.logoUrl} alt="Logo" className="h-8 w-8 rounded-md bg-white/80 p-1 object-contain" />
-                                    )}
-                                    <span className="px-2 py-1 rounded-md text-xs font-semibold bg-white/70 text-gray-800">{tenant?.name || tenant?.subdomain || 'Survey'}</span>
-                                </div>
-                                <div className={`absolute top-3 right-3 px-2 py-1 rounded-md text-xs font-semibold ${survey.status === 'active' ? 'bg-green-100 text-green-700' : survey.status === 'closed' ? 'bg-gray-100 text-gray-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                                    {survey.status.toUpperCase()}
+                                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
+                                
+                                {/* Status Chip */}
+                                <div className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase shadow-sm ${survey.status === 'active' ? 'bg-green-500 text-white' : survey.status === 'closed' ? 'bg-gray-500 text-white' : 'bg-yellow-400 text-yellow-900'}`}>
+                                    {survey.status}
                                 </div>
                             </div>
-                            <div className="p-6 flex-1 flex flex-col">
-                                <h3 className="text-xl font-extrabold text-gray-900 tracking-tight line-clamp-2">{survey.title}</h3>
-                                {survey.description && (
-                                    <p className="text-sm text-gray-600 mt-2 line-clamp-3">{survey.description}</p>
-                                )}
-                                <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
-                                    {survey.templateCategory && <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-700">{survey.templateCategory}</span>}
-                                    {(survey.questions?.length || survey.questionCount) && <span className="px-2 py-1 rounded-full bg-indigo-50 text-indigo-700">{survey.questions?.length || survey.questionCount} Questions</span>}
-                                    {survey.isTemplate && <span className="px-2 py-1 rounded-full bg-yellow-50 text-yellow-700">Template</span>}
+
+                            {/* Card Content */}
+                            <div className="p-5 flex-1 flex flex-col">
+                                {/* Corporate Name Badge */}
+                                <div className="mb-2">
+                                     <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-[10px] font-bold uppercase tracking-wide">
+                                        🏢 {tenant?.name || tenant?.subdomain || 'Unknown Corporate'}
+                                     </span>
                                 </div>
-                                {link && (
-                                    <div className="mt-3 text-xs text-gray-600">
-                                        <span className="font-semibold">URL:</span>{" "}
-                                        <a href={link} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline break-all">
-                                            {link}
-                                        </a>
-                                    </div>
+
+                                <h3 className="text-lg font-bold text-gray-900 leading-tight line-clamp-2 mb-2 group-hover:text-indigo-600 transition-colors">
+                                    {survey.title}
+                                </h3>
+                                
+                                {survey.description && (
+                                    <p className="text-xs text-gray-500 line-clamp-2 mb-3">{survey.description}</p>
                                 )}
-                                <div className="mt-auto pt-6 flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={() => fetchSurveyById(survey.id)}
-                                            className="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 shadow-sm"
-                                        >
-                                            Edit
-                                        </button>
-                                        {link && (
-                                            <a
-                                                href={link}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="px-4 py-2.5 rounded-xl bg-gray-100 text-gray-700 text-sm font-semibold hover:bg-gray-200"
+
+                                <div className="mt-auto space-y-3">
+                                    {/* URL Display */}
+                                    {link && (
+                                        <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-100 group-hover:border-indigo-100 transition-colors">
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[10px] text-gray-400 uppercase font-bold mb-0.5">Survey URL</p>
+                                                <a href={link} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 font-medium truncate block hover:underline">
+                                                    {link.replace('https://', '')}
+                                                </a>
+                                            </div>
+                                            <button 
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(link);
+                                                    showNotification("Link copied to clipboard!");
+                                                }}
+                                                className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
+                                                title="Copy Link"
                                             >
-                                                Preview
-                                            </a>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        {link && (
-                                            <button
-                                                onClick={() => navigator.clipboard.writeText(link)}
-                                                className="px-3 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50"
-                                            >
-                                                Copy Link
+                                                <List size={14} />
                                             </button>
-                                        )}
+                                        </div>
+                                    )}
+
+                                    {/* Action Buttons */}
+                                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-50">
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => fetchSurveyById(survey.id)}
+                                                className="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-semibold hover:bg-indigo-100 transition-colors"
+                                            >
+                                                Edit
+                                            </button>
+                                            {link && (
+                                                <a
+                                                    href={link}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="px-3 py-1.5 rounded-lg bg-gray-50 text-gray-600 text-xs font-semibold hover:bg-gray-100 transition-colors"
+                                                >
+                                                    Preview
+                                                </a>
+                                            )}
+                                        </div>
                                         <button
                                             onClick={() => handleDeleteSurvey(survey)}
-                                            className="px-3 py-2.5 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-100"
+                                            className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                                             title="Delete Survey"
                                         >
-                                            Delete
+                                            <Trash2 size={16} />
                                         </button>
                                     </div>
                                 </div>
@@ -358,39 +370,40 @@ export default function SurveyManager() {
                                 <LayoutTemplate size={32} />
                             </div>
                             <h3 className="text-lg font-medium text-gray-900">No surveys found</h3>
-                            <p className="text-gray-500 mt-1">Select a tenant or create a new survey to get started.</p>
+                            <p className="text-gray-500 mt-1">Select a corporate or create a new survey to get started.</p>
                         </div>
                     )}
                 </div>
             </main>
             {/* Delete Confirmation Modal */}
             {deleteTarget && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-                        <div className="px-6 py-4 border-b border-gray-100">
-                            <h3 className="text-lg font-extrabold text-gray-900">Delete Survey</h3>
-                        </div>
-                        <div className="px-6 py-5">
-                            <p className="text-gray-700">
-                                Are you sure you want to delete 
-                                <span className="font-semibold"> "{deleteTarget.title}"</span>? This action cannot be undone.
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
+                        <div className="p-8 text-center">
+                            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 mb-6">
+                                <Trash2 className="h-8 w-8 text-red-600" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-2">Delete Survey?</h3>
+                            <p className="text-gray-500 mb-8">
+                                Are you sure you want to delete <span className="font-bold text-gray-900">"{deleteTarget.title}"</span>? 
+                                <br/>This action cannot be undone.
                             </p>
-                        </div>
-                        <div className="px-6 py-4 flex justify-end gap-3 border-t border-gray-100">
-                            <button
-                                onClick={() => setDeleteTarget(null)}
-                                className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200"
-                                disabled={deleting}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={confirmDeleteSurvey}
-                                className="px-4 py-2 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 disabled:opacity-50"
-                                disabled={deleting}
-                            >
-                                {deleting ? "Deleting..." : "Delete"}
-                            </button>
+                            <div className="flex gap-3 justify-center">
+                                <button
+                                    onClick={() => setDeleteTarget(null)}
+                                    className="px-6 py-3 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 transition-colors w-full"
+                                    disabled={deleting}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmDeleteSurvey}
+                                    className="px-6 py-3 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition-all w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled={deleting}
+                                >
+                                    {deleting ? "Deleting..." : "Yes, Delete"}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -731,8 +744,8 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                                 className="text-xs text-gray-700 border border-gray-200 rounded px-2 py-1 bg-white"
                             />
                             {survey.tenantId && (
-                                <span className="text-[11px] text-gray-500">
-                                    Preview: https://{(tenants.find(t => t.id === survey.tenantId)?.subdomain) || 'tenant'}.benefitnest.space/{survey.slug || 'your-survey'}
+                                <span className="text-[11px] text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded border border-gray-100">
+                                    Preview: https://{(tenants.find(t => t.id === survey.tenantId)?.subdomain) || 'corporate'}.benefitnest.space/{survey.slug || 'your-survey-name'}
                                 </span>
                             )}
                         </div>
@@ -753,16 +766,25 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
 
             {/* AI Modal */}
             {aiModalOpen && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 animate-in fade-in zoom-in-95">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                            <span role="img" aria-label="AI">✨</span> AI Survey Designer
-                        </h2>
-                        <div className="space-y-4">
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-300 border border-purple-100">
+                        <div className="bg-gradient-to-br from-purple-600 to-indigo-700 p-8 text-white relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-4 opacity-10">
+                                <span className="text-9xl">✨</span>
+                            </div>
+                            <h2 className="text-3xl font-extrabold mb-2 flex items-center gap-3 relative z-10">
+                                <span className="text-4xl">✨</span> AI Magic
+                            </h2>
+                            <p className="text-purple-100 relative z-10 font-medium">
+                                Describe your survey needs and let our AI build it instantly.
+                            </p>
+                        </div>
+                        
+                        <div className="p-8 space-y-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Survey Type</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Survey Type</label>
                                 <select
-                                    className="w-full rounded-lg border-gray-300 p-2.5 focus:ring-2 focus:ring-purple-500"
+                                    className="w-full rounded-xl border-gray-200 bg-gray-50 p-3.5 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-shadow outline-none font-medium"
                                     value={aiSurveyType}
                                     onChange={e => setAiSurveyType(e.target.value)}
                                 >
@@ -775,28 +797,35 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Description & Goals</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Description & Goals</label>
                                 <textarea
-                                    className="w-full rounded-lg border-gray-300 p-3 h-32 focus:ring-2 focus:ring-purple-500"
-                                    placeholder="Describe what you want to measure. E.g., 'Gather feedback on the new remote work policy and identify burnout risks.'"
+                                    className="w-full rounded-xl border-gray-200 bg-gray-50 p-4 h-32 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-shadow outline-none resize-none font-medium placeholder:text-gray-400"
+                                    placeholder="e.g., I need a survey to measure employee satisfaction with the new health benefits package..."
                                     value={aiPrompt}
                                     onChange={e => setAiPrompt(e.target.value)}
                                 />
                             </div>
-                            <div className="flex justify-end gap-3 pt-4">
+                            <div className="flex gap-4 pt-2">
                                 <button
                                     onClick={() => setAiModalOpen(false)}
-                                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                                    className="px-6 py-3.5 w-1/3 text-gray-600 font-bold hover:bg-gray-100 rounded-xl transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleGenerateAI}
                                     disabled={generatingAi || !aiPrompt}
-                                    className="flex items-center gap-2 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-purple-200 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                                 >
-                                    {generatingAi ? "Designing..." : "Generate Survey"}
-                                    <span role="img" aria-label="AI">✨</span>
+                                    {generatingAi ? (
+                                        <>
+                                            <span className="animate-spin">✨</span> Designing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            Generate Magic <span className="text-xl">✨</span>
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -825,29 +854,30 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                             {/* Question Builder */}
                             <div className="flex justify-between items-center mb-6">
                                 <h2 className="text-xl font-bold text-gray-900">Questions</h2>
-                            <div className="flex gap-2 flex-wrap">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-3">
                                 {[
-                                    { t: 'text', label: 'Text', emoji: '🔤' },
-                                    { t: 'textarea', label: 'Textarea', emoji: '🗒️' },
-                                    { t: 'radio', label: 'Radio', emoji: '🔘' },
-                                    { t: 'checkbox', label: 'Checkbox', emoji: '☑️' },
-                                    { t: 'dropdown', label: 'Dropdown', emoji: '▾' },
+                                    { t: 'text', label: 'Short Text', emoji: '✍️' },
+                                    { t: 'textarea', label: 'Long Text', emoji: '📝' },
+                                    { t: 'radio', label: 'Single Choice', emoji: '⭕' },
+                                    { t: 'checkbox', label: 'Multiple Choice', emoji: '☑️' },
+                                    { t: 'dropdown', label: 'Dropdown', emoji: '▼' },
                                     { t: 'rating', label: 'Rating', emoji: '⭐' },
-                                    { t: 'slider', label: 'Slider', emoji: '🎚️' },
-                                    { t: 'nps', label: 'NPS', emoji: '📈' },
+                                    { t: 'slider', label: 'Slider', emoji: '📏' },
+                                    { t: 'nps', label: 'NPS', emoji: '📊' },
                                     { t: 'date', label: 'Date', emoji: '📅' },
                                     { t: 'email', label: 'Email', emoji: '✉️' },
-                                    { t: 'matrix', label: 'Matrix', emoji: '🧱' },
+                                    { t: 'matrix', label: 'Matrix', emoji: '▦' },
                                     { t: 'ranking', label: 'Ranking', emoji: '🔢' },
-                                    { t: 'file_upload', label: 'File', emoji: '📎' },
+                                    { t: 'file_upload', label: 'File Upload', emoji: '📎' },
                                     { t: 'weightage', label: 'Weightage', emoji: '⚖️' },
                                 ].map(({ t, label, emoji }) => (
                                     <button
                                         key={t}
                                         onClick={() => addQuestion(t as QuestionType)}
-                                        className="px-3 py-1.5 rounded-full bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border border-indigo-100 text-xs font-semibold hover:from-indigo-100 hover:to-purple-100 transition"
+                                        className="flex flex-col items-center justify-center p-3 rounded-xl border border-gray-200 bg-white hover:border-indigo-500 hover:shadow-md hover:bg-indigo-50/50 transition-all group h-24"
                                     >
-                                        <span className="mr-1">{emoji}</span> {label}
+                                        <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">{emoji}</span>
+                                        <span className="text-xs font-semibold text-gray-700 text-center leading-tight">{label}</span>
                                     </button>
                                 ))}
                             </div>
