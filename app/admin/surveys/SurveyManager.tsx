@@ -1,11 +1,3 @@
-"use client";
-import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
-import { Plus, Search, LayoutTemplate, ArrowLeft, Upload, List, Trash2 } from "lucide-react";
-import { v4 as uuidv4 } from "uuid";
-
-// --- Types ---
-
 type QuestionType = "text" | "textarea" | "radio" | "checkbox" | "dropdown" | "slider" | "nps" | "matrix" | "ranking" | "weightage" | "email" | "date" | "rating" | "file_upload";
 
 interface QuestionOption {
@@ -55,6 +47,11 @@ interface BrandingConfig {
     logoUrl?: string;
     bannerUrl?: string;
 }
+"use client";
+import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import { Plus, Search, LayoutTemplate, ArrowLeft, Upload, List, Trash2 } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
 
 interface Survey {
     id: string;
@@ -68,6 +65,11 @@ interface Survey {
     isTemplate?: boolean;
     templateCategory?: string;
     questionCount?: number;
+    survey_url?: string;
+    start_date?: string;
+    end_date?: string;
+    startDate?: string;
+    endDate?: string;
 }
 
 interface Tenant {
@@ -237,10 +239,10 @@ function SurveyManager() {
             <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-10 pb-32">
                 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
                     <div className="flex flex-col gap-2 w-full md:w-1/2">
-                        <label className="text-sm font-medium text-gray-700">Tenant/Corporate</label>
+                        <label className="text-sm font-medium text-gray-700">Corporate Name</label>
                         <select
                             className="rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 h-12 text-base"
-                            value={selectedTenants[0] || ''}
+                            value={selectedTenants[0] || (tenants.length === 1 ? tenants[0].id : '')}
                             onChange={e => setSelectedTenants([e.target.value])}
                         >
                             <option value="">All Corporates</option>
@@ -267,26 +269,50 @@ function SurveyManager() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     {surveys.map(survey => {
                         const tenant = tenants.find(t => t.id === survey.tenantId);
-                        // Simple link generation logic
-                        const link = tenant ? `https://${tenant.subdomain}.benefitnest.space/employeebenefitsurvey/${survey.id}` : null;
-                        
+                        const link = survey.survey_url || (tenant ? `https://${tenant.subdomain}.benefitnest.space/employeebenefitsurvey/${survey.id}` : null);
                         return (
-                        <div key={survey.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all flex flex-col h-[340px] group overflow-hidden">
+                        <div key={survey.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all flex flex-col h-[420px] group overflow-hidden">
                             <div className="relative h-32 w-full bg-gradient-to-r from-indigo-100 to-indigo-300 flex-shrink-0">
                                 {survey.branding?.bannerUrl ? (
                                     <img src={survey.branding.bannerUrl} alt="Banner" className="absolute inset-0 w-full h-full object-cover" />
                                 ) : (
                                     <div className="absolute inset-0" style={{ backgroundColor: survey.branding?.primaryColor || '#6366f1' }} />
                                 )}
+                                {survey.isTemplate && (
+                                    <span className="absolute top-2 right-2 bg-yellow-300 text-yellow-900 px-2 py-1 rounded text-xs font-semibold shadow">TEMPLATE</span>
+                                )}
                             </div>
                             <div className="p-6 flex-1 flex flex-col">
                                 <h3 className="text-xl font-bold text-indigo-900 mb-1 truncate">{survey.title}</h3>
-                                <p className="text-gray-500 text-sm mb-3 line-clamp-2 flex-1">{survey.description || 'No description provided.'}</p>
+                                <p className="text-gray-500 text-sm mb-2 line-clamp-2 flex-1">{survey.description || 'No description provided.'}</p>
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600 mb-2">
+                                    {tenant && (
+                                        <div><span className="font-semibold">Corporate Name:</span> {tenant.name}</div>
+                                    )}
+                                    {tenant && (
+                                        <div><span className="font-semibold">Tenant Code:</span> {tenant.id}</div>
+                                    )}
+                                    {tenant && (
+                                        <div><span className="font-semibold">Subdomain:</span> {tenant.subdomain}</div>
+                                    )}
+                                    <div><span className="font-semibold">Status:</span> {survey.status}</div>
+                                    {survey.start_date && (
+                                        <div><span className="font-semibold">Start Date:</span> {survey.start_date}</div>
+                                    )}
+                                    {survey.end_date && (
+                                        <div><span className="font-semibold">End Date:</span> {survey.end_date}</div>
+                                    )}
+                                    {survey.templateCategory && (
+                                        <div><span className="font-semibold">Template Category:</span> {survey.templateCategory}</div>
+                                    )}
+                                </div>
                                 {link && (
-                                    <a href={link} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 underline break-all mb-2">{link}</a>
+                                    <div className="mb-2 text-xs">
+                                        <span className="font-semibold text-indigo-700">Survey URL:</span> <a href={link} target="_blank" rel="noopener noreferrer" className="underline text-indigo-600 break-all">{link}</a>
+                                    </div>
                                 )}
                                 <div className="flex items-center justify-between text-xs text-gray-400 mt-auto pt-4 border-t border-gray-100">
-                                    <span>{survey.questions?.length || 0} Questions</span>
+                                    <span>{survey.questions?.length || survey.questionCount || 0} Questions</span>
                                     <span>{survey.createdAt}</span>
                                 </div>
                                 <div className="flex gap-2 mt-4">
@@ -807,19 +833,46 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                         </div>
                     )}
                     {activeTab === 'preview' && (
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-900 mb-4">Survey Preview</h2>
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                                <h3 className="font-bold text-lg text-indigo-700 mb-2">{survey.title}</h3>
-                                <div className="mb-4">
-                                    <span className="text-xs text-gray-500">Status: {survey.status}</span>
-                                    <span className="ml-4 text-xs text-gray-500">Tenant: {tenants.find(t => t.id === survey.tenantId)?.name || survey.tenantId}</span>
-                                </div>
-                                <div className="space-y-6">
-                                    {survey.questions.map(q => (
-                                        <div key={q.id} className="border-b border-gray-100 pb-4 mb-4">
-                                            <h4 className="font-semibold text-indigo-700 mb-2">{q.text}</h4>
-                                            {renderPreviewInput(q)}
+                        <div className="p-0 bg-transparent rounded-xl border-0 mt-6">
+                            {/* Recipient Preview with Branding */}
+                            <div
+                                className="min-h-[600px] flex flex-col items-center justify-start w-full"
+                                style={{
+                                    background: survey.branding?.backgroundColor || '#f9fafb',
+                                    fontFamily: survey.branding?.fontFamily || 'Inter, sans-serif',
+                                    color: survey.branding?.questionColor || '#111827',
+                                }}
+                            >
+                                {/* Banner */}
+                                {survey.branding?.bannerUrl && (
+                                    <img src={survey.branding.bannerUrl} alt="Banner" className="w-full max-h-48 object-cover mb-4 rounded-t-xl" />
+                                )}
+                                {/* Logo */}
+                                {survey.branding?.logoUrl && (
+                                    <img src={survey.branding.logoUrl} alt="Logo" className="h-16 mb-2 mt-4" />
+                                )}
+                                {/* Title */}
+                                <h1
+                                    className={`text-3xl font-extrabold mb-2 ${survey.branding?.headingSize || 'text-2xl'} ${survey.branding?.headingBold ? 'font-bold' : ''} ${survey.branding?.headingItalic ? 'italic' : ''}`}
+                                    style={{ color: survey.branding?.headingColor || '#111827' }}
+                                >
+                                    {survey.title}
+                                </h1>
+                                {/* Description */}
+                                {survey.description && (
+                                    <p className="mb-6 text-lg text-gray-600 max-w-2xl text-center">{survey.description}</p>
+                                )}
+                                {/* Questions */}
+                                <div className="w-full max-w-2xl space-y-8">
+                                    {survey.questions.map((q, idx) => (
+                                        <div key={q.id} className="bg-white rounded-xl shadow p-6 mb-2 border border-gray-100">
+                                            <div className={`mb-2 text-lg font-semibold ${survey.branding?.questionSize || ''} ${survey.branding?.questionBold ? 'font-bold' : ''} ${survey.branding?.questionItalic ? 'italic' : ''}`}
+                                                style={{ color: survey.branding?.questionColor || '#111827' }}>
+                                                <span className="mr-2 text-indigo-400 font-bold">Q{idx + 1}.</span> {q.text}
+                                                {q.required && <span className="ml-2 text-red-500">*</span>}
+                                            </div>
+                                            {q.description && <div className="mb-2 text-sm text-gray-500">{q.description}</div>}
+                                            <div>{renderPreviewInput(q)}</div>
                                         </div>
                                     ))}
                                 </div>
