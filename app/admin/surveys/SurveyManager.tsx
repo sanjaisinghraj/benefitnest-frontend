@@ -265,64 +265,61 @@ export default function SurveyManager() {
                         const tenant = tenants.find(t => t.id === survey.tenantId);
                         const link = survey.survey_url || (tenant ? `https://${tenant.subdomain}.benefitnest.space/employeebenefitsurvey/${survey.id}` : null);
                         return (
-                        <div key={survey.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all flex flex-col h-[420px] group overflow-hidden">
-                            <div className="relative h-32 w-full bg-gradient-to-r from-indigo-100 to-indigo-300 flex-shrink-0">
+                        <div key={survey.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all flex flex-col h-[460px] group overflow-hidden">
+                            <div className="relative h-40 w-full flex-shrink-0">
                                 {survey.branding?.bannerUrl ? (
                                     <img src={survey.branding.bannerUrl} alt="Banner" className="absolute inset-0 w-full h-full object-cover" />
                                 ) : (
                                     <div className="absolute inset-0" style={{ backgroundColor: survey.branding?.primaryColor || '#6366f1' }} />
                                 )}
-                                {survey.isTemplate && (
-                                    <span className="absolute top-2 right-2 bg-yellow-300 text-yellow-900 px-2 py-1 rounded text-xs font-semibold shadow">TEMPLATE</span>
-                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-black/0"></div>
+                                <div className="absolute top-3 left-3 flex items-center gap-2">
+                                    {survey.branding?.logoUrl && (
+                                        <img src={survey.branding.logoUrl} alt="Logo" className="h-8 w-8 rounded-md bg-white/80 p-1 object-contain" />
+                                    )}
+                                    <span className="px-2 py-1 rounded-md text-xs font-semibold bg-white/70 text-gray-800">{tenant?.name || tenant?.subdomain || 'Survey'}</span>
+                                </div>
+                                <div className={`absolute top-3 right-3 px-2 py-1 rounded-md text-xs font-semibold ${survey.status === 'active' ? 'bg-green-100 text-green-700' : survey.status === 'closed' ? 'bg-gray-100 text-gray-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                    {survey.status.toUpperCase()}
+                                </div>
                             </div>
                             <div className="p-6 flex-1 flex flex-col">
-                                <h3 className="text-xl font-bold text-indigo-900 mb-1 truncate">{survey.title}</h3>
-                                <p className="text-gray-500 text-sm mb-2 line-clamp-2 flex-1">{survey.description || 'No description provided.'}</p>
-                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600 mb-2">
-                                    {tenant && (
-                                        <div><span className="font-semibold">Corporate Name:</span> {tenant.name}</div>
-                                    )}
-                                    {tenant && (
-                                        <div><span className="font-semibold">Tenant Code:</span> {tenant.id}</div>
-                                    )}
-                                    {tenant && (
-                                        <div><span className="font-semibold">Subdomain:</span> {tenant.subdomain}</div>
-                                    )}
-                                    <div><span className="font-semibold">Status:</span> {survey.status}</div>
-                                    {survey.start_date && (
-                                        <div><span className="font-semibold">Start Date:</span> {survey.start_date}</div>
-                                    )}
-                                    {survey.end_date && (
-                                        <div><span className="font-semibold">End Date:</span> {survey.end_date}</div>
-                                    )}
-                                    {survey.templateCategory && (
-                                        <div><span className="font-semibold">Template Category:</span> {survey.templateCategory}</div>
-                                    )}
-                                </div>
-                                {link && (
-                                    <div className="mb-2 text-xs">
-                                        <span className="font-semibold text-indigo-700">Survey URL:</span> <a href={link} target="_blank" rel="noopener noreferrer" className="underline text-indigo-600 break-all">{link}</a>
-                                    </div>
+                                <h3 className="text-xl font-extrabold text-gray-900 tracking-tight line-clamp-2">{survey.title}</h3>
+                                {survey.description && (
+                                    <p className="text-sm text-gray-600 mt-2 line-clamp-3">{survey.description}</p>
                                 )}
-                                <div className="flex items-center justify-between text-xs text-gray-400 mt-auto pt-4 border-t border-gray-100">
-                                    <span>{survey.questions?.length || survey.questionCount || 0} Questions</span>
-                                    <span>{survey.createdAt}</span>
+                                <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+                                    {survey.templateCategory && <span className="px-2 py-1 rounded-full bg-gray-100 text-gray-700">{survey.templateCategory}</span>}
+                                    {(survey.questions?.length || survey.questionCount) && <span className="px-2 py-1 rounded-full bg-indigo-50 text-indigo-700">{survey.questions?.length || survey.questionCount} Questions</span>}
+                                    {survey.isTemplate && <span className="px-2 py-1 rounded-full bg-yellow-50 text-yellow-700">Template</span>}
                                 </div>
-                                <div className="flex gap-2 mt-4">
-                                    <button
-                                        onClick={() => fetchSurveyById(survey.id)}
-                                        className="flex-1 py-2 border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 font-medium transition-colors text-sm"
-                                    >
-                                        Edit Survey
-                                    </button>
-                                    <button
-                                        onClick={() => handleDeleteSurvey(survey)}
-                                        className="flex items-center justify-center px-3 py-2 border border-red-500 text-red-600 rounded-lg hover:bg-red-50 font-medium transition-colors text-sm"
-                                        title="Delete Survey"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
+                                <div className="mt-auto pt-6 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => fetchSurveyById(survey.id)}
+                                            className="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 shadow-sm"
+                                        >
+                                            Edit
+                                        </button>
+                                        {link && (
+                                            <a
+                                                href={link}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="px-4 py-2.5 rounded-xl bg-gray-100 text-gray-700 text-sm font-semibold hover:bg-gray-200"
+                                            >
+                                                Preview
+                                            </a>
+                                        )}
+                                    </div>
+                                    {link && (
+                                        <button
+                                            onClick={() => navigator.clipboard.writeText(link)}
+                                            className="px-3 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50"
+                                        >
+                                            Copy Link
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -714,7 +711,7 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                     {['build', 'design', 'settings', 'preview'].map(tab => (
                         <button
                             key={tab}
-                            className={`px-4 py-2 rounded-t-lg font-medium text-sm transition-colors ${activeTab === tab ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500 hover:text-indigo-600'}`}
+                            className={`px-4 py-2 rounded-full font-semibold text-sm transition-colors ${activeTab === tab ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'}`}
                             onClick={() => setActiveTab(tab as typeof activeTab)}
                         >
                             {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -830,48 +827,50 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                         </div>
                     )}
                     {activeTab === 'preview' && (
-                        <div className="p-0 bg-transparent rounded-xl border-0 mt-6">
-                            {/* Recipient Preview with Branding */}
-                            <div
-                                className="min-h-[600px] flex flex-col items-center justify-start w-full"
-                                style={{
-                                    background: survey.branding?.backgroundColor || '#f9fafb',
-                                    fontFamily: survey.branding?.fontFamily || 'Inter, sans-serif',
-                                    color: survey.branding?.questionColor || '#111827',
-                                }}
-                            >
-                                {/* Banner */}
+                        <div
+                            className="w-full flex items-start justify-center py-8"
+                            style={{
+                                background: survey.branding?.backgroundColor || '#f9fafb',
+                                fontFamily: survey.branding?.fontFamily || 'Inter, sans-serif',
+                                color: survey.branding?.questionColor || '#111827',
+                            }}
+                        >
+                            <div className="w-full max-w-3xl bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
                                 {survey.branding?.bannerUrl && (
-                                    <img src={survey.branding.bannerUrl} alt="Banner" className="w-full max-h-48 object-cover mb-4 rounded-t-xl" />
+                                    <img src={survey.branding.bannerUrl} alt="Banner" className="w-full h-56 object-cover" />
                                 )}
-                                {/* Logo */}
-                                {survey.branding?.logoUrl && (
-                                    <img src={survey.branding.logoUrl} alt="Logo" className="h-16 mb-2 mt-4" />
-                                )}
-                                {/* Title */}
-                                <h1
-                                    className={`text-3xl font-extrabold mb-2 ${survey.branding?.headingSize || 'text-2xl'} ${survey.branding?.headingBold ? 'font-bold' : ''} ${survey.branding?.headingItalic ? 'italic' : ''}`}
-                                    style={{ color: survey.branding?.headingColor || '#111827' }}
-                                >
-                                    {survey.title}
-                                </h1>
-                                {/* Description */}
-                                {survey.description && (
-                                    <p className="mb-6 text-lg text-gray-600 max-w-2xl text-center">{survey.description}</p>
-                                )}
-                                {/* Questions */}
-                                <div className="w-full max-w-2xl space-y-8">
-                                    {survey.questions.map((q, idx) => (
-                                        <div key={q.id} className="bg-white rounded-xl shadow p-6 mb-2 border border-gray-100">
-                                            <div className={`mb-2 text-lg font-semibold ${survey.branding?.questionSize || ''} ${survey.branding?.questionBold ? 'font-bold' : ''} ${survey.branding?.questionItalic ? 'italic' : ''}`}
-                                                style={{ color: survey.branding?.questionColor || '#111827' }}>
-                                                <span className="mr-2 text-indigo-400 font-bold">Q{idx + 1}.</span> {q.text}
-                                                {q.required && <span className="ml-2 text-red-500">*</span>}
+                                <div className="px-8 py-6">
+                                    {survey.branding?.logoUrl && (
+                                        <img src={survey.branding.logoUrl} alt="Logo" className="h-12 mb-4" />
+                                    )}
+                                    <h1
+                                        className={`font-extrabold mb-2 ${survey.branding?.headingSize || 'text-3xl'} ${survey.branding?.headingBold ? 'font-bold' : ''} ${survey.branding?.headingItalic ? 'italic' : ''}`}
+                                        style={{ color: survey.branding?.headingColor || '#111827' }}
+                                    >
+                                        {survey.title}
+                                    </h1>
+                                    {survey.description && (
+                                        <p className="mt-1 text-gray-600">{survey.description}</p>
+                                    )}
+                                    <div className="mt-6 space-y-6">
+                                        {survey.questions.map((q, idx) => (
+                                            <div key={q.id} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                                                <div
+                                                    className={`mb-2 text-lg font-semibold ${survey.branding?.questionSize || ''} ${survey.branding?.questionBold ? 'font-bold' : ''} ${survey.branding?.questionItalic ? 'italic' : ''}`}
+                                                    style={{ color: survey.branding?.questionColor || '#111827' }}
+                                                >
+                                                    <span className="mr-2 text-indigo-500 font-bold">Q{idx + 1}.</span> {q.text}
+                                                    {q.required && <span className="ml-2 text-red-500">*</span>}
+                                                </div>
+                                                {q.description && <div className="mb-2 text-sm text-gray-500">{q.description}</div>}
+                                                <div>{renderPreviewInput(q)}</div>
                                             </div>
-                                            {q.description && <div className="mb-2 text-sm text-gray-500">{q.description}</div>}
-                                            <div>{renderPreviewInput(q)}</div>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
+                                    <div className="mt-8 flex justify-end gap-3">
+                                        <button className="px-5 py-2.5 rounded-xl bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200">Save Draft</button>
+                                        <button className="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700">Submit</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

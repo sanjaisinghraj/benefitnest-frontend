@@ -228,7 +228,7 @@ const DEFAULT_CARDS = [
 ];
 
 // --- Sortable Item Component ---
-const SortableItem = ({ id, card, onClick, darkMode }: { id: string, card: any, onClick: () => void, darkMode: boolean }) => {
+const SortableItem = ({ id, card, onClick, darkMode, entered, index }: { id: string, card: any, onClick: () => void, darkMode: boolean, entered: boolean, index: number }) => {
   const {
     attributes,
     listeners,
@@ -248,12 +248,16 @@ const SortableItem = ({ id, card, onClick, darkMode }: { id: string, card: any, 
   return (
     <div
       ref={setNodeRef}
-      style={style}
+      style={{ 
+        ...style, 
+        transitionDelay: `${Math.min(index * 80, 600)}ms` 
+      }}
       {...attributes}
       {...listeners}
       onClick={onClick}
       className={`
-        group relative overflow-hidden rounded-xl border p-6 cursor-pointer transition-all duration-200 shadow-sm hover:shadow-lg hover:-translate-y-1
+        group relative overflow-hidden rounded-xl border p-6 cursor-pointer transition-all duration-700 shadow-sm hover:shadow-lg hover:-translate-y-1
+        ${entered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}
         ${darkMode ? 'bg-gray-800 border-gray-700 hover:border-blue-500' : 'bg-white border-gray-200 hover:border-blue-500'}
       `}
     >
@@ -282,6 +286,7 @@ const AdminDashboard = () => {
   const [hiddenCardIds, setHiddenCardIds] = useState<string[]>([]);
   const [showTileMenu, setShowTileMenu] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [entered, setEntered] = useState(false);
   
   // User Profile State
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -329,6 +334,11 @@ const AdminDashboard = () => {
       setDarkMode(true);
       document.documentElement.classList.add('dark');
     }
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => setEntered(true), 50);
+    return () => clearTimeout(t);
   }, []);
 
   // Save Preferences
@@ -404,7 +414,7 @@ const AdminDashboard = () => {
   const visibleCards = cards.filter(c => !hiddenCardIds.includes(c.id));
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'} ${entered ? 'opacity-100' : 'opacity-0'} transition-opacity duration-[1000ms]`}>
       
       {/* Background Floating Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -523,13 +533,15 @@ const AdminDashboard = () => {
             strategy={rectSortingStrategy}
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {visibleCards.map((card) => (
+              {visibleCards.map((card, idx) => (
                 <SortableItem 
                    key={card.id} 
                    id={card.id} 
                    card={card} 
                    onClick={() => router.push(card.link)}
                    darkMode={darkMode}
+                   entered={entered}
+                   index={idx}
                 />
               ))}
             </div>
