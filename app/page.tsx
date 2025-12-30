@@ -326,6 +326,23 @@ export default function Page() {
                   </div>
                 </div>
               </div>
+
+              {/* Floating Messaging Boxes */}
+              <div className="absolute left-0 -bottom-8 bg-white/80 backdrop-blur p-3 rounded-xl shadow-xl border border-white/60 animate-float" style={{ animationDelay: '0.5s' }}>
+                <p className="text-sm font-semibold text-slate-700">Innovation, perfectly packed.</p>
+              </div>
+              <div className="absolute -left-6 top-6 bg-white/80 backdrop-blur p-3 rounded-xl shadow-xl border border-white/60 animate-float" style={{ animationDelay: '1.1s' }}>
+                <p className="text-sm font-semibold text-slate-700">Global quality. Local touch.</p>
+              </div>
+              <div className="absolute right-6 top-6 bg-white/80 backdrop-blur p-3 rounded-xl shadow-xl border border-white/60 animate-float" style={{ animationDelay: '1.7s' }}>
+                <p className="text-sm font-semibold text-slate-700">Your brand, elegantly boxed.</p>
+              </div>
+              <div className="absolute right-0 bottom-10 bg-white/80 backdrop-blur p-3 rounded-xl shadow-xl border border-white/60 animate-float" style={{ animationDelay: '2.3s' }}>
+                <p className="text-sm font-semibold text-slate-700">Efficiency within.</p>
+              </div>
+              <div className="absolute left-1/2 -translate-x-1/2 -top-8 bg-white/80 backdrop-blur p-3 rounded-xl shadow-xl border border-white/60 animate-float" style={{ animationDelay: '2.9s' }}>
+                <p className="text-sm font-semibold text-slate-700">Scalable in every detail.</p>
+              </div>
             </div>
           </div>
         </section>
@@ -333,7 +350,7 @@ export default function Page() {
         {/* INFINITE SCROLLING MODULES */}
         <section className="py-10 bg-white border-y border-slate-100 overflow-hidden">
           <div className="max-w-7xl mx-auto px-6 mb-6 text-center">
-             <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Trusted by modern enterprises</p>
+             <p className="text-base md:text-lg font-extrabold text-slate-700 uppercase tracking-wider">ENGINEERED TO IMPRESS</p>
           </div>
           <div className="relative w-full overflow-hidden">
              <div className="flex animate-ticker w-[200%]">
@@ -460,12 +477,13 @@ export default function Page() {
           <div className="max-w-7xl mx-auto px-6 relative z-10">
             <h2 className="text-3xl md:text-4xl font-bold mb-16 text-center">More features and services</h2>
             
-            <div className="grid md:grid-cols-4 gap-6">
+            <div className="grid md:grid-cols-5 gap-6">
               {[
-                { img: "feature-integrations.jpg", title: "Integrations", desc: "Seamlessly connect with HRMS, Payroll, and Insurer systems." },
-                { img: "feature-comms.jpg", title: "Communications", desc: "Automated emails, WhatsApp alerts, and push notifications." },
-                { img: "feature-support.jpg", title: "Expert Support", desc: "Dedicated account managers and 24/7 helpdesk." },
-                { img: "feature-consulting.jpg", title: "Consulting", desc: "Strategic benefits advisory and plan design." },
+                { img: "platform-overview.jpg", title: "Plans & Flexibility", desc: "Configurable benefit structures with modular options across insurance, wellness, and rewards. Designed to adapt to every corporate need with seamless plan setup." },
+                { img: "enterprise-analytics.jpg", title: "HR Analytics & Insights", desc: "Robust dashboards and reporting that turn employee data into actionable intelligence. Measure engagement, wellness, and program impact with clarity." },
+                { img: "feature-comms.jpg", title: "Employee Support & Experience", desc: "Integrated surveys, communication tools, and a dedicated helpdesk for quick resolutions. Recognition, rewards, and feedback loops keep employees connected and valued." },
+                { img: "overview-ai.jpg", title: "Technology & AI Assistance", desc: "Smart automation with AI‑driven recommendations, e‑cards, and guided workflows. Secure integrations with TPAs, vendors, and APIs ensure smooth operations." },
+                { img: "enterprise-security.jpg", title: "Security & Integration", desc: "Enterprise‑grade data protection with SSO and compliance at the core. Unified access across marketplace, claims, and network hospitals — all in one trusted platform." },
               ].map((item, index) => (
                 <div 
                   key={item.title} 
