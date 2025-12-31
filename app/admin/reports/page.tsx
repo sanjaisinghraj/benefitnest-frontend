@@ -79,25 +79,12 @@ interface ClaimsAnalytics {
 // Donut Chart Component
 const DonutChart = ({
   data,
-  title,
-  onInsightClick,
-  insight,
-  loadingInsight,
-}: {
-  data: ChartData;
-  title: string;
-  onInsightClick: () => void;
-  insight?: string;
-  loadingInsight?: boolean;
-}) => {
-  const total = data.values.reduce((a, b) => a + b, 0);
-  let currentAngle = -90;
-  const radius = 80;
-  const strokeWidth = 35;
-  const center = 100;
-
-  const segments = data.values.map((value, index) => {
-    const percentage = total > 0 ? (value / total) * 100 : 0;
+        <svg
+          viewBox="0 0 200 200"
+        >
+          {/* ...existing svg content... */}
+        </svg>
+        {/* ...existing code... */}
     const angle = (percentage / 100) * 360;
     const startAngle = currentAngle;
     const endAngle = currentAngle + angle;

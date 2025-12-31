@@ -1,9 +1,98 @@
-  // State for country selection and default policies
+  // Add missing state and utility declarations
+  const [policies, setPolicies] = useState<CompliancePolicy | null>(null);
+  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [showProfileMenu, setShowProfileMenu] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+
+  // Utility: getDocumentContent
+  function getDocumentContent(policy: CompliancePolicy, docType: DocumentType): string {
+    switch (docType) {
+      case "privacy_policy":
+        return policy.privacy_policy_content || "";
+      case "terms_conditions":
+        return policy.terms_conditions_content || "";
+      case "disclaimer":
+        return policy.disclaimer_content || "";
+      case "consent":
+        return policy.consent_details_content || "";
+      case "dpa":
+        return policy.dpa_content || "";
+      default:
+        return "";
+    }
+  }
+
+  // Utility: handleSelectTenant
+  function handleSelectTenant(tenant: Tenant) {
+    setSelectedTenant(tenant);
+    // Fetch policies for selected tenant (mock/fetch logic needed)
+    // setPolicies(...)
+  }
+
+"use client";
+
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://benefitnest-backend.onrender.com";
+
+interface Tenant {
+  tenant_id: string;
+  corporate_legal_name: string;
+  subdomain: string;
+  country: string;
+  compliance_policy_setting: "Default" | "Customized";
+}
+
+interface CompliancePolicy {
+  privacy_policy_title: string;
+  privacy_policy_content: string;
+  terms_conditions_title: string;
+  terms_conditions_content: string;
+  disclaimer_title: string;
+  disclaimer_content: string;
+  consent_checkbox_text: string;
+  consent_details_content: string;
+  dpa_required: boolean;
+  dpa_title: string;
+  dpa_content: string;
+}
+
+type DocumentType = "privacy_policy" | "terms_conditions" | "disclaimer" | "consent" | "dpa";
+
+const colors = {
+  primary: "#2563eb",
+  secondary: "#10b981",
+  accent: "#f59e42",
+  gray: {
+    50: "#f8fafc",
+    100: "#f3f4f6",
+    200: "#e5e7eb",
+    300: "#d1d5db",
+    500: "#6b7280",
+    600: "#4b5563",
+    700: "#374151",
+    800: "#1f2937",
+    900: "#111827",
+  },
+};
+
+export default function CompliancePage() {
+  const router = useRouter();
   const [selectedCountry, setSelectedCountry] = useState<string>("");
   const [defaultPoliciesByCountry, setDefaultPoliciesByCountry] = useState<Record<string, CompliancePolicy>>({});
-
-  // Fetch available countries for dropdown (from backend or static list)
   const [availableCountries, setAvailableCountries] = useState<string[]>([]);
+  const [activeDocument, setActiveDocument] = useState<DocumentType>("privacy_policy");
+  const [editedContent, setEditedContent] = useState<string>("");
+  const [hasChanges, setHasChanges] = useState<boolean>(false);
+  const [editorInitialized, setEditorInitialized] = useState<boolean>(false);
+  const editorRef = useRef<HTMLDivElement>(null);
+  // ...other states like tenants, policies, selectedTenant, loading, etc. should be defined here...
+
   useEffect(() => {
     // Fetch available countries from backend
     const fetchCountries = async () => {
@@ -23,7 +112,6 @@
     fetchCountries();
   }, []);
 
-  // Fetch default policies for selected country
   const fetchDefaultPolicies = async (country: string) => {
     try {
       const token = localStorage.getItem("admin_token");
@@ -39,14 +127,12 @@
     }
   };
 
-  // Handler for country change
   const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const country = e.target.value;
     setSelectedCountry(country);
     fetchDefaultPolicies(country);
   };
 
-  // Handler to apply default text
   const handleApplyDefault = () => {
     if (!selectedCountry || !defaultPoliciesByCountry[selectedCountry]) return;
     const pol = defaultPoliciesByCountry[selectedCountry];
@@ -73,10 +159,8 @@
     setEditedContent(content);
     setHasChanges(true);
   };
-"use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useRouter } from "next/navigation";
+  // ...existing code...
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "https://benefitnest-backend.onrender.com";
@@ -103,8 +187,6 @@ interface CompliancePolicy {
   dpa_content: string;
 }
 
-type DocumentType =
-  | "privacy_policy"
               {/* Editor with country selection and apply default */}
               <div
                 style={{
@@ -256,15 +338,9 @@ type DocumentType =
                   onFocus={() => setEditorInitialized(true)}
                 />
               </div>
-      case "consent":
-        return pol.consent_details_content || "";
-      case "dpa":
-        return pol.dpa_content || "";
-      default:
-        return "";
-    }
-  };
+  // ...existing code...
 
+  // Move getDocumentTitle above its first usage
   const getDocumentTitle = (docType: DocumentType): string => {
     switch (docType) {
       case "privacy_policy":
@@ -958,9 +1034,7 @@ type DocumentType =
                   {...(editorInitialized ? {} : { dangerouslySetInnerHTML: { __html: editedContent } })}
                   onFocus={() => setEditorInitialized(true)}
                 />
-              // Add at the top, after useState declarations
-              const editorRef = React.useRef<HTMLDivElement>(null);
-              const [editorInitialized, setEditorInitialized] = useState(false);
+              // ...existing code...
               </div>
 
               {/* Consent Checkbox Preview */}
