@@ -241,10 +241,9 @@ const DonutChart = ({ data }: { data: ChartData }) => {
               {insight}
             </p>
           </div>
-        </div>
-      )}
-    </div>
-  );
+        )}
+      </div>
+    );
 };
 
 // Line/Area Chart Component
