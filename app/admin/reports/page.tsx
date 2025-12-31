@@ -235,17 +235,70 @@ const DonutChart = ({
 // Bar Chart Component
 const BarChart = ({
   data,
+  title,
   horizontal = false,
+  onInsightClick,
   insight,
+  loadingInsight,
 }: {
   data: ChartData;
+  title: string;
   horizontal?: boolean;
+  onInsightClick: () => void;
   insight?: string;
+  loadingInsight?: boolean;
 }) => {
   const maxValue = Math.max(...data.values, 1);
 
   return (
-    <div style={{ width: "100%", height: "100%" }}>
+    <div
+      style={{
+        backgroundColor: "white",
+        borderRadius: "16px",
+        padding: "20px",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+        border: `1px solid ${colors.gray[200]}`,
+        height: "100%",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "16px",
+        }}
+      >
+        <h3
+          style={{
+            fontSize: "14px",
+            fontWeight: "600",
+            color: colors.gray[800],
+            margin: 0,
+          }}
+        >
+          {title}
+        </h3>
+        <button
+          onClick={onInsightClick}
+          disabled={loadingInsight}
+          style={{
+            padding: "6px 12px",
+            fontSize: "11px",
+            backgroundColor: loadingInsight ? colors.gray[100] : colors.primaryLight,
+            color: loadingInsight ? colors.gray[500] : colors.primary,
+            border: "none",
+            borderRadius: "8px",
+            cursor: loadingInsight ? "not-allowed" : "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+          }}
+        >
+          {loadingInsight ? "Analyzing..." : "🤖 AI Insight"}
+        </button>
+      </div>
+
       {horizontal ? (
         <div
           style={{
