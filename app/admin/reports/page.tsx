@@ -77,8 +77,19 @@ interface ClaimsAnalytics {
 // ============= SVG CHART COMPONENTS =============
 
 // Donut Chart Component
-// Donut Chart Component
-const DonutChart = ({ data }: { data: ChartData }) => {
+const DonutChart = ({
+  data,
+  title,
+  onInsightClick,
+  insight,
+  loadingInsight,
+}: {
+  data: ChartData;
+  title: string;
+  onInsightClick: () => void;
+  insight?: string;
+  loadingInsight?: boolean;
+}) => {
   const total = data.values.reduce((a, b) => a + b, 0);
   let cumulativePercent = 0;
 
@@ -89,28 +100,135 @@ const DonutChart = ({ data }: { data: ChartData }) => {
   };
 
   return (
-    <svg viewBox="-1.2 -1.2 2.4 2.4" style={{ width: "100%", height: "100%" }}>
-      {data.values.map((value, i) => {
-        const percent = value / total;
-        const [startX, startY] = getCoordinatesForPercent(cumulativePercent);
-        cumulativePercent += percent;
-        const [endX, endY] = getCoordinatesForPercent(cumulativePercent);
-        const largeArcFlag = percent > 0.5 ? 1 : 0;
-        const pathData = [
-          `M ${startX} ${startY}`,
-          `A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY}`,
-          `L 0 0`,
-        ].join(" ");
-        return (
-          <path
-            key={i}
-            d={pathData}
-            fill={chartColors[i % chartColors.length]}
-          />
-        );
-      })}
-      <circle cx="0" cy="0" r="0.6" fill="white" />
-    </svg>
+    <div
+      style={{
+        backgroundColor: "white",
+        borderRadius: "16px",
+        padding: "20px",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+        border: `1px solid ${colors.gray[200]}`,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "16px",
+        }}
+      >
+        <h3
+          style={{
+            fontSize: "14px",
+            fontWeight: "600",
+            color: colors.gray[800],
+            margin: 0,
+          }}
+        >
+          {title}
+        </h3>
+        <button
+          onClick={onInsightClick}
+          disabled={loadingInsight}
+          style={{
+            padding: "6px 12px",
+            fontSize: "11px",
+            backgroundColor: loadingInsight ? colors.gray[100] : colors.primaryLight,
+            color: loadingInsight ? colors.gray[500] : colors.primary,
+            border: "none",
+            borderRadius: "8px",
+            cursor: loadingInsight ? "not-allowed" : "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+          }}
+        >
+          {loadingInsight ? "Analyzing..." : "🤖 AI Insight"}
+        </button>
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+        <div style={{ width: "120px", height: "120px" }}>
+          <svg viewBox="-1.2 -1.2 2.4 2.4" style={{ width: "100%", height: "100%" }}>
+            {data.values.map((value, i) => {
+              const percent = value / total;
+              const [startX, startY] = getCoordinatesForPercent(cumulativePercent);
+              cumulativePercent += percent;
+              const [endX, endY] = getCoordinatesForPercent(cumulativePercent);
+              const largeArcFlag = percent > 0.5 ? 1 : 0;
+              const pathData = [
+                `M ${startX} ${startY}`,
+                `A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY}`,
+                `L 0 0`,
+              ].join(" ");
+              return (
+                <path
+                  key={i}
+                  d={pathData}
+                  fill={chartColors[i % chartColors.length]}
+                />
+              );
+            })}
+            <circle cx="0" cy="0" r="0.6" fill="white" />
+          </svg>
+        </div>
+
+        <div style={{ flex: 1 }}>
+          {data.labels.map((label, i) => (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                marginBottom: "6px",
+              }}
+            >
+              <div
+                style={{
+                  width: "10px",
+                  height: "10px",
+                  borderRadius: "50%",
+                  backgroundColor: chartColors[i % chartColors.length],
+                }}
+              />
+              <span style={{ fontSize: "11px", color: colors.gray[600], flex: 1 }}>
+                {label}
+              </span>
+              <span style={{ fontSize: "11px", fontWeight: "600", color: colors.gray[700] }}>
+                {data.values[i].toLocaleString()}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {insight && (
+        <div
+          style={{
+            marginTop: "12px",
+            padding: "12px",
+            backgroundColor: `${colors.primary}08`,
+            borderRadius: "10px",
+            border: `1px solid ${colors.primary}20`,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+            <span style={{ fontSize: "16px" }}>🤖</span>
+            <p
+              style={{
+                fontSize: "12px",
+                color: colors.gray[700],
+                margin: 0,
+                lineHeight: 1.5,
+              }}
+            >
+              {insight}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
