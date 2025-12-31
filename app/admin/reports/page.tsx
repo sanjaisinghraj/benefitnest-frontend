@@ -77,26 +77,15 @@ interface ClaimsAnalytics {
 // ============= SVG CHART COMPONENTS =============
 
 // Donut Chart Component
-const DonutChart = ({
-  data,
-        <svg
-          viewBox="0 0 200 200"
-        >
-          {/* ...existing svg content... */}
-        </svg>
-        {/* ...existing code... */}
-    const angle = (percentage / 100) * 360;
-    const startAngle = currentAngle;
-    const endAngle = currentAngle + angle;
-    currentAngle = endAngle;
-
-    const startRad = (startAngle * Math.PI) / 180;
-    const endRad = (endAngle * Math.PI) / 180;
-
-    const x1 = center + radius * Math.cos(startRad);
-    const y1 = center + radius * Math.sin(startRad);
-    const x2 = center + radius * Math.cos(endRad);
-    const y2 = center + radius * Math.sin(endRad);
+const DonutChart = ({ data }: { data: ChartData }) => {
+  // ...existing code for chart calculations...
+  // Example placeholder for chart logic
+  return (
+    <svg viewBox="0 0 200 200">
+      {/* ...existing svg content... */}
+    </svg>
+  );
+};
 
     const largeArc = angle > 180 ? 1 : 0;
 
