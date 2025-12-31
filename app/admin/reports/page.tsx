@@ -77,26 +77,57 @@ interface ClaimsAnalytics {
 // ============= SVG CHART COMPONENTS =============
 
 // Donut Chart Component
+// Donut Chart Component
 const DonutChart = ({ data }: { data: ChartData }) => {
-  // ...existing code for chart calculations...
-  // Example placeholder for chart logic
+  const total = data.values.reduce((a, b) => a + b, 0);
+  let cumulativePercent = 0;
+
+  const getCoordinatesForPercent = (percent: number) => {
+    const x = Math.cos(2 * Math.PI * percent);
+    const y = Math.sin(2 * Math.PI * percent);
+    return [x, y];
+  };
+
   return (
-    <svg viewBox="0 0 200 200">
-      {/* ...existing svg content... */}
+    <svg viewBox="-1.2 -1.2 2.4 2.4" style={{ width: "100%", height: "100%" }}>
+      {data.values.map((value, i) => {
+        const percent = value / total;
+        const [startX, startY] = getCoordinatesForPercent(cumulativePercent);
+        cumulativePercent += percent;
+        const [endX, endY] = getCoordinatesForPercent(cumulativePercent);
+        const largeArcFlag = percent > 0.5 ? 1 : 0;
+        const pathData = [
+          `M ${startX} ${startY}`,
+          `A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY}`,
+          `L 0 0`,
+        ].join(" ");
+        return (
+          <path
+            key={i}
+            d={pathData}
+            fill={chartColors[i % chartColors.length]}
+          />
+        );
+      })}
+      <circle cx="0" cy="0" r="0.6" fill="white" />
     </svg>
   );
 };
 
-// ...existing code...
-              <AdminTopBar
-                title="Reports & Analytics"
-                subtitle="Claims Intelligence Dashboard"
-                icon={<span style={{ fontSize: 24 }}>📊</span>}
-                showBack={true}
-              />
+// Bar Chart Component
+const BarChart = ({
+  data,
+  horizontal = false,
+  insight,
+}: {
+  data: ChartData;
+  horizontal?: boolean;
+  insight?: string;
+}) => {
+  const maxValue = Math.max(...data.values, 1);
 
-// ...existing code...
-
+  return (
+    <div style={{ width: "100%", height: "100%" }}>
       {horizontal ? (
         <div
           style={{
@@ -243,7 +274,8 @@ const DonutChart = ({ data }: { data: ChartData }) => {
           </div>
         </div>
       )}
-    );
+    </div>
+  );
 };
 
 // Line/Area Chart Component
