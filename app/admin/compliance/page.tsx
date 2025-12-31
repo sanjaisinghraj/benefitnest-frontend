@@ -116,7 +116,10 @@ export default function CompliancePage() {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await response.json();
-        if (data.success && data.corporates) {
+        console.log("Corporates API response:", data);
+        if (data.success && data.data) {
+          setTenants(data.data);
+        } else if (data.success && data.corporates) {
           setTenants(data.corporates);
         }
       } catch (error) {
