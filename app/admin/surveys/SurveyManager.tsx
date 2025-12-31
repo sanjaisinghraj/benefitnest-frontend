@@ -1784,6 +1784,29 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                                         Save as Template
                                     </label>
                                 </div>
+                                {survey.isTemplate && (
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">Template Category</label>
+                                        <select
+                                            value={survey.templateCategory || ''}
+                                            onChange={e => {
+                                                const updated = { ...survey, templateCategory: e.target.value };
+                                                onUpdate(updated);
+                                                autosaveSurvey(updated);
+                                            }}
+                                            className="w-full border border-gray-200 rounded px-2 py-1 text-sm"
+                                        >
+                                            <option value="">Select Category</option>
+                                            <option value="Employee Engagement">Employee Engagement</option>
+                                            <option value="Benefits Enrollment">Benefits Enrollment</option>
+                                            <option value="Wellness">Wellness</option>
+                                            <option value="Onboarding">Onboarding</option>
+                                            <option value="Feedback">Feedback</option>
+                                            <option value="Event Registration">Event Registration</option>
+                                            <option value="Custom">Custom</option>
+                                        </select>
+                                    </div>
+                                )}
                                 {survey.tenantId && survey.slug && (
                                     <div className="p-2 bg-gray-50 rounded-lg border border-gray-100">
                                         <p className="text-[10px] text-gray-500 mb-1">Survey URL:</p>
