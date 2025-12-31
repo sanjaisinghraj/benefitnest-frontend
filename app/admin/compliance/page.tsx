@@ -1,39 +1,40 @@
-  // Add missing state and utility declarations
-  const [policies, setPolicies] = useState<CompliancePolicy | null>(null);
-  const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
-  const [saving, setSaving] = useState<boolean>(false);
-  const [showProfileMenu, setShowProfileMenu] = useState<boolean>(false);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-
-  // Utility: getDocumentContent
-  function getDocumentContent(policy: CompliancePolicy, docType: DocumentType): string {
-    switch (docType) {
-      case "privacy_policy":
-        return policy.privacy_policy_content || "";
-      case "terms_conditions":
-        return policy.terms_conditions_content || "";
-      case "disclaimer":
-        return policy.disclaimer_content || "";
-      case "consent":
-        return policy.consent_details_content || "";
-      case "dpa":
-        return policy.dpa_content || "";
-      default:
-        return "";
-    }
-  }
-
-  // Utility: handleSelectTenant
-  function handleSelectTenant(tenant: Tenant) {
-    setSelectedTenant(tenant);
-    // Fetch policies for selected tenant (mock/fetch logic needed)
-    // setPolicies(...)
-  }
 
 "use client";
+
+// Add missing state and utility declarations
+const [policies, setPolicies] = useState<CompliancePolicy | null>(null);
+const [tenants, setTenants] = useState<Tenant[]>([]);
+const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
+const [loading, setLoading] = useState<boolean>(false);
+const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
+const [saving, setSaving] = useState<boolean>(false);
+const [showProfileMenu, setShowProfileMenu] = useState<boolean>(false);
+const [searchTerm, setSearchTerm] = useState<string>("");
+
+// Utility: getDocumentContent
+function getDocumentContent(policy: CompliancePolicy, docType: DocumentType): string {
+  switch (docType) {
+    case "privacy_policy":
+      return policy.privacy_policy_content || "";
+    case "terms_conditions":
+      return policy.terms_conditions_content || "";
+    case "disclaimer":
+      return policy.disclaimer_content || "";
+    case "consent":
+      return policy.consent_details_content || "";
+    case "dpa":
+      return policy.dpa_content || "";
+    default:
+      return "";
+  }
+}
+
+// Utility: handleSelectTenant
+function handleSelectTenant(tenant: Tenant) {
+  setSelectedTenant(tenant);
+  // Fetch policies for selected tenant (mock/fetch logic needed)
+  // setPolicies(...)
+}
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -92,6 +93,24 @@ export default function CompliancePage() {
   const [editorInitialized, setEditorInitialized] = useState<boolean>(false);
   const editorRef = useRef<HTMLDivElement>(null);
   // ...other states like tenants, policies, selectedTenant, loading, etc. should be defined here...
+
+  // Utility: getDocumentTitle
+  function getDocumentTitle(docType: DocumentType): string {
+    switch (docType) {
+      case "privacy_policy":
+        return policies?.privacy_policy_title || "Privacy Policy";
+      case "terms_conditions":
+        return policies?.terms_conditions_title || "Terms & Conditions";
+      case "disclaimer":
+        return policies?.disclaimer_title || "Disclaimer";
+      case "consent":
+        return "Consent Form Text";
+      case "dpa":
+        return policies?.dpa_title || "Data Processing Agreement";
+      default:
+        return "";
+    }
+  }
 
   useEffect(() => {
     // Fetch available countries from backend
@@ -341,22 +360,7 @@ interface CompliancePolicy {
   // ...existing code...
 
   // Move getDocumentTitle above its first usage
-  const getDocumentTitle = (docType: DocumentType): string => {
-    switch (docType) {
-      case "privacy_policy":
-        return policies?.privacy_policy_title || "Privacy Policy";
-      case "terms_conditions":
-        return policies?.terms_conditions_title || "Terms & Conditions";
-      case "disclaimer":
-        return policies?.disclaimer_title || "Disclaimer";
-      case "consent":
-        return "Consent Form Text";
-      case "dpa":
-        return policies?.dpa_title || "Data Processing Agreement";
-      default:
-        return "";
-    }
-  };
+  // (Moved to top of component below hooks)
 
   const handleDocumentChange = (docType: DocumentType) => {
     if (hasChanges && !confirm("You have unsaved changes. Continue?")) return;
