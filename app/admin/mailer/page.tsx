@@ -57,7 +57,12 @@ const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://benefitnest-bac
 
 const getAuthToken = () => {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('jwt') || sessionStorage.getItem('jwt') || '';
+    // Check cookie first, then localStorage
+    const cookieToken = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('admin_token='))
+      ?.split('=')[1];
+    return cookieToken || localStorage.getItem('admin_token') || '';
   }
   return '';
 };
