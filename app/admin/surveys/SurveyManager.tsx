@@ -1524,150 +1524,390 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
         autosaveSurvey(updated);
     };
 
+    // Question type buttons configuration
+    const questionTypes = [
+        { t: 'text', label: 'Short Text', emoji: '✍️' },
+        { t: 'textarea', label: 'Long Text', emoji: '📝' },
+        { t: 'radio', label: 'Single Choice', emoji: '⭕' },
+        { t: 'checkbox', label: 'Multiple Choice', emoji: '☑️' },
+        { t: 'nps', label: 'NPS', emoji: '📊' },
+        { t: 'date', label: 'Date', emoji: '📅' },
+        { t: 'email', label: 'Email', emoji: '✉️' },
+        { t: 'matrix', label: 'Matrix', emoji: '▦' },
+        { t: 'dropdown', label: 'Dropdown', emoji: '▼' },
+        { t: 'rating', label: 'Rating', emoji: '⭐' },
+        { t: 'slider', label: 'Slider', emoji: '📏' },
+        { t: 'ranking', label: 'Ranking', emoji: '🔢' },
+        { t: 'file_upload', label: 'File Upload', emoji: '📎' },
+        { t: 'weightage', label: 'Weightage', emoji: '⚖️' },
+    ];
+
     return (
-        <div className="flex flex-col h-screen bg-gray-50">
+        <div className="flex flex-col h-screen bg-gray-100">
             {/* Notification */}
             {notification && (
                 <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg text-white z-50 animate-in fade-in slide-in-from-top-2 ${notification.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>{notification.message}</div>
             )}
-            {/* Autosave status */}
-            <div className="fixed top-4 left-4 z-50">
-                {autosaveStatus === 'saving' && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Autosaving...</span>}
-                {autosaveStatus === 'saved' && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">All changes saved</span>}
-                {autosaveStatus === 'error' && <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">Autosave failed</span>}
-            </div>
-            
-            {/* Editor Header */}
-            <div className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center shadow-sm z-10">
-                <div className="flex items-center gap-4">
-                    <button onClick={onCancel} className="text-gray-500 hover:text-gray-900 transition-colors">
+
+            {/* Top Header Bar - matching screenshot */}
+            <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm z-20">
+                <div className="flex items-center gap-6">
+                    {/* Back button */}
+                    <button onClick={onCancel} className="text-gray-500 hover:text-gray-900 transition-colors p-1">
                         <ArrowLeft size={20} />
                     </button>
-                    <div className="space-y-3">
-                        {/* Title Input */}
-                        <input 
-                            value={survey.title}
-                            onChange={(e) => {
-                                const updated = { ...survey, title: e.target.value };
-                                onUpdate(updated);
-                                autosaveSurvey(updated);
-                            }}
-                            className="text-lg font-bold text-gray-900 border-none p-0 focus:ring-0 bg-transparent placeholder-gray-400"
-                            placeholder="Survey Title"
-                        />
-                        
-                        {/* Row 1: Status + Survey Type */}
-                        <div className="flex items-center gap-4 flex-wrap">
-                            <div className="flex items-center gap-2">
-                                <span className={`w-2 h-2 rounded-full ${survey.status === 'active' ? 'bg-green-500' : 'bg-gray-300'}`} />
-                                <select 
-                                    value={survey.status}
-                                    onChange={(e) => onUpdate({...survey, status: e.target.value as any})}
-                                    className="text-xs text-gray-500 border-none p-0 focus:ring-0 bg-transparent cursor-pointer hover:text-gray-900"
-                                >
-                                    <option value="draft">Draft</option>
-                                    <option value="active">Active</option>
-                                    <option value="closed">Closed</option>
-                                </select>
+                    
+                    {/* Corporate Dropdown with Badge */}
+                    <div className="flex items-center gap-3">
+                        <label className="text-sm font-medium text-gray-600">Corporate:</label>
+                        <select
+                            value={survey.tenantId || ''}
+                            onChange={e => onUpdate({ ...survey, tenantId: e.target.value })}
+                            className="text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white min-w-[240px] focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                            <option value="">Select Corporate</option>
+                            {tenants.map(t => (
+                                <option key={t.id} value={t.id}>
+                                    {t.name}{t.subdomain ? ` (${t.subdomain})` : ''}
+                                </option>
+                            ))}
+                        </select>
+                        {/* Corporate Badge */}
+                        {survey.tenantId && (() => {
+                            const tenant = tenants.find(t => t.id === survey.tenantId);
+                            return tenant ? (
+                                <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 rounded-lg border border-indigo-100">
+                                    <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">
+                                        {(tenant.name || tenant.subdomain || 'C')[0].toUpperCase()}
+                                    </div>
+                                    <span className="text-sm font-medium text-gray-700">{tenant.subdomain}</span>
+                                    <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${tenant.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                                        {tenant.status || 'active'}
+                                    </span>
+                                </div>
+                            ) : null;
+                        })()}
+                    </div>
+                </div>
+
+                {/* Right side - Save button */}
+                <button 
+                    onClick={handleSave} 
+                    disabled={saving} 
+                    className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 font-semibold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    💾 {saving ? "Saving..." : "Save"}
+                </button>
+            </header>
+
+            {/* Second Row - Type and Template hint */}
+            <div className="bg-white border-b border-gray-100 px-6 py-2 flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-600">Type :</label>
+                    <select
+                        value={survey.surveyType || 'survey'}
+                        onChange={e => {
+                            const updated = { ...survey, surveyType: e.target.value as Survey['surveyType'] };
+                            onUpdate(updated);
+                            autosaveSurvey(updated);
+                        }}
+                        className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white font-medium focus:ring-2 focus:ring-indigo-500"
+                    >
+                        <option value="survey">📋 Survey</option>
+                        <option value="quiz">❓ Quiz</option>
+                        <option value="invitation">💌 Invitation</option>
+                        <option value="registration">📝 Registration</option>
+                    </select>
+                </div>
+                <span className="text-sm text-gray-500">Select a template from the Gallery</span>
+                
+                {/* Autosave status */}
+                <div className="ml-auto">
+                    {autosaveStatus === 'saving' && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Autosaving...</span>}
+                    {autosaveStatus === 'saved' && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">✓ Saved</span>}
+                    {autosaveStatus === 'error' && <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">Autosave failed</span>}
+                </div>
+            </div>
+
+            {/* Main Content - Two Column Layout */}
+            <div className="flex flex-1 overflow-hidden">
+                {/* Left Sidebar - Question Types & Tabs */}
+                <aside className="w-80 bg-white border-r border-gray-200 flex flex-col overflow-hidden">
+                    {/* AI Magic Button */}
+                    <div className="p-4 border-b border-gray-100">
+                        <button
+                            onClick={() => setAiModalOpen(true)}
+                            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2.5 rounded-lg hover:opacity-90 transition-all shadow-md font-semibold"
+                        >
+                            ✨ AI Magic
+                        </button>
+                    </div>
+
+                    {/* Tabs */}
+                    <div className="flex border-b border-gray-100">
+                        {['build', 'design', 'settings', 'preview'].map(tab => (
+                            <button
+                                key={tab}
+                                className={`flex-1 px-3 py-3 text-sm font-semibold transition-colors ${
+                                    activeTab === tab 
+                                        ? 'bg-indigo-600 text-white' 
+                                        : 'text-gray-600 hover:bg-gray-50'
+                                }`}
+                                onClick={() => setActiveTab(tab as typeof activeTab)}
+                            >
+                                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Sidebar Content based on Tab */}
+                    <div className="flex-1 overflow-y-auto p-4">
+                        {activeTab === 'build' && (
+                            <div className="grid grid-cols-4 gap-2">
+                                {questionTypes.map(({ t, label, emoji }) => (
+                                    <button
+                                        key={t}
+                                        onClick={() => addQuestion(t as QuestionType)}
+                                        className="flex flex-col items-center justify-center p-2 rounded-lg border border-gray-200 bg-white hover:border-indigo-400 hover:bg-indigo-50 transition-all group aspect-square"
+                                        title={label}
+                                    >
+                                        <span className="text-2xl mb-1 group-hover:scale-110 transition-transform">{emoji}</span>
+                                        <span className="text-[10px] font-medium text-gray-600 text-center leading-tight">{label}</span>
+                                    </button>
+                                ))}
                             </div>
-                            
-                            {/* Survey Type Dropdown */}
-                            <div className="flex items-center gap-2">
-                                <label className="text-xs text-gray-500">Type:</label>
-                                <select
-                                    value={survey.surveyType || 'survey'}
-                                    onChange={e => {
-                                        const updated = { ...survey, surveyType: e.target.value as Survey['surveyType'] };
+                        )}
+                        
+                        {activeTab === 'design' && (
+                            <div className="space-y-4">
+                                <h3 className="text-sm font-semibold text-gray-800">Branding</h3>
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">Primary Color</label>
+                                        <input type="color" value={survey.branding?.primaryColor || '#6366f1'} onChange={e => updateBranding('primaryColor', e.target.value)} className="w-full h-8 rounded border border-gray-200" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">Background</label>
+                                        <input type="color" value={survey.branding?.backgroundColor || '#f9fafb'} onChange={e => updateBranding('backgroundColor', e.target.value)} className="w-full h-8 rounded border border-gray-200" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">Heading Color</label>
+                                        <input type="color" value={survey.branding?.headingColor || '#111827'} onChange={e => updateBranding('headingColor', e.target.value)} className="w-full h-8 rounded border border-gray-200" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">Font Family</label>
+                                        <input type="text" value={survey.branding?.fontFamily || 'Inter'} onChange={e => updateBranding('fontFamily', e.target.value)} className="w-full border border-gray-200 rounded px-2 py-1 text-sm" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">Logo URL</label>
+                                        <input type="text" value={survey.branding?.logoUrl || ''} onChange={e => updateBranding('logoUrl', e.target.value)} className="w-full border border-gray-200 rounded px-2 py-1 text-sm" placeholder="https://..." />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">Banner URL</label>
+                                        <input type="text" value={survey.branding?.bannerUrl || ''} onChange={e => updateBranding('bannerUrl', e.target.value)} className="w-full border border-gray-200 rounded px-2 py-1 text-sm" placeholder="https://..." />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {activeTab === 'settings' && (
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
+                                    <textarea
+                                        value={survey.description || ''}
+                                        onChange={e => {
+                                            const updated = { ...survey, description: e.target.value };
+                                            onUpdate(updated);
+                                            autosaveSurvey(updated);
+                                        }}
+                                        rows={3}
+                                        className="w-full border border-gray-200 rounded-lg px-2 py-1 text-sm"
+                                        placeholder="Survey description..."
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">URL Slug</label>
+                                    <input
+                                        value={survey.slug || ''}
+                                        onChange={(e) => {
+                                            const raw = e.target.value || '';
+                                            const slug = raw.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
+                                            const updated = { ...survey, slug };
+                                            onUpdate(updated);
+                                            autosaveSurvey(updated);
+                                        }}
+                                        placeholder="my-survey"
+                                        className="w-full border border-gray-200 rounded px-2 py-1 text-sm"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">Start Date</label>
+                                        <input
+                                            type="date"
+                                            value={survey.startDate || survey.start_date || ''}
+                                            onChange={e => {
+                                                const updated = { ...survey, startDate: e.target.value, start_date: e.target.value };
+                                                onUpdate(updated);
+                                                autosaveSurvey(updated);
+                                            }}
+                                            className="w-full border border-gray-200 rounded px-2 py-1 text-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">End Date</label>
+                                        <input
+                                            type="date"
+                                            value={survey.endDate || survey.end_date || ''}
+                                            onChange={e => {
+                                                const updated = { ...survey, endDate: e.target.value, end_date: e.target.value };
+                                                onUpdate(updated);
+                                                autosaveSurvey(updated);
+                                            }}
+                                            className="w-full border border-gray-200 rounded px-2 py-1 text-sm"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="pt-2 border-t border-gray-100">
+                                    <label className="flex items-center gap-2 text-sm text-gray-700">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={!!survey.isTemplate} 
+                                            onChange={e => {
+                                                const updated = { ...survey, isTemplate: e.target.checked };
+                                                onUpdate(updated);
+                                                autosaveSurvey(updated);
+                                            }}
+                                            className="rounded border-gray-300 text-indigo-600"
+                                        />
+                                        Save as Template
+                                    </label>
+                                </div>
+                                {survey.tenantId && survey.slug && (
+                                    <div className="p-2 bg-gray-50 rounded-lg border border-gray-100">
+                                        <p className="text-[10px] text-gray-500 mb-1">Survey URL:</p>
+                                        <p className="text-xs font-mono text-indigo-600 break-all">
+                                            https://{(tenants.find(t => t.id === survey.tenantId)?.subdomain) || 'corporate'}.benefitnest.space/surveys/{survey.slug}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        
+                        {activeTab === 'preview' && (
+                            <div className="text-center text-gray-500 text-sm py-8">
+                                <p>Preview is shown in the main panel →</p>
+                            </div>
+                        )}
+                    </div>
+                </aside>
+
+                {/* Right Main Content Area */}
+                <main className="flex-1 overflow-y-auto p-6 bg-gray-100">
+                    {activeTab === 'preview' ? (
+                        /* Preview Mode */
+                        <div
+                            className="w-full flex items-start justify-center"
+                            style={{
+                                fontFamily: survey.branding?.fontFamily || 'Inter, sans-serif',
+                            }}
+                        >
+                            <div className="w-full max-w-3xl bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                                {survey.branding?.bannerUrl && (
+                                    <img src={survey.branding.bannerUrl} alt="Banner" className="w-full h-56 object-cover" />
+                                )}
+                                <div className="px-8 py-6">
+                                    {survey.branding?.logoUrl && (
+                                        <img src={survey.branding.logoUrl} alt="Logo" className="h-12 mb-4" />
+                                    )}
+                                    <h1 className="text-3xl font-extrabold mb-2" style={{ color: survey.branding?.headingColor || '#111827' }}>
+                                        {survey.title || 'Untitled Survey'}
+                                    </h1>
+                                    {survey.description && <p className="text-gray-600">{survey.description}</p>}
+                                    <div className="mt-6 space-y-6">
+                                        {survey.questions.map((q, idx) => (
+                                            <div key={q.id} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                                                <div className="mb-2 text-lg font-semibold" style={{ color: survey.branding?.questionColor || '#111827' }}>
+                                                    <span className="mr-2 text-indigo-500 font-bold">Q{idx + 1}.</span> {q.text || 'Untitled Question'}
+                                                    {q.required && <span className="ml-2 text-red-500">*</span>}
+                                                </div>
+                                                {q.description && <div className="mb-2 text-sm text-gray-500">{q.description}</div>}
+                                                <div>{renderPreviewInput(q)}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="mt-8 flex justify-end gap-3">
+                                        <button className="px-5 py-2.5 rounded-xl bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200">Save Draft</button>
+                                        <button className="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700">Submit</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        /* Build/Design/Settings Mode - Question Editor */
+                        <div className="max-w-3xl mx-auto">
+                            {/* Survey Title Card */}
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+                                <input 
+                                    value={survey.title}
+                                    onChange={(e) => {
+                                        const updated = { ...survey, title: e.target.value };
                                         onUpdate(updated);
                                         autosaveSurvey(updated);
                                     }}
-                                    className="text-xs text-gray-700 border border-gray-200 rounded px-2 py-1 bg-white font-medium"
-                                >
-                                    <option value="survey">📋 Survey</option>
-                                    <option value="quiz">❓ Quiz</option>
-                                    <option value="invitation">💌 Invitation</option>
-                                    <option value="registration">📝 Registration</option>
-                                </select>
+                                    className="w-full text-2xl font-bold text-gray-900 border-none p-0 focus:ring-0 bg-transparent placeholder-gray-400 outline-none"
+                                    placeholder="Title of the Survey"
+                                />
+                            </div>
+
+                            {/* Questions List */}
+                            <div className="space-y-4">
+                                {survey.questions.length === 0 && (
+                                    <div className="bg-white rounded-xl border border-dashed border-gray-300 p-12 text-center">
+                                        <div className="text-gray-400 text-4xl mb-3">📝</div>
+                                        <p className="text-gray-500">No questions added yet</p>
+                                        <p className="text-gray-400 text-sm mt-1">Click on question types in the left panel to add questions</p>
+                                    </div>
+                                )}
+                                {survey.questions.map(q => (
+                                    <div key={q.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <span className="px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 text-xs font-semibold uppercase">{q.type.replace('_', ' ')}</span>
+                                            <div className="flex items-center gap-3">
+                                                <button onClick={() => deleteQuestion(q.id)} className="text-red-500 hover:text-red-700 text-xs font-medium">Delete</button>
+                                                <label className="flex items-center gap-1.5 text-xs text-gray-500">
+                                                    <input type="checkbox" checked={q.required} onChange={e => updateQuestion(q.id, { required: e.target.checked })} className="rounded border-gray-300 text-indigo-600" /> Required
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {/* Error message for required questions */}
+                                        {q.required && (
+                                            <div className="mb-3">
+                                                <input
+                                                    type="text"
+                                                    value={q.errorMessage || ''}
+                                                    onChange={e => updateQuestion(q.id, { errorMessage: e.target.value })}
+                                                    className="w-full border border-red-100 bg-red-50 rounded px-2 py-1 text-xs text-red-600"
+                                                    placeholder="Error message for this required question"
+                                                />
+                                            </div>
+                                        )}
+                                        {/* Question Body */}
+                                        {renderQuestionBody(q, (id, updates) => updateQuestion(id, updates))}
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                        
-                        {/* Row 2: Corporate Dropdown with Rich Display */}
-                        <div className="flex items-center gap-2">
-                            <label className="text-xs text-gray-500">Corporate:</label>
-                            <select
-                                value={survey.tenantId || ''}
-                                onChange={e => onUpdate({ ...survey, tenantId: e.target.value })}
-                                className="text-xs text-gray-700 border border-gray-200 rounded px-2 py-1 bg-white min-w-[200px]"
-                            >
-                                <option value="">Select Corporate</option>
-                                {tenants.map(t => (
-                                    <option key={t.id} value={t.id}>
-                                        {t.name}{t.subdomain ? ` (${t.subdomain})` : ''}{t.country ? ` - ${t.country}` : ''}
-                                    </option>
-                                ))}
-                            </select>
-                            {/* Rich tenant info display */}
-                            {survey.tenantId && (() => {
-                                const tenant = tenants.find(t => t.id === survey.tenantId);
-                                return tenant ? (
-                                    <div className="flex items-center gap-2 ml-2 px-2 py-1 bg-gray-50 rounded-lg border border-gray-100">
-                                        <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs">
-                                            {(tenant.name || tenant.subdomain || 'C')[0].toUpperCase()}
-                                        </div>
-                                        <span className="text-[10px] font-mono text-gray-500">{tenant.subdomain}</span>
-                                        {tenant.status && (
-                                            <span className={`px-1 py-0.5 rounded text-[9px] uppercase font-bold ${tenant.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                                                {tenant.status}
-                                            </span>
-                                        )}
-                                    </div>
-                                ) : null;
-                            })()}
-                        </div>
-                        
-                        {/* Row 3: Survey URL Slug */}
-                        
-                        {/* Row 4: Survey URL Name */}
-                        <div className="flex items-center gap-2">
-                            <label className="text-xs text-gray-500">URL Slug:</label>
-                            <input
-                                value={survey.slug || ''}
-                                onChange={(e) => {
-                                    const raw = e.target.value || '';
-                                    const slug = raw.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
-                                    const updated = { ...survey, slug };
-                                    onUpdate(updated);
-                                    autosaveSurvey(updated);
-                                }}
-                                placeholder="e.g., employee-engagement-2025"
-                                className="text-xs text-gray-700 border border-gray-200 rounded px-2 py-1 bg-white"
-                            />
-                            {survey.tenantId && survey.slug && (
-                                <span className="text-[11px] text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded border border-gray-100">
-                                    🔗 https://{(tenants.find(t => t.id === survey.tenantId)?.subdomain) || 'corporate'}.benefitnest.space/surveys/{survey.slug}
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                </div>
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => setAiModalOpen(true)}
-                        className="flex items-center gap-2 bg-gradient-to-r from-amber-500 via-red-500 to-pink-500 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all shadow-md"
-                    >
-                        <span role="img" aria-label="AI">✨</span> AI Magic
-                    </button>
-                    <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 font-medium shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span role="img" aria-label="Save">💾</span> {saving ? "Saving..." : "Save"}
-                    </button>
-                </div>
+                    )}
+                </main>
             </div>
 
             {/* AI Modal */}
             {aiModalOpen && (
                 <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-md animate-in fade-in duration-300">
                     <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 duration-300 border border-pink-100">
-                        <div className="bg-gradient-to-br from-amber-500 via-red-500 to-pink-500 p-8 text-white relative overflow-hidden">
+                        <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-8 text-white relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-4 opacity-10">
                                 <span className="text-9xl">✨</span>
                             </div>
@@ -1714,7 +1954,7 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                                 <button
                                     onClick={handleGenerateAI}
                                     disabled={generatingAi || !aiPrompt}
-                                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-amber-500 via-red-500 to-pink-500 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-red-200 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-pink-200 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                                 >
                                     {generatingAi ? (
                                         <>
@@ -1731,315 +1971,6 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                     </div>
                 </div>
             )}
-
-            {/* Main Editor Tabs and Question Builder */}
-            <div className="flex flex-col flex-1 overflow-hidden">
-                {/* Tabs */}
-                <div className="flex gap-2 px-6 pt-4 border-b border-gray-100 bg-white flex-shrink-0">
-                    {['build', 'design', 'settings', 'preview'].map(tab => (
-                        <button
-                            key={tab}
-                            className={`px-4 py-2 rounded-full font-semibold text-sm transition-colors ${activeTab === tab ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'}`}
-                            onClick={() => setActiveTab(tab as typeof activeTab)}
-                        >
-                            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                        </button>
-                    ))}
-                </div>
-                {/* Tab Content */}
-                <div className="flex-1 px-6 py-6 bg-gray-50 overflow-y-auto pb-24">
-                    {activeTab === 'build' && (
-                        <div>
-                            {/* Question Builder */}
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-xl font-bold text-gray-900">Questions</h2>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-3">
-                                {[
-                                    { t: 'text', label: 'Short Text', emoji: '✍️' },
-                                    { t: 'textarea', label: 'Long Text', emoji: '📝' },
-                                    { t: 'radio', label: 'Single Choice', emoji: '⭕' },
-                                    { t: 'checkbox', label: 'Multiple Choice', emoji: '☑️' },
-                                    { t: 'dropdown', label: 'Dropdown', emoji: '▼' },
-                                    { t: 'rating', label: 'Rating', emoji: '⭐' },
-                                    { t: 'slider', label: 'Slider', emoji: '📏' },
-                                    { t: 'nps', label: 'NPS', emoji: '📊' },
-                                    { t: 'date', label: 'Date', emoji: '📅' },
-                                    { t: 'email', label: 'Email', emoji: '✉️' },
-                                    { t: 'matrix', label: 'Matrix', emoji: '▦' },
-                                    { t: 'ranking', label: 'Ranking', emoji: '🔢' },
-                                    { t: 'file_upload', label: 'File Upload', emoji: '📎' },
-                                    { t: 'weightage', label: 'Weightage', emoji: '⚖️' },
-                                ].map(({ t, label, emoji }) => (
-                                    <button
-                                        key={t}
-                                        onClick={() => addQuestion(t as QuestionType)}
-                                        className="flex flex-col items-center justify-center p-3 rounded-xl border border-gray-200 bg-white hover:border-indigo-500 hover:shadow-md hover:bg-indigo-50/50 transition-all group h-24"
-                                    >
-                                        <span className="text-3xl mb-2 group-hover:scale-110 transition-transform">{emoji}</span>
-                                        <span className="text-xs font-semibold text-gray-700 text-center leading-tight">{label}</span>
-                                    </button>
-                                ))}
-                            </div>
-                            </div>
-                            <div className="space-y-6">
-                                {survey.questions.length === 0 && (
-                                    <div className="text-gray-400 italic text-center py-12">No questions added yet. Use the buttons above to add questions.</div>
-                                )}
-                                {survey.questions.map(q => (
-                                    <div key={q.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <h3 className="font-bold text-lg text-indigo-700">{q.text || 'Untitled Question'}</h3>
-                                            <div className="flex gap-2">
-                                                <button onClick={() => deleteQuestion(q.id)} className="text-red-500 text-xs font-medium">Delete</button>
-                                                <label className="flex items-center gap-1 text-xs text-gray-500">
-                                                    <input type="checkbox" checked={q.required} onChange={e => updateQuestion(q.id, { required: e.target.checked })} /> Required
-                                                </label>
-                                            </div>
-                                        </div>
-                                        {/* Error message input for required questions */}
-                                        {q.required && (
-                                            <div className="mb-2">
-                                                <label className="block text-xs text-gray-500 mb-1">Error Message</label>
-                                                <input
-                                                    type="text"
-                                                    value={q.errorMessage || ''}
-                                                    onChange={e => updateQuestion(q.id, { errorMessage: e.target.value })}
-                                                    className="w-full border border-red-200 rounded px-2 py-1 text-xs"
-                                                    placeholder="Please enter an error message for this required question"
-                                                />
-                                            </div>
-                                        )}
-                                        {/* Question Body Renderer */}
-                                        {renderQuestionBody(q, (id, updates) => updateQuestion(id, updates))}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                    {activeTab === 'design' && (
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-900 mb-4">Design & Branding</h2>
-                            <div className="grid grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Primary Color</label>
-                                    <input type="color" value={survey.branding?.primaryColor || '#6366f1'} onChange={e => updateBranding('primaryColor', e.target.value)} className="w-16 h-8 rounded" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Background Color</label>
-                                    <input type="color" value={survey.branding?.backgroundColor || '#f9fafb'} onChange={e => updateBranding('backgroundColor', e.target.value)} className="w-16 h-8 rounded" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Heading Color</label>
-                                    <input type="color" value={survey.branding?.headingColor || '#111827'} onChange={e => updateBranding('headingColor', e.target.value)} className="w-16 h-8 rounded" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Font Family</label>
-                                    <input type="text" value={survey.branding?.fontFamily || 'Inter'} onChange={e => updateBranding('fontFamily', e.target.value)} className="w-full border border-gray-300 rounded px-2 py-1" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Logo URL</label>
-                                    <input type="text" value={survey.branding?.logoUrl || ''} onChange={e => updateBranding('logoUrl', e.target.value)} className="w-full border border-gray-300 rounded px-2 py-1" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Banner URL</label>
-                                    <input type="text" value={survey.branding?.bannerUrl || ''} onChange={e => updateBranding('bannerUrl', e.target.value)} className="w-full border border-gray-300 rounded px-2 py-1" />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    {activeTab === 'settings' && (
-                        <div className="max-w-4xl">
-                            <h2 className="text-xl font-bold text-gray-900 mb-6">Survey Settings</h2>
-                            
-                            {/* General Settings */}
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-                                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                                    ⚙️ General Settings
-                                </h3>
-                                <div className="grid grid-cols-1 gap-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Survey Description</label>
-                                        <textarea
-                                            value={survey.description || ''}
-                                            onChange={e => {
-                                                const updated = { ...survey, description: e.target.value };
-                                                onUpdate(updated);
-                                                autosaveSurvey(updated);
-                                            }}
-                                            rows={3}
-                                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                            placeholder="Describe what this survey is about..."
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {/* Schedule Settings */}
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-                                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                                    📅 Schedule
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
-                                        <input
-                                            type="date"
-                                            value={survey.startDate || survey.start_date || ''}
-                                            onChange={e => {
-                                                const updated = { ...survey, startDate: e.target.value, start_date: e.target.value };
-                                                onUpdate(updated);
-                                                autosaveSurvey(updated);
-                                            }}
-                                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
-                                        <input
-                                            type="date"
-                                            value={survey.endDate || survey.end_date || ''}
-                                            onChange={e => {
-                                                const updated = { ...survey, endDate: e.target.value, end_date: e.target.value };
-                                                onUpdate(updated);
-                                                autosaveSurvey(updated);
-                                            }}
-                                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Template Settings */}
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-                                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                                    📋 Template Settings
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                                            <input 
-                                                type="checkbox" 
-                                                checked={!!survey.isTemplate} 
-                                                onChange={e => {
-                                                    const updated = { ...survey, isTemplate: e.target.checked };
-                                                    onUpdate(updated);
-                                                    autosaveSurvey(updated);
-                                                }}
-                                                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                            />
-                                            Save as Template
-                                        </label>
-                                        <p className="text-xs text-gray-500 ml-6">Make this survey available as a reusable template</p>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Template Category</label>
-                                        <select
-                                            value={survey.templateCategory || ''}
-                                            onChange={e => {
-                                                const updated = { ...survey, templateCategory: e.target.value };
-                                                onUpdate(updated);
-                                                autosaveSurvey(updated);
-                                            }}
-                                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                        >
-                                            <option value="">Select Category</option>
-                                            <option value="Employee Engagement">Employee Engagement</option>
-                                            <option value="Benefits Enrollment">Benefits Enrollment</option>
-                                            <option value="Wellness">Wellness</option>
-                                            <option value="Onboarding">Onboarding</option>
-                                            <option value="Feedback">Feedback</option>
-                                            <option value="Event Registration">Event Registration</option>
-                                            <option value="Custom">Custom</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Access & Permissions */}
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                                    🔒 Access & Visibility
-                                </h3>
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                        <div>
-                                            <span className="font-medium text-gray-700">Survey URL</span>
-                                            {survey.tenantId && survey.slug && (
-                                                <p className="text-xs text-gray-500 font-mono mt-1">
-                                                    https://{(tenants.find(t => t.id === survey.tenantId)?.subdomain) || 'corporate'}.benefitnest.space/surveys/{survey.slug}
-                                                </p>
-                                            )}
-                                        </div>
-                                        {survey.tenantId && survey.slug && (
-                                            <button
-                                                onClick={() => {
-                                                    const tenant = tenants.find(t => t.id === survey.tenantId);
-                                                    if (tenant) {
-                                                        navigator.clipboard.writeText(`https://${tenant.subdomain}.benefitnest.space/surveys/${survey.slug}`);
-                                                        showNotification("URL copied to clipboard!");
-                                                    }
-                                                }}
-                                                className="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-semibold hover:bg-indigo-200 transition-colors"
-                                            >
-                                                📋 Copy URL
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    {activeTab === 'preview' && (
-                        <div
-                            className="w-full flex items-start justify-center py-8"
-                            style={{
-                                background: survey.branding?.backgroundColor || '#f9fafb',
-                                fontFamily: survey.branding?.fontFamily || 'Inter, sans-serif',
-                                color: survey.branding?.questionColor || '#111827',
-                            }}
-                        >
-                            <div className="w-full max-w-3xl bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-                                {survey.branding?.bannerUrl && (
-                                    <img src={survey.branding.bannerUrl} alt="Banner" className="w-full h-56 object-cover" />
-                                )}
-                                <div className="px-8 py-6">
-                                    {survey.branding?.logoUrl && (
-                                        <img src={survey.branding.logoUrl} alt="Logo" className="h-12 mb-4" />
-                                    )}
-                                    <h1
-                                        className={`font-extrabold mb-2 ${survey.branding?.headingSize || 'text-3xl'} ${survey.branding?.headingBold ? 'font-bold' : ''} ${survey.branding?.headingItalic ? 'italic' : ''}`}
-                                        style={{ color: survey.branding?.headingColor || '#111827' }}
-                                    >
-                                        {survey.title}
-                                    </h1>
-                                    {survey.description && (
-                                        <p className="mt-1 text-gray-600">{survey.description}</p>
-                                    )}
-                                    <div className="mt-6 space-y-6">
-                                        {survey.questions.map((q, idx) => (
-                                            <div key={q.id} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                                                <div
-                                                    className={`mb-2 text-lg font-semibold ${survey.branding?.questionSize || ''} ${survey.branding?.questionBold ? 'font-bold' : ''} ${survey.branding?.questionItalic ? 'italic' : ''}`}
-                                                    style={{ color: survey.branding?.questionColor || '#111827' }}
-                                                >
-                                                    <span className="mr-2 text-indigo-500 font-bold">Q{idx + 1}.</span> {q.text}
-                                                    {q.required && <span className="ml-2 text-red-500">*</span>}
-                                                </div>
-                                                {q.description && <div className="mb-2 text-sm text-gray-500">{q.description}</div>}
-                                                <div>{renderPreviewInput(q)}</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="mt-8 flex justify-end gap-3">
-                                        <button className="px-5 py-2.5 rounded-xl bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200">Save Draft</button>
-                                        <button className="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700">Submit</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
         </div>
     );
 }
