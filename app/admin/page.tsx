@@ -204,12 +204,23 @@ export default function AdminPage() {
               strategy="afterInteractive"
               onLoad={() => {
                 const g = (window as any).grecaptcha;
-                if (g && recaptchaRef.current) {
+                if (g && g.render && recaptchaRef.current) {
                   g.render(recaptchaRef.current, {
                     sitekey: siteKey,
                     callback: (tok: string) => setCaptchaToken(tok),
                     "expired-callback": () => setCaptchaToken(null),
                     "error-callback": () => setCaptchaToken(null),
+                  });
+                } else if (g && g.ready) {
+                  g.ready(() => {
+                    if (recaptchaRef.current && g.render) {
+                      g.render(recaptchaRef.current, {
+                        sitekey: siteKey,
+                        callback: (tok: string) => setCaptchaToken(tok),
+                        "expired-callback": () => setCaptchaToken(null),
+                        "error-callback": () => setCaptchaToken(null),
+                      });
+                    }
                   });
                 }
               }}
