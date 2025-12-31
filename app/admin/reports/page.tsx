@@ -88,8 +88,7 @@ const DonutChart = ({ data }: { data: ChartData }) => {
 };
 
 // ...existing code...
-      >
-        <h3
+  <h3
           style={{
             fontSize: "16px",
             fontWeight: "700",
