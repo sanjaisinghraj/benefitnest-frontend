@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { Plus, Search, LayoutTemplate, ArrowLeft, Upload, List, Trash2 } from "lucide-react";
+import { Plus, Search, LayoutTemplate, ArrowLeft, Upload, List, Trash2, X, Download } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 
 // Define Types First
@@ -81,6 +81,594 @@ interface Tenant {
     portalCreatedAt?: string;
 }
 
+// =====================================================
+// SURVEY TEMPLATES DATA
+// =====================================================
+interface SurveyTemplate {
+    id: string;
+    name: string;
+    description: string;
+    category: "survey" | "quiz" | "invitation" | "registration";
+    thumbnail: string;
+    branding: BrandingConfig;
+    questions: Question[];
+}
+
+const SURVEY_TEMPLATES: SurveyTemplate[] = [
+    // ========== SURVEY TEMPLATES ==========
+    {
+        id: "employee-satisfaction",
+        name: "Employee Satisfaction Survey",
+        description: "Measure employee engagement, job satisfaction, and workplace culture",
+        category: "survey",
+        thumbnail: "📊",
+        branding: {
+            primaryColor: "#4f46e5",
+            backgroundColor: "#f0f9ff",
+            headingColor: "#1e40af",
+            fontFamily: "Inter"
+        },
+        questions: [
+            {
+                id: uuidv4(),
+                type: "rating",
+                text: "Overall, how satisfied are you with your job?",
+                description: "Rate from 1 (Very Dissatisfied) to 5 (Very Satisfied)",
+                required: true,
+                options: []
+            },
+            {
+                id: uuidv4(),
+                type: "radio",
+                text: "How likely are you to recommend this company as a great place to work?",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "Very Likely" },
+                    { id: uuidv4(), label: "Likely" },
+                    { id: uuidv4(), label: "Neutral" },
+                    { id: uuidv4(), label: "Unlikely" },
+                    { id: uuidv4(), label: "Very Unlikely" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "checkbox",
+                text: "What aspects of your job do you enjoy the most? (Select all that apply)",
+                required: false,
+                options: [
+                    { id: uuidv4(), label: "Work-life balance" },
+                    { id: uuidv4(), label: "Team collaboration" },
+                    { id: uuidv4(), label: "Career growth opportunities" },
+                    { id: uuidv4(), label: "Compensation & benefits" },
+                    { id: uuidv4(), label: "Company culture" },
+                    { id: uuidv4(), label: "Leadership & management" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "nps",
+                text: "On a scale of 0-10, how would you rate your work-life balance?",
+                required: true,
+                scaleConfig: { min: 0, max: 10, minLabel: "Poor", maxLabel: "Excellent" },
+                options: []
+            },
+            {
+                id: uuidv4(),
+                type: "textarea",
+                text: "What improvements would you suggest for our workplace?",
+                description: "Please share your honest feedback",
+                required: false,
+                options: []
+            }
+        ]
+    },
+    {
+        id: "customer-feedback",
+        name: "Customer Feedback Survey",
+        description: "Collect valuable feedback about products and services",
+        category: "survey",
+        thumbnail: "⭐",
+        branding: {
+            primaryColor: "#059669",
+            backgroundColor: "#ecfdf5",
+            headingColor: "#047857",
+            fontFamily: "Inter"
+        },
+        questions: [
+            {
+                id: uuidv4(),
+                type: "radio",
+                text: "How did you hear about us?",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "Search Engine (Google, Bing)" },
+                    { id: uuidv4(), label: "Social Media" },
+                    { id: uuidv4(), label: "Friend/Family Referral" },
+                    { id: uuidv4(), label: "Advertisement" },
+                    { id: uuidv4(), label: "Other" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "rating",
+                text: "How would you rate the quality of our product/service?",
+                required: true,
+                options: []
+            },
+            {
+                id: uuidv4(),
+                type: "rating",
+                text: "How would you rate our customer support?",
+                required: true,
+                options: []
+            },
+            {
+                id: uuidv4(),
+                type: "nps",
+                text: "How likely are you to recommend us to others?",
+                required: true,
+                scaleConfig: { min: 0, max: 10, minLabel: "Not at all likely", maxLabel: "Extremely likely" },
+                options: []
+            },
+            {
+                id: uuidv4(),
+                type: "dropdown",
+                text: "Which product/service did you use?",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "Health Insurance" },
+                    { id: uuidv4(), label: "Life Insurance" },
+                    { id: uuidv4(), label: "Group Benefits" },
+                    { id: uuidv4(), label: "Wellness Programs" },
+                    { id: uuidv4(), label: "Claims Processing" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "textarea",
+                text: "Any additional comments or suggestions?",
+                required: false,
+                options: []
+            }
+        ]
+    },
+
+    // ========== QUIZ TEMPLATES ==========
+    {
+        id: "employee-training-quiz",
+        name: "Employee Training Assessment",
+        description: "Test employee knowledge after training sessions",
+        category: "quiz",
+        thumbnail: "🎓",
+        branding: {
+            primaryColor: "#7c3aed",
+            backgroundColor: "#faf5ff",
+            headingColor: "#6d28d9",
+            fontFamily: "Inter"
+        },
+        questions: [
+            {
+                id: uuidv4(),
+                type: "radio",
+                text: "What is the primary purpose of our company's code of conduct?",
+                description: "Select the best answer",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "To restrict employee behavior" },
+                    { id: uuidv4(), label: "To guide ethical decision-making and professional behavior" },
+                    { id: uuidv4(), label: "To outline punishment for violations" },
+                    { id: uuidv4(), label: "To satisfy legal requirements only" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "radio",
+                text: "Which of the following is considered confidential information?",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "Public press releases" },
+                    { id: uuidv4(), label: "Employee salary data" },
+                    { id: uuidv4(), label: "Company website content" },
+                    { id: uuidv4(), label: "Published annual reports" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "checkbox",
+                text: "Which of the following are examples of workplace harassment? (Select all that apply)",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "Unwanted physical contact" },
+                    { id: uuidv4(), label: "Constructive feedback in a meeting" },
+                    { id: uuidv4(), label: "Offensive jokes or comments" },
+                    { id: uuidv4(), label: "Excluding someone from team activities" },
+                    { id: uuidv4(), label: "Normal work delegation" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "radio",
+                text: "What should you do if you witness a safety violation?",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "Ignore it if it doesn't affect you" },
+                    { id: uuidv4(), label: "Report it immediately to your supervisor or safety officer" },
+                    { id: uuidv4(), label: "Wait until the next safety meeting" },
+                    { id: uuidv4(), label: "Post about it on social media" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "radio",
+                text: "How often should you update your password according to company policy?",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "Never - once set, keep it forever" },
+                    { id: uuidv4(), label: "Every 90 days" },
+                    { id: uuidv4(), label: "Only when you forget it" },
+                    { id: uuidv4(), label: "Once a year" }
+                ]
+            }
+        ]
+    },
+    {
+        id: "benefits-knowledge-quiz",
+        name: "Benefits Knowledge Quiz",
+        description: "Test employee understanding of company benefits",
+        category: "quiz",
+        thumbnail: "💡",
+        branding: {
+            primaryColor: "#0891b2",
+            backgroundColor: "#ecfeff",
+            headingColor: "#0e7490",
+            fontFamily: "Inter"
+        },
+        questions: [
+            {
+                id: uuidv4(),
+                type: "radio",
+                text: "What is the annual deductible for the Premium Health Plan?",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "$500" },
+                    { id: uuidv4(), label: "$1,000" },
+                    { id: uuidv4(), label: "$1,500" },
+                    { id: uuidv4(), label: "$2,000" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "radio",
+                text: "When does the open enrollment period typically occur?",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "January" },
+                    { id: uuidv4(), label: "April" },
+                    { id: uuidv4(), label: "October-November" },
+                    { id: uuidv4(), label: "Any time during the year" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "checkbox",
+                text: "Which of the following are covered under our dental plan? (Select all that apply)",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "Preventive cleanings" },
+                    { id: uuidv4(), label: "Orthodontics for children" },
+                    { id: uuidv4(), label: "Cosmetic whitening" },
+                    { id: uuidv4(), label: "Fillings and extractions" },
+                    { id: uuidv4(), label: "Root canals" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "radio",
+                text: "What is the company match percentage for 401(k) contributions?",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "25% up to 6% of salary" },
+                    { id: uuidv4(), label: "50% up to 6% of salary" },
+                    { id: uuidv4(), label: "100% up to 4% of salary" },
+                    { id: uuidv4(), label: "No company match" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "radio",
+                text: "How many vacation days do employees receive after 5 years of service?",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "15 days" },
+                    { id: uuidv4(), label: "18 days" },
+                    { id: uuidv4(), label: "20 days" },
+                    { id: uuidv4(), label: "25 days" }
+                ]
+            }
+        ]
+    },
+
+    // ========== INVITATION TEMPLATES ==========
+    {
+        id: "company-event-invitation",
+        name: "Company Event Invitation",
+        description: "Invite employees to company events with RSVP",
+        category: "invitation",
+        thumbnail: "🎉",
+        branding: {
+            primaryColor: "#db2777",
+            backgroundColor: "#fdf2f8",
+            headingColor: "#be185d",
+            fontFamily: "Inter",
+            bannerUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&h=400&fit=crop"
+        },
+        questions: [
+            {
+                id: uuidv4(),
+                type: "radio",
+                text: "Will you be attending the Annual Company Celebration?",
+                description: "📅 Date: January 25, 2026 | 🕕 Time: 6:00 PM | 📍 Venue: Grand Ballroom",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "Yes, I will attend" },
+                    { id: uuidv4(), label: "No, I cannot attend" },
+                    { id: uuidv4(), label: "Maybe, I'll confirm later" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "radio",
+                text: "Will you be bringing a plus-one?",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "Yes" },
+                    { id: uuidv4(), label: "No" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "text",
+                text: "Plus-one's full name (if applicable)",
+                required: false,
+                options: []
+            },
+            {
+                id: uuidv4(),
+                type: "dropdown",
+                text: "Dietary preference",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "Vegetarian" },
+                    { id: uuidv4(), label: "Non-Vegetarian" },
+                    { id: uuidv4(), label: "Vegan" },
+                    { id: uuidv4(), label: "Gluten-Free" },
+                    { id: uuidv4(), label: "No Preference" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "textarea",
+                text: "Any allergies or special requirements?",
+                required: false,
+                options: []
+            }
+        ]
+    },
+    {
+        id: "training-session-invitation",
+        name: "Training Session Invitation",
+        description: "Invite participants to training sessions",
+        category: "invitation",
+        thumbnail: "📚",
+        branding: {
+            primaryColor: "#2563eb",
+            backgroundColor: "#eff6ff",
+            headingColor: "#1d4ed8",
+            fontFamily: "Inter"
+        },
+        questions: [
+            {
+                id: uuidv4(),
+                type: "radio",
+                text: "Will you be attending the Leadership Development Workshop?",
+                description: "📅 March 15-16, 2026 | 🕘 9:00 AM - 5:00 PM | 📍 Training Center, Floor 3",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "Yes, I will attend both days" },
+                    { id: uuidv4(), label: "Yes, Day 1 only" },
+                    { id: uuidv4(), label: "Yes, Day 2 only" },
+                    { id: uuidv4(), label: "No, I cannot attend" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "checkbox",
+                text: "Which topics are you most interested in? (Select all that apply)",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "Communication Skills" },
+                    { id: uuidv4(), label: "Conflict Resolution" },
+                    { id: uuidv4(), label: "Team Building" },
+                    { id: uuidv4(), label: "Strategic Thinking" },
+                    { id: uuidv4(), label: "Performance Management" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "dropdown",
+                text: "What is your current management experience level?",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "New to management (0-1 years)" },
+                    { id: uuidv4(), label: "Developing (1-3 years)" },
+                    { id: uuidv4(), label: "Experienced (3-5 years)" },
+                    { id: uuidv4(), label: "Senior (5+ years)" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "textarea",
+                text: "What specific challenges would you like addressed in this training?",
+                required: false,
+                options: []
+            }
+        ]
+    },
+
+    // ========== REGISTRATION TEMPLATES ==========
+    {
+        id: "event-registration",
+        name: "Event Registration Form",
+        description: "Register attendees for company events",
+        category: "registration",
+        thumbnail: "📋",
+        branding: {
+            primaryColor: "#ea580c",
+            backgroundColor: "#fff7ed",
+            headingColor: "#c2410c",
+            fontFamily: "Inter"
+        },
+        questions: [
+            {
+                id: uuidv4(),
+                type: "text",
+                text: "Full Name",
+                required: true,
+                options: []
+            },
+            {
+                id: uuidv4(),
+                type: "email",
+                text: "Email Address",
+                required: true,
+                options: []
+            },
+            {
+                id: uuidv4(),
+                type: "text",
+                text: "Department",
+                required: true,
+                options: []
+            },
+            {
+                id: uuidv4(),
+                type: "text",
+                text: "Employee ID",
+                required: true,
+                options: []
+            },
+            {
+                id: uuidv4(),
+                type: "dropdown",
+                text: "T-Shirt Size (for event merchandise)",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "XS" },
+                    { id: uuidv4(), label: "S" },
+                    { id: uuidv4(), label: "M" },
+                    { id: uuidv4(), label: "L" },
+                    { id: uuidv4(), label: "XL" },
+                    { id: uuidv4(), label: "XXL" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "radio",
+                text: "Do you require transportation assistance?",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "Yes, I need transportation" },
+                    { id: uuidv4(), label: "No, I will arrange my own" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "textarea",
+                text: "Emergency Contact (Name & Phone)",
+                required: true,
+                options: []
+            }
+        ]
+    },
+    {
+        id: "workshop-registration",
+        name: "Workshop Registration",
+        description: "Register for professional development workshops",
+        category: "registration",
+        thumbnail: "🎯",
+        branding: {
+            primaryColor: "#16a34a",
+            backgroundColor: "#f0fdf4",
+            headingColor: "#15803d",
+            fontFamily: "Inter"
+        },
+        questions: [
+            {
+                id: uuidv4(),
+                type: "text",
+                text: "Full Name",
+                required: true,
+                options: []
+            },
+            {
+                id: uuidv4(),
+                type: "email",
+                text: "Work Email",
+                required: true,
+                options: []
+            },
+            {
+                id: uuidv4(),
+                type: "text",
+                text: "Job Title",
+                required: true,
+                options: []
+            },
+            {
+                id: uuidv4(),
+                type: "dropdown",
+                text: "Select Workshop Session",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "Morning Session (9 AM - 12 PM)" },
+                    { id: uuidv4(), label: "Afternoon Session (2 PM - 5 PM)" },
+                    { id: uuidv4(), label: "Full Day (9 AM - 5 PM)" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "radio",
+                text: "Have you attended similar workshops before?",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "Yes, multiple times" },
+                    { id: uuidv4(), label: "Yes, once" },
+                    { id: uuidv4(), label: "No, this is my first time" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "checkbox",
+                text: "Which learning materials would you prefer? (Select all that apply)",
+                required: true,
+                options: [
+                    { id: uuidv4(), label: "Printed handouts" },
+                    { id: uuidv4(), label: "Digital PDF" },
+                    { id: uuidv4(), label: "Video recordings" },
+                    { id: uuidv4(), label: "Interactive exercises" }
+                ]
+            },
+            {
+                id: uuidv4(),
+                type: "textarea",
+                text: "What do you hope to learn from this workshop?",
+                required: false,
+                options: []
+            }
+        ]
+    }
+];
+
 // --- SurveyManager Component ---
 export default function SurveyManager() {
 
@@ -96,6 +684,8 @@ export default function SurveyManager() {
     const [deleteTarget, setDeleteTarget] = useState<Survey | null>(null);
     const [deleting, setDeleting] = useState(false);
     const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+    const [showTemplateModal, setShowTemplateModal] = useState(false);
+    const [templateFilter, setTemplateFilter] = useState<"all" | "survey" | "quiz" | "invitation" | "registration">("all");
     
     // API URL
     const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
@@ -171,6 +761,11 @@ export default function SurveyManager() {
 
     // --- Handlers ---
     const handleCreateNew = () => {
+        // Show template modal instead of directly creating
+        setShowTemplateModal(true);
+    };
+
+    const handleCreateBlank = () => {
         const newSurvey: Survey = {
             id: "", // Empty ID means new survey - will be assigned by database
             title: "Untitled Survey",
@@ -189,6 +784,31 @@ export default function SurveyManager() {
         };
         setCurrentSurvey(newSurvey);
         setSurveyUrl(null);
+        setShowTemplateModal(false);
+        setView("editor");
+    };
+
+    const handleCreateFromTemplate = (template: SurveyTemplate) => {
+        // Generate new IDs for questions and options to avoid conflicts
+        const questionsWithNewIds = template.questions.map(q => ({
+            ...q,
+            id: uuidv4(),
+            options: q.options?.map(o => ({ ...o, id: uuidv4() })) || []
+        }));
+
+        const newSurvey: Survey = {
+            id: "", // Empty ID means new survey
+            title: template.name,
+            description: template.description,
+            questions: questionsWithNewIds,
+            status: "draft",
+            createdAt: new Date().toISOString().split('T')[0],
+            surveyType: template.category,
+            branding: template.branding
+        };
+        setCurrentSurvey(newSurvey);
+        setSurveyUrl(null);
+        setShowTemplateModal(false);
         setView("editor");
     };
 
@@ -235,6 +855,36 @@ export default function SurveyManager() {
             // keep modal open, show failure
         } finally {
             setDeleting(false);
+        }
+    };
+
+    const handleExportResponses = async (surveyId: string, surveyTitle: string) => {
+        try {
+            showNotification("Exporting responses...");
+            const res = await axios.get(`${API_URL}/api/surveys/${surveyId}/responses?format=csv`, {
+                headers: getAuthHeaders(),
+                responseType: 'blob'
+            });
+            
+            // Create download link
+            const blob = new Blob([res.data], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${surveyTitle.replace(/[^a-z0-9]/gi, '_')}_responses.csv`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            showNotification("Responses exported successfully!");
+        } catch (err: any) {
+            console.error('Export error:', err);
+            if (err.response?.status === 404) {
+                showNotification("Survey not found", "error");
+            } else {
+                showNotification("Failed to export responses", "error");
+            }
         }
     };
 
@@ -416,6 +1066,13 @@ export default function SurveyManager() {
                                                     Preview
                                                 </a>
                                             )}
+                                            <button
+                                                onClick={() => handleExportResponses(survey.id, survey.title)}
+                                                className="px-3 py-1.5 rounded-lg bg-green-50 text-green-700 text-xs font-semibold hover:bg-green-100 transition-colors flex items-center gap-1"
+                                                title="Export Responses as CSV"
+                                            >
+                                                <Download size={12} /> Export
+                                            </button>
                                         </div>
                                         <button
                                             onClick={() => handleDeleteSurvey(survey)}
@@ -479,6 +1136,102 @@ export default function SurveyManager() {
             {notification && (
                 <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg text-white z-50 animate-in fade-in slide-in-from-top-2 ${notification.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
                     {notification.message}
+                </div>
+            )}
+
+            {/* Template Selection Modal */}
+            {showTemplateModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+                        {/* Modal Header */}
+                        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+                            <div>
+                                <h2 className="text-2xl font-bold text-gray-800">Create New Survey</h2>
+                                <p className="text-gray-500 mt-1">Start from scratch or choose a template</p>
+                            </div>
+                            <button
+                                onClick={() => setShowTemplateModal(false)}
+                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                <X size={24} className="text-gray-400" />
+                            </button>
+                        </div>
+
+                        {/* Category Filter Tabs */}
+                        <div className="px-6 py-4 border-b border-gray-100 flex gap-2 flex-wrap">
+                            {(['all', 'survey', 'quiz', 'invitation', 'registration'] as const).map((cat) => (
+                                <button
+                                    key={cat}
+                                    onClick={() => setTemplateFilter(cat)}
+                                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors capitalize ${
+                                        templateFilter === cat
+                                            ? 'bg-indigo-600 text-white'
+                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    }`}
+                                >
+                                    {cat === 'all' ? 'All Templates' : cat}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Template Grid */}
+                        <div className="flex-1 overflow-y-auto p-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {/* Start Blank Card */}
+                                <button
+                                    onClick={handleCreateBlank}
+                                    className="group p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border-2 border-dashed border-indigo-200 hover:border-indigo-400 transition-all text-left flex flex-col items-center justify-center min-h-[200px]"
+                                >
+                                    <div className="w-16 h-16 rounded-full bg-white shadow-md flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                        <Plus size={32} className="text-indigo-600" />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-gray-800">Start Blank</h3>
+                                    <p className="text-sm text-gray-500 text-center mt-1">Create a survey from scratch</p>
+                                </button>
+
+                                {/* Template Cards */}
+                                {SURVEY_TEMPLATES
+                                    .filter(t => templateFilter === 'all' || t.category === templateFilter)
+                                    .map((template) => (
+                                        <button
+                                            key={template.id}
+                                            onClick={() => handleCreateFromTemplate(template)}
+                                            className="group p-6 bg-white rounded-xl border border-gray-200 hover:border-indigo-300 hover:shadow-lg transition-all text-left flex flex-col min-h-[200px]"
+                                        >
+                                            {/* Template Thumbnail */}
+                                            <div 
+                                                className="w-full h-24 rounded-lg mb-4 flex items-center justify-center text-4xl"
+                                                style={{ backgroundColor: template.branding?.primaryColor ? `${template.branding.primaryColor}15` : '#f3f4f6' }}
+                                            >
+                                                {template.thumbnail}
+                                            </div>
+                                            
+                                            {/* Category Badge */}
+                                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold mb-2 w-fit capitalize ${
+                                                template.category === 'survey' ? 'bg-blue-100 text-blue-700' :
+                                                template.category === 'quiz' ? 'bg-green-100 text-green-700' :
+                                                template.category === 'invitation' ? 'bg-purple-100 text-purple-700' :
+                                                'bg-orange-100 text-orange-700'
+                                            }`}>
+                                                {template.category}
+                                            </span>
+
+                                            <h3 className="text-base font-bold text-gray-800 group-hover:text-indigo-600 transition-colors">
+                                                {template.name}
+                                            </h3>
+                                            <p className="text-sm text-gray-500 mt-1 flex-1">
+                                                {template.description}
+                                            </p>
+                                            <div className="text-xs text-gray-400 mt-3 flex items-center gap-1">
+                                                <List size={12} />
+                                                {template.questions.length} questions
+                                            </div>
+                                        </button>
+                                    ))
+                                }
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
 
