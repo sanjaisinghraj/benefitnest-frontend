@@ -65,12 +65,20 @@ interface Survey {
     end_date?: string;
     startDate?: string;
     endDate?: string;
+    surveyType?: "survey" | "quiz" | "invitation" | "registration";
+    surveyHeading?: string;
+    templateKey?: string;
 }
 
 interface Tenant {
     id: string;
     name: string;
     subdomain: string;
+    tenantCode?: string;
+    country?: string;
+    portalUrl?: string;
+    status?: string;
+    portalCreatedAt?: string;
 }
 
 // --- SurveyManager Component ---
@@ -110,12 +118,30 @@ export default function SurveyManager() {
     // --- Data Fetching ---
     const fetchTenants = async () => {
         try {
-            const res = await axios.get(`${API_URL}/api/admin/corporates`, { headers: getAuthHeaders() });
+            // Use new tenants endpoint for rich data
+            const res = await axios.get(`${API_URL}/api/surveys/tenants`, { headers: getAuthHeaders() });
             if (res.data.success) {
-                setTenants(res.data.data.map((t: any) => ({ id: t.tenant_id, name: t.company_name || t.name, subdomain: t.subdomain })));
+                setTenants(res.data.data.map((t: any) => ({
+                    id: t.tenant_id,
+                    name: t.corporate_legal_name || t.subdomain,
+                    subdomain: t.subdomain,
+                    tenantCode: t.tenant_code,
+                    country: t.country,
+                    portalUrl: t.portal_url,
+                    status: t.status,
+                    portalCreatedAt: t.portal_created_at
+                })));
             }
         } catch (err) {
-            console.warn("Failed to fetch tenants", err);
+            // Fallback to old endpoint
+            try {
+                const res = await axios.get(`${API_URL}/api/admin/corporates`, { headers: getAuthHeaders() });
+                if (res.data.success) {
+                    setTenants(res.data.data.map((t: any) => ({ id: t.tenant_id, name: t.company_name || t.name, subdomain: t.subdomain })));
+                }
+            } catch (fallbackErr) {
+                console.warn("Failed to fetch tenants", fallbackErr);
+            }
         }
     };
 
@@ -152,6 +178,8 @@ export default function SurveyManager() {
             questions: [],
             status: "draft",
             createdAt: new Date().toISOString().split('T')[0],
+            surveyType: "survey",
+            surveyHeading: "",
             branding: {
                 primaryColor: "#4f46e5",
                 backgroundColor: "#f9fafb",
@@ -171,10 +199,10 @@ export default function SurveyManager() {
             if (res.data.success && res.data.data) {
                 setCurrentSurvey(res.data.data);
                 // Set initial URL if available
-                if (res.data.data.tenantId) {
+                if (res.data.data.tenantId && res.data.data.slug) {
                      const tenant = tenants.find(t => t.id === res.data.data.tenantId);
                      if (tenant) {
-                         setSurveyUrl(`https://${tenant.subdomain}.benefitnest.space/employeebenefitsurvey/${res.data.data.id}`);
+                         setSurveyUrl(`https://${tenant.subdomain}.benefitnest.space/surveys/${res.data.data.slug}`);
                      }
                 }
                 setView("editor");
@@ -257,9 +285,34 @@ export default function SurveyManager() {
                         >
                             <option value="">All Corporates</option>
                             {tenants.map(t => (
-                                <option key={t.id} value={t.id}>{t.name || t.subdomain}</option>
+                                <option key={t.id} value={t.id}>
+                                    {t.name}{t.subdomain ? ` (${t.subdomain})` : ''}{t.country ? ` - ${t.country}` : ''}{t.status ? ` [${t.status}]` : ''}
+                                </option>
                             ))}
                         </select>
+                        {/* Rich display for selected tenant */}
+                        {selectedTenants[0] && (() => {
+                            const tenant = tenants.find(t => t.id === selectedTenants[0]);
+                            return tenant ? (
+                                <div className="flex items-center gap-3 mt-2 p-3 bg-white rounded-lg border border-gray-200">
+                                    <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-lg">
+                                        {(tenant.name || tenant.subdomain || 'C')[0].toUpperCase()}
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="font-semibold text-gray-900">{tenant.name}</div>
+                                        <div className="text-xs text-gray-500 flex items-center gap-2">
+                                            <span className="font-mono bg-gray-50 px-1.5 py-0.5 rounded">{tenant.subdomain}</span>
+                                            {tenant.country && <span>• {tenant.country}</span>}
+                                            {tenant.status && (
+                                                <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-bold ${tenant.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                                                    {tenant.status}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : null;
+                        })()}
                     </div>
                     <div className="flex flex-col gap-2 w-full md:w-1/2">
                         <label className="text-sm font-medium text-gray-700">Search</label>
@@ -279,9 +332,9 @@ export default function SurveyManager() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     {surveys.map(survey => {
                         const tenant = tenants.find(t => t.id === survey.tenantId);
-                        const link = survey.survey_url || (tenant ? `https://${tenant.subdomain}.benefitnest.space/${survey.slug || `survey-${survey.id}`}` : null);
+                        const link = survey.survey_url || (tenant && survey.slug ? `https://${tenant.subdomain}.benefitnest.space/surveys/${survey.slug}` : null);
                         return (
-                        <div key={survey.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl hover:-translate-y-1 transition-all flex flex-col h-[380px] group overflow-hidden relative">
+                        <div key={survey.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl hover:-translate-y-1 transition-all flex flex-col h-[400px] group overflow-hidden relative">
                             {/* Card Banner */}
                             <div className="relative h-24 w-full flex-shrink-0 overflow-hidden">
                                 {survey.branding?.bannerUrl ? (
@@ -295,6 +348,13 @@ export default function SurveyManager() {
                                 <div className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase shadow-sm ${survey.status === 'active' ? 'bg-green-500 text-white' : survey.status === 'closed' ? 'bg-gray-500 text-white' : 'bg-yellow-400 text-yellow-900'}`}>
                                     {survey.status}
                                 </div>
+                                
+                                {/* Survey Type Badge */}
+                                {survey.surveyType && survey.surveyType !== 'survey' && (
+                                    <div className="absolute top-3 left-3 px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-white/90 text-indigo-700 shadow-sm">
+                                        {survey.surveyType === 'quiz' ? '❓ Quiz' : survey.surveyType === 'invitation' ? '💌 Invite' : '📝 Reg'}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Card Content */}
@@ -562,6 +622,11 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                 templateCategory: survey.templateCategory,
                 survey_url: proposedUrl,
                 slug: survey.slug,
+                surveyType: survey.surveyType || 'survey',
+                surveyHeading: survey.surveyHeading || '',
+                description: survey.description || '',
+                startDate: survey.startDate || survey.start_date,
+                endDate: survey.endDate || survey.end_date,
                 questions: survey.questions.map((q: Question) => ({
                     id: q.id,
                     type: q.type,
@@ -699,7 +764,7 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-100px)] bg-gray-50">
+        <div className="flex flex-col h-screen bg-gray-50">
             {/* Notification */}
             {notification && (
                 <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg text-white z-50 animate-in fade-in slide-in-from-top-2 ${notification.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>{notification.message}</div>
@@ -717,7 +782,8 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                     <button onClick={onCancel} className="text-gray-500 hover:text-gray-900 transition-colors">
                         <ArrowLeft size={20} />
                     </button>
-                    <div>
+                    <div className="space-y-3">
+                        {/* Title Input */}
                         <input 
                             value={survey.title}
                             onChange={(e) => {
@@ -728,33 +794,94 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                             className="text-lg font-bold text-gray-900 border-none p-0 focus:ring-0 bg-transparent placeholder-gray-400"
                             placeholder="Survey Title"
                         />
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className={`w-2 h-2 rounded-full ${survey.status === 'active' ? 'bg-green-500' : 'bg-gray-300'}`} />
-                            <select 
-                                value={survey.status}
-                                onChange={(e) => onUpdate({...survey, status: e.target.value as any})}
-                                className="text-xs text-gray-500 border-none p-0 focus:ring-0 bg-transparent cursor-pointer hover:text-gray-900"
-                            >
-                                <option value="draft">Draft</option>
-                                <option value="active">Active</option>
-                                <option value="closed">Closed</option>
-                            </select>
+                        
+                        {/* Row 1: Status + Survey Type */}
+                        <div className="flex items-center gap-4 flex-wrap">
+                            <div className="flex items-center gap-2">
+                                <span className={`w-2 h-2 rounded-full ${survey.status === 'active' ? 'bg-green-500' : 'bg-gray-300'}`} />
+                                <select 
+                                    value={survey.status}
+                                    onChange={(e) => onUpdate({...survey, status: e.target.value as any})}
+                                    className="text-xs text-gray-500 border-none p-0 focus:ring-0 bg-transparent cursor-pointer hover:text-gray-900"
+                                >
+                                    <option value="draft">Draft</option>
+                                    <option value="active">Active</option>
+                                    <option value="closed">Closed</option>
+                                </select>
+                            </div>
+                            
+                            {/* Survey Type Dropdown */}
+                            <div className="flex items-center gap-2">
+                                <label className="text-xs text-gray-500">Type:</label>
+                                <select
+                                    value={survey.surveyType || 'survey'}
+                                    onChange={e => {
+                                        const updated = { ...survey, surveyType: e.target.value as Survey['surveyType'] };
+                                        onUpdate(updated);
+                                        autosaveSurvey(updated);
+                                    }}
+                                    className="text-xs text-gray-700 border border-gray-200 rounded px-2 py-1 bg-white font-medium"
+                                >
+                                    <option value="survey">📋 Survey</option>
+                                    <option value="quiz">❓ Quiz</option>
+                                    <option value="invitation">💌 Invitation</option>
+                                    <option value="registration">📝 Registration</option>
+                                </select>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2 mt-2">
-                            <label className="text-xs text-gray-500">Corporate Name:</label>
+                        
+                        {/* Row 2: Corporate Dropdown with Rich Display */}
+                        <div className="flex items-center gap-2">
+                            <label className="text-xs text-gray-500">Corporate:</label>
                             <select
                                 value={survey.tenantId || ''}
                                 onChange={e => onUpdate({ ...survey, tenantId: e.target.value })}
-                                className="text-xs text-gray-500 border border-gray-200 rounded px-2 py-1 bg-white"
+                                className="text-xs text-gray-700 border border-gray-200 rounded px-2 py-1 bg-white min-w-[200px]"
                             >
                                 <option value="">Select Corporate</option>
                                 {tenants.map(t => (
-                                    <option key={t.id} value={t.id}>{t.name || t.subdomain}</option>
+                                    <option key={t.id} value={t.id}>
+                                        {t.name}{t.subdomain ? ` (${t.subdomain})` : ''}{t.country ? ` - ${t.country}` : ''}
+                                    </option>
                                 ))}
                             </select>
+                            {/* Rich tenant info display */}
+                            {survey.tenantId && (() => {
+                                const tenant = tenants.find(t => t.id === survey.tenantId);
+                                return tenant ? (
+                                    <div className="flex items-center gap-2 ml-2 px-2 py-1 bg-gray-50 rounded-lg border border-gray-100">
+                                        <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs">
+                                            {(tenant.name || tenant.subdomain || 'C')[0].toUpperCase()}
+                                        </div>
+                                        <span className="text-[10px] font-mono text-gray-500">{tenant.subdomain}</span>
+                                        {tenant.status && (
+                                            <span className={`px-1 py-0.5 rounded text-[9px] uppercase font-bold ${tenant.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                                                {tenant.status}
+                                            </span>
+                                        )}
+                                    </div>
+                                ) : null;
+                            })()}
                         </div>
-                        <div className="flex items-center gap-2 mt-2">
-                            <label className="text-xs text-gray-500">Survey URL Name:</label>
+                        
+                        {/* Row 3: Survey Heading */}
+                        <div className="flex items-center gap-2">
+                            <label className="text-xs text-gray-500">Heading:</label>
+                            <input
+                                value={survey.surveyHeading || ''}
+                                onChange={(e) => {
+                                    const updated = { ...survey, surveyHeading: e.target.value };
+                                    onUpdate(updated);
+                                    autosaveSurvey(updated);
+                                }}
+                                placeholder="e.g., Employee Benefits Enrollment 2025"
+                                className="text-xs text-gray-700 border border-gray-200 rounded px-2 py-1 bg-white min-w-[300px]"
+                            />
+                        </div>
+                        
+                        {/* Row 4: Survey URL Name */}
+                        <div className="flex items-center gap-2">
+                            <label className="text-xs text-gray-500">URL Slug:</label>
                             <input
                                 value={survey.slug || ''}
                                 onChange={(e) => {
@@ -767,9 +894,9 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                                 placeholder="e.g., employee-engagement-2025"
                                 className="text-xs text-gray-700 border border-gray-200 rounded px-2 py-1 bg-white"
                             />
-                            {survey.tenantId && (
+                            {survey.tenantId && survey.slug && (
                                 <span className="text-[11px] text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded border border-gray-100">
-                                    Preview: https://{(tenants.find(t => t.id === survey.tenantId)?.subdomain) || 'corporate'}.benefitnest.space/{survey.slug || 'your-survey-name'}
+                                    🔗 https://{(tenants.find(t => t.id === survey.tenantId)?.subdomain) || 'corporate'}.benefitnest.space/surveys/{survey.slug}
                                 </span>
                             )}
                         </div>
@@ -858,9 +985,9 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
             )}
 
             {/* Main Editor Tabs and Question Builder */}
-            <div className="flex flex-col flex-1">
+            <div className="flex flex-col flex-1 overflow-hidden">
                 {/* Tabs */}
-                <div className="flex gap-2 px-6 pt-4 border-b border-gray-100 bg-white">
+                <div className="flex gap-2 px-6 pt-4 border-b border-gray-100 bg-white flex-shrink-0">
                     {['build', 'design', 'settings', 'preview'].map(tab => (
                         <button
                             key={tab}
@@ -872,7 +999,7 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                     ))}
                 </div>
                 {/* Tab Content */}
-                <div className="flex-1 px-6 py-6 bg-gray-50 overflow-y-auto">
+                <div className="flex-1 px-6 py-6 bg-gray-50 overflow-y-auto pb-24">
                     {activeTab === 'build' && (
                         <div>
                             {/* Question Builder */}
@@ -973,24 +1100,157 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                         </div>
                     )}
                     {activeTab === 'settings' && (
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-900 mb-4">Survey Settings</h2>
-                            <div className="grid grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1" title="If checked, this survey will be available as a reusable template for future surveys.">Template</label>
-                                    <div className="flex items-center gap-2">
-                                        <input 
-                                            type="checkbox" 
-                                            checked={!!survey.isTemplate} 
-                                            onChange={e => onUpdate({ ...survey, isTemplate: e.target.checked })}
-                                            title="Mark this survey as a template for reuse"
-                                        /> 
-                                        <span title="Mark this survey as a template for reuse">Mark as Template</span>
+                        <div className="max-w-4xl">
+                            <h2 className="text-xl font-bold text-gray-900 mb-6">Survey Settings</h2>
+                            
+                            {/* General Settings */}
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+                                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                    ⚙️ General Settings
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Survey Description</label>
+                                        <textarea
+                                            value={survey.description || ''}
+                                            onChange={e => {
+                                                const updated = { ...survey, description: e.target.value };
+                                                onUpdate(updated);
+                                                autosaveSurvey(updated);
+                                            }}
+                                            rows={3}
+                                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                            placeholder="Describe what this survey is about..."
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Survey Heading</label>
+                                        <input
+                                            type="text"
+                                            value={survey.surveyHeading || ''}
+                                            onChange={e => {
+                                                const updated = { ...survey, surveyHeading: e.target.value };
+                                                onUpdate(updated);
+                                                autosaveSurvey(updated);
+                                            }}
+                                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                            placeholder="Display heading for respondents"
+                                        />
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                                    <input type="text" value={survey.templateCategory || ''} onChange={e => onUpdate({ ...survey, templateCategory: e.target.value })} className="w-full border border-gray-300 rounded px-2 py-1" />
+                            </div>
+                            
+                            {/* Schedule Settings */}
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+                                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                    📅 Schedule
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                                        <input
+                                            type="date"
+                                            value={survey.startDate || survey.start_date || ''}
+                                            onChange={e => {
+                                                const updated = { ...survey, startDate: e.target.value, start_date: e.target.value };
+                                                onUpdate(updated);
+                                                autosaveSurvey(updated);
+                                            }}
+                                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                                        <input
+                                            type="date"
+                                            value={survey.endDate || survey.end_date || ''}
+                                            onChange={e => {
+                                                const updated = { ...survey, endDate: e.target.value, end_date: e.target.value };
+                                                onUpdate(updated);
+                                                autosaveSurvey(updated);
+                                            }}
+                                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Template Settings */}
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+                                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                    📋 Template Settings
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={!!survey.isTemplate} 
+                                                onChange={e => {
+                                                    const updated = { ...survey, isTemplate: e.target.checked };
+                                                    onUpdate(updated);
+                                                    autosaveSurvey(updated);
+                                                }}
+                                                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                            />
+                                            Save as Template
+                                        </label>
+                                        <p className="text-xs text-gray-500 ml-6">Make this survey available as a reusable template</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Template Category</label>
+                                        <select
+                                            value={survey.templateCategory || ''}
+                                            onChange={e => {
+                                                const updated = { ...survey, templateCategory: e.target.value };
+                                                onUpdate(updated);
+                                                autosaveSurvey(updated);
+                                            }}
+                                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                        >
+                                            <option value="">Select Category</option>
+                                            <option value="Employee Engagement">Employee Engagement</option>
+                                            <option value="Benefits Enrollment">Benefits Enrollment</option>
+                                            <option value="Wellness">Wellness</option>
+                                            <option value="Onboarding">Onboarding</option>
+                                            <option value="Feedback">Feedback</option>
+                                            <option value="Event Registration">Event Registration</option>
+                                            <option value="Custom">Custom</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Access & Permissions */}
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                    🔒 Access & Visibility
+                                </h3>
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                        <div>
+                                            <span className="font-medium text-gray-700">Survey URL</span>
+                                            {survey.tenantId && survey.slug && (
+                                                <p className="text-xs text-gray-500 font-mono mt-1">
+                                                    https://{(tenants.find(t => t.id === survey.tenantId)?.subdomain) || 'corporate'}.benefitnest.space/surveys/{survey.slug}
+                                                </p>
+                                            )}
+                                        </div>
+                                        {survey.tenantId && survey.slug && (
+                                            <button
+                                                onClick={() => {
+                                                    const tenant = tenants.find(t => t.id === survey.tenantId);
+                                                    if (tenant) {
+                                                        navigator.clipboard.writeText(`https://${tenant.subdomain}.benefitnest.space/surveys/${survey.slug}`);
+                                                        showNotification("URL copied to clipboard!");
+                                                    }
+                                                }}
+                                                className="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-semibold hover:bg-indigo-200 transition-colors"
+                                            >
+                                                📋 Copy URL
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
