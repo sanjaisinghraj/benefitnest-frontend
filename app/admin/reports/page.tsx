@@ -241,8 +241,8 @@ const DonutChart = ({ data }: { data: ChartData }) => {
               {insight}
             </p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     );
 };
 
