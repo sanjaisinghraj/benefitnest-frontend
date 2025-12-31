@@ -106,6 +106,28 @@ export default function CompliancePage() {
     }
   }
 
+  // Fetch tenants (corporates) on mount
+  useEffect(() => {
+    const fetchTenants = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem("admin_token");
+        const response = await fetch(`${API_URL}/api/admin/corporates`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (data.success && data.corporates) {
+          setTenants(data.corporates);
+        }
+      } catch (error) {
+        console.error("Failed to fetch tenants:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTenants();
+  }, []);
+
   useEffect(() => {
     // Fetch available countries from backend
     const fetchCountries = async () => {
