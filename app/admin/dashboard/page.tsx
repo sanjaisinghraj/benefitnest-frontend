@@ -182,7 +182,7 @@ const DEFAULT_CARDS = [
     title: "Audit & Compliance",
     description: "Immutable audit logs, privacy policy, terms & disclaimers, consent templates, GDPR/HIPAA toggles, versioning, and regulatory exports.",
     icon: "⚖️",
-    link: "/admin/audit",
+    link: "/admin/compliance",
     color: "#6366f1",
   },
   {
