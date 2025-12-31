@@ -226,7 +226,7 @@ export default function PublicSurveyPage() {
                             className="text-3xl font-bold mb-2"
                             style={{ color: survey.branding?.headingColor || '#111827' }}
                         >
-                            {survey.surveyHeading || survey.title}
+                            {survey.title}
                         </h1>
                         {survey.description && (
                             <p className="text-gray-600">{survey.description}</p>

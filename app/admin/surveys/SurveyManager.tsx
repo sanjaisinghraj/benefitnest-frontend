@@ -172,7 +172,7 @@ export default function SurveyManager() {
     // --- Handlers ---
     const handleCreateNew = () => {
         const newSurvey: Survey = {
-            id: crypto.randomUUID(),
+            id: "", // Empty ID means new survey - will be assigned by database
             title: "Untitled Survey",
             description: "",
             questions: [],
@@ -526,6 +526,12 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
     const getAuthHeaders = () => ({ Authorization: `Bearer ${getToken()}` });
 
     const autosaveSurvey = React.useCallback((updatedSurvey: Survey) => {
+        // Skip autosave for new surveys (no database ID yet)
+        // User must manually save first to create the survey
+        if (!updatedSurvey.id) {
+            return;
+        }
+        
         if (autosaveTimeout.current) clearTimeout(autosaveTimeout.current);
         setAutosaveStatus('saving');
         autosaveTimeout.current = setTimeout(async () => {
@@ -538,6 +544,7 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                     branding: updatedSurvey.branding,
                     isTemplate: updatedSurvey.isTemplate,
                     templateCategory: updatedSurvey.templateCategory,
+                    id: updatedSurvey.id, // Always include ID for updates
                     questions: updatedSurvey.questions.map((q: Question) => ({
                         id: q.id,
                         type: q.type,
@@ -559,19 +566,13 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                         })) || []
                     }))
                 };
-                // Only send id if it exists (for update)
-                if (updatedSurvey.id) payload.id = updatedSurvey.id;
                 let token = null;
                 if (typeof window !== "undefined") {
                     token = document.cookie.split('; ').find(r => r.startsWith('admin_token='))?.split('=')[1] || localStorage.getItem('admin_token');
                 }
                 const headers = token ? { Authorization: `Bearer ${token}` } : {};
                 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://benefitnest-backend.onrender.com";
-                const res = await axios.post(`${API_URL}/api/surveys`, payload, { headers });
-                // If new survey, update local state with new id
-                if (!updatedSurvey.id && res.data.success && res.data.data && res.data.data.id) {
-                    onUpdate({ ...updatedSurvey, id: res.data.data.id });
-                }
+                await axios.post(`${API_URL}/api/surveys`, payload, { headers });
                 setAutosaveStatus('saved');
                 setTimeout(() => setAutosaveStatus('idle'), 1500);
             } catch (err) {
@@ -579,15 +580,21 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                 setTimeout(() => setAutosaveStatus('idle'), 2000);
             }
         }, 1000); // 1s debounce
-    }, [onUpdate]);
+    }, []);
 
+    const savingRef = useRef(false);
+    
     const handleSave = async () => {
+        // Prevent double-saves
+        if (savingRef.current || saving) return;
+        savingRef.current = true;
         setSaving(true);
         try {
             // Validate survey
             if (!survey.title || !survey.tenantId || survey.questions.length === 0 || !survey.slug) {
                 showNotification("Please fill all required fields and add at least one question.", "error");
                 setSaving(false);
+                savingRef.current = false;
                 return;
             }
             // Build URL and check uniqueness
@@ -672,6 +679,7 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
             showNotification("Failed to save survey. Please try again.", "error");
         } finally {
             setSaving(false);
+            savingRef.current = false;
         }
     };
 
@@ -864,20 +872,7 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                             })()}
                         </div>
                         
-                        {/* Row 3: Survey Heading */}
-                        <div className="flex items-center gap-2">
-                            <label className="text-xs text-gray-500">Heading:</label>
-                            <input
-                                value={survey.surveyHeading || ''}
-                                onChange={(e) => {
-                                    const updated = { ...survey, surveyHeading: e.target.value };
-                                    onUpdate(updated);
-                                    autosaveSurvey(updated);
-                                }}
-                                placeholder="e.g., Employee Benefits Enrollment 2025"
-                                className="text-xs text-gray-700 border border-gray-200 rounded px-2 py-1 bg-white min-w-[300px]"
-                            />
-                        </div>
+                        {/* Row 3: Survey URL Slug */}
                         
                         {/* Row 4: Survey URL Name */}
                         <div className="flex items-center gap-2">
@@ -1108,7 +1103,7 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                                 <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                                     ⚙️ General Settings
                                 </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 gap-6">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Survey Description</label>
                                         <textarea
@@ -1121,20 +1116,6 @@ function SurveyEditor({ survey, onUpdate, onSave, onCancel, tenants, surveyUrl, 
                                             rows={3}
                                             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                             placeholder="Describe what this survey is about..."
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Survey Heading</label>
-                                        <input
-                                            type="text"
-                                            value={survey.surveyHeading || ''}
-                                            onChange={e => {
-                                                const updated = { ...survey, surveyHeading: e.target.value };
-                                                onUpdate(updated);
-                                                autosaveSurvey(updated);
-                                            }}
-                                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                            placeholder="Display heading for respondents"
                                         />
                                     </div>
                                 </div>
