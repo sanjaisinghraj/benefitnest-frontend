@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import AdminTopBar from "../components/AdminTopBar";
+import AdminFooter from "../components/AdminFooter";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "https://benefitnest-backend.onrender.com";
@@ -179,162 +181,16 @@ const DonutChart = ({
       >
         <svg
           viewBox="0 0 200 200"
-          style={{ width: "140px", height: "140px", flexShrink: 0 }}
-        >
-          {segments.map((seg, i) => (
-            <path
-              key={i}
-              d={seg.path}
-              fill="none"
-              stroke={seg.color}
-              strokeWidth={strokeWidth}
-              strokeLinecap="round"
-              style={{ transition: "all 0.3s ease" }}
-            />
-          ))}
-          <text
-            x={center}
-            y={center - 5}
-            textAnchor="middle"
-            style={{
-              fontSize: "20px",
-              fontWeight: "700",
-              fill: colors.gray[800],
-            }}
-          >
-            {total.toLocaleString()}
-          </text>
-          <text
-            x={center}
-            y={center + 15}
-            textAnchor="middle"
-            style={{ fontSize: "11px", fill: colors.gray[500] }}
-          >
-            Total
-          </text>
-        </svg>
-
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            gap: "6px",
-          }}
-        >
-          {segments.slice(0, 5).map((seg, i) => (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                fontSize: "12px",
-              }}
-            >
-              <div
-                style={{
-                  width: "10px",
-                  height: "10px",
-                  borderRadius: "3px",
-                  backgroundColor: seg.color,
-                  flexShrink: 0,
-                }}
+          return (
+            <div style={{ minHeight: "100vh", backgroundColor: colors.gray[50] }}>
+              <AdminTopBar
+                title="Reports & Analytics"
+                subtitle="Claims Intelligence Dashboard"
+                icon={<span style={{ fontSize: 24 }}>📊</span>}
+                showBack={true}
               />
-              <span
-                style={{
-                  color: colors.gray[700],
-                  flex: 1,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {seg.label}
-              </span>
-              <span style={{ fontWeight: "600", color: colors.gray[800] }}>
-                {seg.percentage}%
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      {insight && (
-        <div
-          style={{
-            marginTop: "12px",
-            padding: "12px",
-            backgroundColor: `${colors.primary}08`,
-            borderRadius: "10px",
-            border: `1px solid ${colors.primary}20`,
-          }}
-        >
-          <div
-            style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}
-          >
-            <span style={{ fontSize: "16px" }}>🤖</span>
-            <p
-              style={{
-                fontSize: "12px",
-                color: colors.gray[700],
-                margin: 0,
-                lineHeight: 1.5,
-              }}
-            >
-              {insight}
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Bar Chart Component
-const BarChart = ({
-  data,
-  title,
-  horizontal = false,
-  onInsightClick,
-  insight,
-  loadingInsight,
-}: {
-  data: ChartData;
-  title: string;
-  horizontal?: boolean;
-  onInsightClick: () => void;
-  insight?: string;
-  loadingInsight?: boolean;
-}) => {
-  const maxValue = Math.max(...data.values, 1);
-
-  return (
-    <div
-      style={{
-        backgroundColor: "white",
-        borderRadius: "16px",
-        padding: "20px",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-        border: `1px solid ${colors.gray[100]}`,
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "16px",
-        }}
-      >
-        <h3
-          style={{
-            fontSize: "16px",
-            fontWeight: "700",
-            color: colors.gray[800],
+              <main style={{ maxWidth: 1400, margin: "0 auto", padding: 32 }}>
             margin: 0,
           }}
         >
@@ -1814,6 +1670,7 @@ export default function ReportsAnalyticsPage() {
           </>
         )}
       </main>
+      <AdminFooter />
 
       <style jsx global>{`
         @keyframes pulse {

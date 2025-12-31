@@ -1,3 +1,78 @@
+  // State for country selection and default policies
+  const [selectedCountry, setSelectedCountry] = useState<string>("");
+  const [defaultPoliciesByCountry, setDefaultPoliciesByCountry] = useState<Record<string, CompliancePolicy>>({});
+
+  // Fetch available countries for dropdown (from backend or static list)
+  const [availableCountries, setAvailableCountries] = useState<string[]>([]);
+  useEffect(() => {
+    // Fetch available countries from backend
+    const fetchCountries = async () => {
+      try {
+        const token = localStorage.getItem("admin_token");
+        const response = await fetch(`${API_URL}/api/admin/compliance-policies-default/countries`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (data.success && data.countries) {
+          setAvailableCountries(data.countries);
+        }
+      } catch (error) {
+        setAvailableCountries(["India", "USA", "UK"]); // fallback
+      }
+    };
+    fetchCountries();
+  }, []);
+
+  // Fetch default policies for selected country
+  const fetchDefaultPolicies = async (country: string) => {
+    try {
+      const token = localStorage.getItem("admin_token");
+      const response = await fetch(`${API_URL}/api/admin/compliance-policies-default?country=${country}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (data.success && data.policy) {
+        setDefaultPoliciesByCountry((prev) => ({ ...prev, [country]: data.policy }));
+      }
+    } catch (error) {
+      // handle error
+    }
+  };
+
+  // Handler for country change
+  const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const country = e.target.value;
+    setSelectedCountry(country);
+    fetchDefaultPolicies(country);
+  };
+
+  // Handler to apply default text
+  const handleApplyDefault = () => {
+    if (!selectedCountry || !defaultPoliciesByCountry[selectedCountry]) return;
+    const pol = defaultPoliciesByCountry[selectedCountry];
+    let content = "";
+    switch (activeDocument) {
+      case "privacy_policy":
+        content = pol.privacy_policy_content || "";
+        break;
+      case "terms_conditions":
+        content = pol.terms_conditions_content || "";
+        break;
+      case "disclaimer":
+        content = pol.disclaimer_content || "";
+        break;
+      case "consent":
+        content = pol.consent_details_content || "";
+        break;
+      case "dpa":
+        content = pol.dpa_content || "";
+        break;
+      default:
+        content = "";
+    }
+    setEditedContent(content);
+    setHasChanges(true);
+  };
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
@@ -30,125 +105,157 @@ interface CompliancePolicy {
 
 type DocumentType =
   | "privacy_policy"
-  | "terms_conditions"
-  | "disclaimer"
-  | "consent"
-  | "dpa";
-
-const colors = {
-  primary: "#2563eb",
-  secondary: "#10b981",
-  accent: "#f59e0b",
-  danger: "#dc2626",
-  gray: {
-    50: "#f9fafb",
-    100: "#f3f4f6",
-    200: "#e5e7eb",
-    300: "#d1d5db",
-    400: "#9ca3af",
-    500: "#6b7280",
-    600: "#4b5563",
-    700: "#374151",
-    800: "#1f2937",
-    900: "#111827",
-  },
-};
-
-export default function ComplianceSettingsPage() {
-  const router = useRouter();
-  const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
-  const [policies, setPolicies] = useState<CompliancePolicy | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [activeDocument, setActiveDocument] =
-    useState<DocumentType>("privacy_policy");
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [editedContent, setEditedContent] = useState("");
-  const [hasChanges, setHasChanges] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-
-  // Fetch all tenants
-  useEffect(() => {
-    const fetchTenants = async () => {
-      try {
-        const token = localStorage.getItem("admin_token");
-        const response = await fetch(`${API_URL}/api/admin/corporates`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await response.json();
-        if (data.success && data.data) {
-          setTenants(data.data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch tenants:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTenants();
-  }, []);
-
-  // Fetch compliance policies for selected tenant
-  const fetchPolicies = useCallback(
-    async (tenant: Tenant) => {
-      try {
-        const token = localStorage.getItem("admin_token");
-        const response = await fetch(
-          `${API_URL}/api/admin/compliance-policies/${tenant.tenant_id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
-        const data = await response.json();
-        if (data.success && data.data) {
-          setPolicies(data.data);
-          setEditedContent(getDocumentContent(data.data, activeDocument));
-        } else {
-          // Set default empty policies
-          const defaultPolicies: CompliancePolicy = {
-            privacy_policy_title: "Privacy Policy",
-            privacy_policy_content: "",
-            terms_conditions_title: "Terms & Conditions",
-            terms_conditions_content: "",
-            disclaimer_title: "Disclaimer",
-            disclaimer_content: "",
-            consent_checkbox_text:
-              "I agree to the Privacy Policy and Terms & Conditions",
-            consent_details_content: "",
-            dpa_required: false,
-            dpa_title: "Data Processing Agreement",
-            dpa_content: "",
-          };
-          setPolicies(defaultPolicies);
-          setEditedContent("");
-        }
-      } catch (error) {
-        console.error("Failed to fetch policies:", error);
-      }
-    },
-    [activeDocument],
-  );
-
-  const handleSelectTenant = (tenant: Tenant) => {
-    if (hasChanges && !confirm("You have unsaved changes. Continue?")) return;
-    setSelectedTenant(tenant);
-    setHasChanges(false);
-    fetchPolicies(tenant);
-  };
-
-  const getDocumentContent = (
-    pol: CompliancePolicy,
-    docType: DocumentType,
-  ): string => {
-    switch (docType) {
-      case "privacy_policy":
-        return pol.privacy_policy_content || "";
-      case "terms_conditions":
-        return pol.terms_conditions_content || "";
-      case "disclaimer":
-        return pol.disclaimer_content || "";
+              {/* Editor with country selection and apply default */}
+              <div
+                style={{
+                  flex: 1,
+                  backgroundColor: "white",
+                  borderRadius: "12px",
+                  border: "1px solid #e5e7eb",
+                  display: "flex",
+                  flexDirection: "column",
+                  minHeight: "500px",
+                }}
+              >
+                <div
+                  style={{
+                    padding: "16px 20px",
+                    borderBottom: "1px solid #e5e7eb",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "16px",
+                  }}
+                >
+                  <h3
+                    style={{
+                      fontSize: "16px",
+                      fontWeight: "600",
+                      color: colors.gray[900],
+                      margin: 0,
+                    }}
+                  >
+                    {getDocumentTitle(activeDocument)}
+                  </h3>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button
+                      onClick={() => document.execCommand("bold")}
+                      style={{
+                        padding: "6px 12px",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "6px",
+                        backgroundColor: "white",
+                        cursor: "pointer",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      B
+                    </button>
+                    <button
+                      onClick={() => document.execCommand("italic")}
+                      style={{
+                        padding: "6px 12px",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "6px",
+                        backgroundColor: "white",
+                        cursor: "pointer",
+                        fontStyle: "italic",
+                      }}
+                    >
+                      I
+                    </button>
+                    <button
+                      onClick={() => document.execCommand("underline")}
+                      style={{
+                        padding: "6px 12px",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "6px",
+                        backgroundColor: "white",
+                        cursor: "pointer",
+                        textDecoration: "underline",
+                      }}
+                    >
+                      U
+                    </button>
+                    <button
+                      onClick={() => document.execCommand("insertUnorderedList")}
+                      style={{
+                        padding: "6px 12px",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "6px",
+                        backgroundColor: "white",
+                        cursor: "pointer",
+                      }}
+                    >
+                      • List
+                    </button>
+                    <button
+                      onClick={() => document.execCommand("insertOrderedList")}
+                      style={{
+                        padding: "6px 12px",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "6px",
+                        backgroundColor: "white",
+                        cursor: "pointer",
+                      }}
+                    >
+                      1. List
+                    </button>
+                  </div>
+                  {/* Country dropdown and apply default button */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <select
+                      value={selectedCountry}
+                      onChange={handleCountryChange}
+                      style={{
+                        padding: "6px 12px",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "6px",
+                        backgroundColor: "white",
+                        fontSize: "14px",
+                      }}
+                    >
+                      <option value="">Select Country</option>
+                      {availableCountries.map((country) => (
+                        <option key={country} value={country}>{country}</option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleApplyDefault}
+                      style={{
+                        padding: "6px 12px",
+                        border: "1px solid #2563eb",
+                        borderRadius: "6px",
+                        backgroundColor: "#2563eb",
+                        color: "white",
+                        fontWeight: "600",
+                        cursor: "pointer",
+                      }}
+                      disabled={!selectedCountry || !defaultPoliciesByCountry[selectedCountry]}
+                    >
+                      Apply Default
+                    </button>
+                  </div>
+                </div>
+                <div
+                  contentEditable
+                  suppressContentEditableWarning
+                  ref={editorRef}
+                  onInput={(e) => handleContentChange(e.currentTarget.innerHTML)}
+                  style={{
+                    flex: 1,
+                    padding: "24px",
+                    fontSize: "15px",
+                    lineHeight: "1.8",
+                    color: colors.gray[800],
+                    outline: "none",
+                    overflowY: "auto",
+                    minHeight: "400px",
+                  }}
+                  {...(editorInitialized ? {} : { dangerouslySetInnerHTML: { __html: editedContent } })}
+                  onFocus={() => setEditorInitialized(true)}
+                />
+              </div>
       case "consent":
         return pol.consent_details_content || "";
       case "dpa":
@@ -835,10 +942,8 @@ export default function ComplianceSettingsPage() {
                 <div
                   contentEditable
                   suppressContentEditableWarning
-                  onInput={(e) =>
-                    handleContentChange(e.currentTarget.innerHTML)
-                  }
-                  dangerouslySetInnerHTML={{ __html: editedContent }}
+                  ref={editorRef}
+                  onInput={(e) => handleContentChange(e.currentTarget.innerHTML)}
                   style={{
                     flex: 1,
                     padding: "24px",
@@ -849,7 +954,13 @@ export default function ComplianceSettingsPage() {
                     overflowY: "auto",
                     minHeight: "400px",
                   }}
+                  // Only set initial value
+                  {...(editorInitialized ? {} : { dangerouslySetInnerHTML: { __html: editedContent } })}
+                  onFocus={() => setEditorInitialized(true)}
                 />
+              // Add at the top, after useState declarations
+              const editorRef = React.useRef<HTMLDivElement>(null);
+              const [editorInitialized, setEditorInitialized] = useState(false);
               </div>
 
               {/* Consent Checkbox Preview */}
