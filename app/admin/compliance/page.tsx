@@ -1,40 +1,4 @@
-
 "use client";
-
-// Add missing state and utility declarations
-const [policies, setPolicies] = useState<CompliancePolicy | null>(null);
-const [tenants, setTenants] = useState<Tenant[]>([]);
-const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
-const [loading, setLoading] = useState<boolean>(false);
-const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
-const [saving, setSaving] = useState<boolean>(false);
-const [showProfileMenu, setShowProfileMenu] = useState<boolean>(false);
-const [searchTerm, setSearchTerm] = useState<string>("");
-
-// Utility: getDocumentContent
-function getDocumentContent(policy: CompliancePolicy, docType: DocumentType): string {
-  switch (docType) {
-    case "privacy_policy":
-      return policy.privacy_policy_content || "";
-    case "terms_conditions":
-      return policy.terms_conditions_content || "";
-    case "disclaimer":
-      return policy.disclaimer_content || "";
-    case "consent":
-      return policy.consent_details_content || "";
-    case "dpa":
-      return policy.dpa_content || "";
-    default:
-      return "";
-  }
-}
-
-// Utility: handleSelectTenant
-function handleSelectTenant(tenant: Tenant) {
-  setSelectedTenant(tenant);
-  // Fetch policies for selected tenant (mock/fetch logic needed)
-  // setPolicies(...)
-}
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -84,6 +48,14 @@ const colors = {
 
 export default function CompliancePage() {
   const router = useRouter();
+  const [policies, setPolicies] = useState<CompliancePolicy | null>(null);
+  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [showProfileMenu, setShowProfileMenu] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedCountry, setSelectedCountry] = useState<string>("");
   const [defaultPoliciesByCountry, setDefaultPoliciesByCountry] = useState<Record<string, CompliancePolicy>>({});
   const [availableCountries, setAvailableCountries] = useState<string[]>([]);
@@ -92,7 +64,29 @@ export default function CompliancePage() {
   const [hasChanges, setHasChanges] = useState<boolean>(false);
   const [editorInitialized, setEditorInitialized] = useState<boolean>(false);
   const editorRef = useRef<HTMLDivElement>(null);
-  // ...other states like tenants, policies, selectedTenant, loading, etc. should be defined here...
+
+  // Utility: getDocumentContent
+  function getDocumentContent(policy: CompliancePolicy, docType: DocumentType): string {
+    switch (docType) {
+      case "privacy_policy":
+        return policy.privacy_policy_content || "";
+      case "terms_conditions":
+        return policy.terms_conditions_content || "";
+      case "disclaimer":
+        return policy.disclaimer_content || "";
+      case "consent":
+        return policy.consent_details_content || "";
+      case "dpa":
+        return policy.dpa_content || "";
+      default:
+        return "";
+    }
+  }
+
+  // Utility: handleSelectTenant
+  function handleSelectTenant(tenant: Tenant) {
+    setSelectedTenant(tenant);
+  }
 
   // Utility: getDocumentTitle
   function getDocumentTitle(docType: DocumentType): string {
