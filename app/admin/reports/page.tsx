@@ -87,37 +87,7 @@ const DonutChart = ({ data }: { data: ChartData }) => {
   );
 };
 
-    const largeArc = angle > 180 ? 1 : 0;
-
-    return {
-      path: `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`,
-      color: data.colors?.[index] || chartColors[index % chartColors.length],
-      label: data.labels[index],
-      value,
-      percentage: percentage.toFixed(1),
-    };
-  });
-
-  return (
-    <div
-      style={{
-        backgroundColor: "white",
-        borderRadius: "16px",
-        padding: "20px",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-        border: `1px solid ${colors.gray[100]}`,
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "16px",
-        }}
+// ...existing code...
       >
         <h3
           style={{
