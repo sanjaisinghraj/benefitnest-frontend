@@ -128,39 +128,52 @@ export default function CompliancePage() {
     fetchTenants();
   }, []);
 
+  // TODO: Uncomment when backend endpoints are ready
+  // useEffect(() => {
+  //   // Fetch available countries from backend
+  //   const fetchCountries = async () => {
+  //     try {
+  //       const token = localStorage.getItem("admin_token");
+  //       const response = await fetch(`${API_URL}/api/admin/compliance-policies-default/countries`, {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       });
+  //       const data = await response.json();
+  //       if (data.success && data.countries) {
+  //         setAvailableCountries(data.countries);
+  //       }
+  //     } catch (error) {
+  //       setAvailableCountries(["India", "USA", "UK"]); // fallback
+  //     }
+  //   };
+  //   fetchCountries();
+  // }, []);
+
+  // Use hardcoded countries for now until backend is ready
   useEffect(() => {
-    // Fetch available countries from backend
-    const fetchCountries = async () => {
-      try {
-        const token = localStorage.getItem("admin_token");
-        const response = await fetch(`${API_URL}/api/admin/compliance-policies-default/countries`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await response.json();
-        if (data.success && data.countries) {
-          setAvailableCountries(data.countries);
-        }
-      } catch (error) {
-        setAvailableCountries(["India", "USA", "UK"]); // fallback
-      }
-    };
-    fetchCountries();
+    setAvailableCountries(["India", "USA", "UK"]);
   }, []);
 
   const fetchDefaultPolicies = async (country: string) => {
-    try {
-      const token = localStorage.getItem("admin_token");
-      const response = await fetch(`${API_URL}/api/admin/compliance-policies-default?country=${country}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      if (data.success && data.policy) {
-        setDefaultPoliciesByCountry((prev) => ({ ...prev, [country]: data.policy }));
-      }
-    } catch (error) {
-      // handle error
-    }
+    // TODO: Implement when backend endpoint is ready
+    // For now, just set empty policy
+    console.log("fetchDefaultPolicies called for:", country);
   };
+
+  // Original implementation (commented out until backend is ready):
+  // const fetchDefaultPolicies = async (country: string) => {
+  //   try {
+  //     const token = localStorage.getItem("admin_token");
+  //     const response = await fetch(`${API_URL}/api/admin/compliance-policies-default?country=${country}`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+  //     const data = await response.json();
+  //     if (data.success && data.policy) {
+  //       setDefaultPoliciesByCountry((prev) => ({ ...prev, [country]: data.policy }));
+  //     }
+  //   } catch (error) {
+  //     // handle error
+  //   }
+  // };
 
   const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const country = e.target.value;
