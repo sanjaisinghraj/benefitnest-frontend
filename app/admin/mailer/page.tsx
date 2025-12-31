@@ -53,7 +53,7 @@ const EVENT_TYPES: { value: EventType; label: string; icon: string }[] = [
 // API SERVICE
 // =====================================================
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://backend.benefitnest.space';
+const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://benefitnest-backend.onrender.com';
 
 const getAuthToken = () => {
   if (typeof window !== 'undefined') {
