@@ -95,34 +95,7 @@ const DonutChart = ({ data }: { data: ChartData }) => {
                 showBack={true}
               />
 
-              <main style={{ maxWidth: 1400, margin: "0 auto", padding: 32 }}>
-            margin: 0,
-          }}
-        >
-          {title}
-        </h3>
-        <button
-          onClick={onInsightClick}
-          disabled={loadingInsight}
-          style={{
-            padding: "6px 12px",
-            background: loadingInsight
-              ? colors.gray[200]
-              : `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
-            color: loadingInsight ? colors.gray[500] : "white",
-            border: "none",
-            borderRadius: "8px",
-            fontSize: "11px",
-            fontWeight: "600",
-            cursor: loadingInsight ? "not-allowed" : "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: "4px",
-          }}
-        >
-          {loadingInsight ? "⏳ Analyzing..." : "✨ Insights"}
-        </button>
-      </div>
+// ...existing code...
 
       {horizontal ? (
         <div
