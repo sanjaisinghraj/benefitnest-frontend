@@ -88,16 +88,6 @@ const DonutChart = ({ data }: { data: ChartData }) => {
 };
 
 // ...existing code...
-        </button>
-      </div>
-
-      <div
-        style={{ display: "flex", alignItems: "center", gap: "20px", flex: 1 }}
-      >
-        <svg
-          viewBox="0 0 200 200"
-          return (
-            <div style={{ minHeight: "100vh", backgroundColor: colors.gray[50] }}>
               <AdminTopBar
                 title="Reports & Analytics"
                 subtitle="Claims Intelligence Dashboard"
