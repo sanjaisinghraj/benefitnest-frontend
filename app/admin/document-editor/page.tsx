@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import AdminTopBar from "../components/AdminTopBar";
 import AdminFooter from "../components/AdminFooter";
 
@@ -165,11 +165,129 @@ export default function DocumentEditorPage() {
   // Track if original document was edited
   const [isDocumentEdited, setIsDocumentEdited] = useState(false);
 
+  // Corporate Assignment State
+  const [showCorporatePanel, setShowCorporatePanel] = useState(false);
+  const [tenantsList, setTenantsList] = useState<Array<{id: string; tenant_code: string; corporate_legal_name: string; status: string}>>([]);
+  const [selectedTenants, setSelectedTenants] = useState<string[]>([]);
+  const [assignedCorporates, setAssignedCorporates] = useState<Array<{tenant_id: string; tenant_code: string; tenant?: {corporate_legal_name: string}; assigned_at: string; enabled_for_employees: boolean}>>([]);
+  const [isLoadingTenants, setIsLoadingTenants] = useState(false);
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [enableForEmployees, setEnableForEmployees] = useState(false);
+  const [searchTenant, setSearchTenant] = useState("");
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const showToast = (message: string, type: "success" | "error" | "info") => {
     setToast({ message, type });
   };
+
+  // Fetch tenants list when panel opens
+  useEffect(() => {
+    if (showCorporatePanel) {
+      fetchTenantsList();
+      fetchAssignedCorporates();
+    }
+  }, [showCorporatePanel]);
+
+  const fetchTenantsList = async () => {
+    setIsLoadingTenants(true);
+    try {
+      const response = await fetch(`${API_URL}/api/admin/document/tenants-list`, {
+        headers: getAuthHeaders(),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setTenantsList(data.tenants || []);
+      } else {
+        showToast("Failed to load corporates", "error");
+      }
+    } catch (err) {
+      console.error("Error fetching tenants:", err);
+      showToast("Failed to load corporates", "error");
+    } finally {
+      setIsLoadingTenants(false);
+    }
+  };
+
+  const fetchAssignedCorporates = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/document/ai-editor-config`, {
+        headers: getAuthHeaders(),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setAssignedCorporates(data.configs || []);
+      }
+    } catch (err) {
+      console.error("Error fetching assigned corporates:", err);
+    }
+  };
+
+  const handleAssignCorporates = async () => {
+    if (selectedTenants.length === 0) {
+      showToast("Please select at least one corporate", "error");
+      return;
+    }
+
+    setIsAssigning(true);
+    try {
+      const response = await fetch(`${API_URL}/api/admin/document/ai-editor-config/assign`, {
+        method: "POST",
+        headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tenantIds: selectedTenants,
+          enabledForEmployees: enableForEmployees,
+          assignedBy: "Admin",
+        }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        showToast(data.message || "AI Document Editor assigned successfully!", "success");
+        setSelectedTenants([]);
+        setEnableForEmployees(false);
+        fetchAssignedCorporates();
+      } else {
+        showToast(data.error || "Failed to assign", "error");
+      }
+    } catch (err) {
+      console.error("Error assigning corporates:", err);
+      showToast("Failed to assign AI Document Editor", "error");
+    } finally {
+      setIsAssigning(false);
+    }
+  };
+
+  const handleRemoveCorporate = async (tenantId: string) => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/document/ai-editor-config/${tenantId}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+      const data = await response.json();
+      if (data.success) {
+        showToast("Access removed successfully", "success");
+        fetchAssignedCorporates();
+      } else {
+        showToast(data.error || "Failed to remove", "error");
+      }
+    } catch (err) {
+      console.error("Error removing corporate:", err);
+      showToast("Failed to remove access", "error");
+    }
+  };
+
+  const toggleTenantSelection = (tenantId: string) => {
+    setSelectedTenants(prev => 
+      prev.includes(tenantId) 
+        ? prev.filter(id => id !== tenantId)
+        : [...prev, tenantId]
+    );
+  };
+
+  const filteredTenants = tenantsList.filter(t => 
+    t.corporate_legal_name?.toLowerCase().includes(searchTenant.toLowerCase()) ||
+    t.tenant_code?.toLowerCase().includes(searchTenant.toLowerCase())
+  );
 
   // Handle file selection
   const handleFileSelect = async (file: File) => {
@@ -498,14 +616,246 @@ export default function DocumentEditorPage() {
             <h1 style={{ fontSize: "28px", fontWeight: 700, margin: 0 }}>📄 AI Document Editor</h1>
             <p style={{ opacity: 0.9, margin: "8px 0 0 0" }}>Upload documents, extract content, and analyze with AI</p>
           </div>
-          {uploadedFile && (
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: "14px", opacity: 0.8 }}>{uploadedFile.name}</div>
-              <div style={{ fontSize: "12px", opacity: 0.7 }}>{formatFileSize(uploadedFile.size)} • {extractionEngine}</div>
-            </div>
-          )}
+          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+            <button
+              onClick={() => setShowCorporatePanel(!showCorporatePanel)}
+              style={{
+                padding: "10px 20px",
+                background: showCorporatePanel ? "white" : "rgba(255,255,255,0.2)",
+                color: showCorporatePanel ? colors.primary : "white",
+                border: "2px solid white",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: 600,
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                transition: "all 0.2s",
+              }}
+            >
+              🏢 {showCorporatePanel ? "Hide Panel" : "Add to Corporate"}
+            </button>
+            {uploadedFile && (
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: "14px", opacity: 0.8 }}>{uploadedFile.name}</div>
+                <div style={{ fontSize: "12px", opacity: 0.7 }}>{formatFileSize(uploadedFile.size)} • {extractionEngine}</div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Corporate Assignment Panel */}
+      {showCorporatePanel && (
+        <div style={{
+          background: "white",
+          borderBottom: `1px solid ${colors.gray[200]}`,
+          padding: "20px 32px",
+        }}>
+          <div style={{ maxWidth: "1600px", margin: "0 auto" }}>
+            <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
+              
+              {/* Left: Select Corporates */}
+              <div style={{ flex: "1", minWidth: "300px" }}>
+                <h3 style={{ fontSize: "16px", fontWeight: 600, color: colors.gray[800], marginBottom: "12px" }}>
+                  🏢 Assign AI Document Module to Corporates
+                </h3>
+                
+                {/* Search */}
+                <input
+                  type="text"
+                  placeholder="Search by code or name..."
+                  value={searchTenant}
+                  onChange={(e) => setSearchTenant(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "10px 14px",
+                    border: `1px solid ${colors.gray[300]}`,
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    marginBottom: "12px",
+                  }}
+                />
+
+                {/* Multi-select dropdown */}
+                <div style={{
+                  border: `1px solid ${colors.gray[300]}`,
+                  borderRadius: "8px",
+                  maxHeight: "200px",
+                  overflowY: "auto",
+                  background: colors.gray[50],
+                }}>
+                  {isLoadingTenants ? (
+                    <div style={{ padding: "20px", textAlign: "center", color: colors.gray[500] }}>
+                      Loading corporates...
+                    </div>
+                  ) : filteredTenants.length === 0 ? (
+                    <div style={{ padding: "20px", textAlign: "center", color: colors.gray[500] }}>
+                      No corporates found
+                    </div>
+                  ) : (
+                    filteredTenants.map((tenant) => {
+                      const isAssigned = assignedCorporates.some(a => a.tenant_id === tenant.id);
+                      const isSelected = selectedTenants.includes(tenant.id);
+                      return (
+                        <div
+                          key={tenant.id}
+                          onClick={() => !isAssigned && toggleTenantSelection(tenant.id)}
+                          style={{
+                            padding: "10px 14px",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "10px",
+                            borderBottom: `1px solid ${colors.gray[200]}`,
+                            cursor: isAssigned ? "not-allowed" : "pointer",
+                            background: isSelected ? colors.primaryLight : isAssigned ? colors.gray[100] : "white",
+                            opacity: isAssigned ? 0.6 : 1,
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected || isAssigned}
+                            disabled={isAssigned}
+                            onChange={() => {}}
+                            style={{ cursor: isAssigned ? "not-allowed" : "pointer" }}
+                          />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 500, color: colors.gray[800], fontSize: "14px" }}>
+                              <span style={{ 
+                                background: colors.primary, 
+                                color: "white", 
+                                padding: "2px 6px", 
+                                borderRadius: "4px", 
+                                fontSize: "11px",
+                                marginRight: "8px",
+                              }}>
+                                {tenant.tenant_code}
+                              </span>
+                              {tenant.corporate_legal_name || "—"}
+                            </div>
+                          </div>
+                          {isAssigned && (
+                            <span style={{ 
+                              fontSize: "11px", 
+                              color: colors.success, 
+                              background: "#d1fae5",
+                              padding: "2px 8px",
+                              borderRadius: "4px",
+                            }}>
+                              ✓ Assigned
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Options */}
+                <div style={{ marginTop: "12px", display: "flex", alignItems: "center", gap: "16px" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", color: colors.gray[700] }}>
+                    <input
+                      type="checkbox"
+                      checked={enableForEmployees}
+                      onChange={(e) => setEnableForEmployees(e.target.checked)}
+                    />
+                    Also enable for employees
+                  </label>
+                  <button
+                    onClick={handleAssignCorporates}
+                    disabled={selectedTenants.length === 0 || isAssigning}
+                    style={{
+                      padding: "10px 24px",
+                      background: selectedTenants.length === 0 ? colors.gray[300] : `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
+                      color: "white",
+                      border: "none",
+                      borderRadius: "8px",
+                      cursor: selectedTenants.length === 0 ? "not-allowed" : "pointer",
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    {isAssigning ? "Assigning..." : `✓ Assign (${selectedTenants.length})`}
+                  </button>
+                </div>
+              </div>
+
+              {/* Right: Assigned Corporates */}
+              <div style={{ flex: "1", minWidth: "300px" }}>
+                <h3 style={{ fontSize: "16px", fontWeight: 600, color: colors.gray[800], marginBottom: "12px" }}>
+                  ✅ Assigned Corporates ({assignedCorporates.length})
+                </h3>
+                <div style={{
+                  border: `1px solid ${colors.gray[200]}`,
+                  borderRadius: "8px",
+                  maxHeight: "250px",
+                  overflowY: "auto",
+                  background: "white",
+                }}>
+                  {assignedCorporates.length === 0 ? (
+                    <div style={{ padding: "20px", textAlign: "center", color: colors.gray[500] }}>
+                      No corporates assigned yet
+                    </div>
+                  ) : (
+                    assignedCorporates.map((config) => (
+                      <div
+                        key={config.tenant_id}
+                        style={{
+                          padding: "12px 14px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          borderBottom: `1px solid ${colors.gray[100]}`,
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontWeight: 500, color: colors.gray[800], fontSize: "14px" }}>
+                            <span style={{ 
+                              background: colors.success, 
+                              color: "white", 
+                              padding: "2px 6px", 
+                              borderRadius: "4px", 
+                              fontSize: "11px",
+                              marginRight: "8px",
+                            }}>
+                              {config.tenant_code}
+                            </span>
+                            {config.tenant?.corporate_legal_name || "—"}
+                          </div>
+                          <div style={{ fontSize: "11px", color: colors.gray[500], marginTop: "4px" }}>
+                            Assigned: {new Date(config.assigned_at).toLocaleDateString()}
+                            {config.enabled_for_employees && (
+                              <span style={{ marginLeft: "8px", color: colors.primary }}>• Employees enabled</span>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveCorporate(config.tenant_id)}
+                          style={{
+                            padding: "4px 10px",
+                            background: colors.error,
+                            color: "white",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                          }}
+                        >
+                          ✕ Remove
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div style={{ flex: 1, padding: "24px 32px", maxWidth: "1600px", margin: "0 auto", width: "100%" }}>
