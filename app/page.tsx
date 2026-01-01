@@ -3,10 +3,12 @@
 import React, { useEffect, useState } from "react";
 
 export default function Page() {
+  const [mounted, setMounted] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const timer = setTimeout(() => {
       setShowWelcome(false);
     }, 2500);
@@ -132,7 +134,7 @@ export default function Page() {
       </div>
 
       {/* WELCOME OVERLAY */}
-      {showWelcome && (
+      {mounted && showWelcome && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white">
           <h1
             className="text-6xl md:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600"
@@ -570,7 +572,7 @@ export default function Page() {
             ))}
           </div>
           <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-slate-900 text-center text-sm">
-            © {new Date().getFullYear()} BenefitNest. All rights reserved.
+            © 2026 BenefitNest. All rights reserved.
           </div>
         </footer>
 

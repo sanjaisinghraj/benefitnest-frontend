@@ -186,6 +186,14 @@ const DEFAULT_CARDS = [
     color: "#6366f1",
   },
   {
+    id: "faq",
+    title: "FAQ Management",
+    description: "Manage frequently asked questions by country, category, and policy type. Add, edit, delete FAQs and map them to specific tenants.",
+    icon: "📚",
+    link: "/admin/faq",
+    color: "#0d9488",
+  },
+  {
     id: "system",
     title: "System Configuration",
     description: "Configure email/SMS templates, notification preferences, API keys, SSO providers, and feature toggles per tenant.",

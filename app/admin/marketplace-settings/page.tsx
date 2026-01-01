@@ -635,23 +635,8 @@ export default function MarketplaceSettingsPage() {
   const handleCorporateSelect = async (corp: Corporate) => {
     if (hasUnsavedChanges && !confirm("You have unsaved changes. Continue?"))
       return;
-    if (!selectedCorporate) {
-      showToast("No corporate selected.", "error");
-      return;
-    }
-    try {
-      await axios.put(
-        `${API_URL}/api/admin/corporates/${selectedCorporate.tenant_id}/marketplace-settings`,
-        settings,
-        { headers: getAuthHeaders() },
-      );
-      setOriginalSettings(settings);
-      showToast("Marketplace settings saved successfully!", "success");
-    } catch (err) {
-      showToast("Failed to save settings", "error");
-    } finally {
-      setSaving(false);
-    }
+    setSelectedCorporate(corp);
+    await fetchMarketplaceSettings(corp.tenant_id);
   };
 
   // Save handler for marketplace settings

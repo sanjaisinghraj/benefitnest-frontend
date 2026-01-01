@@ -84,9 +84,92 @@ export default function CompliancePage() {
   }
 
   // Utility: handleSelectTenant
-  function handleSelectTenant(tenant: Tenant) {
+  async function handleSelectTenant(tenant: Tenant) {
     setSelectedTenant(tenant);
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("admin_token");
+      const response = await fetch(
+        `${API_URL}/api/admin/compliance-policies/${tenant.tenant_id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const data = await response.json();
+      if (data.success && data.policy) {
+        setPolicies(data.policy);
+        setEditedContent(getDocumentContent(data.policy, activeDocument));
+      } else {
+        // Initialize with empty policies if none exist
+        const emptyPolicies: CompliancePolicy = {
+          privacy_policy_title: "Privacy Policy",
+          privacy_policy_content: "",
+          terms_conditions_title: "Terms & Conditions",
+          terms_conditions_content: "",
+          disclaimer_title: "Disclaimer",
+          disclaimer_content: "",
+          consent_checkbox_text: "",
+          consent_details_content: "",
+          dpa_required: false,
+          dpa_title: "Data Processing Agreement",
+          dpa_content: "",
+        };
+        setPolicies(emptyPolicies);
+        setEditedContent("");
+      }
+    } catch (error) {
+      console.error("Failed to fetch policies:", error);
+    } finally {
+      setLoading(false);
+    }
   }
+
+  // Apply default compliance content from compliance_policy_settings_default table
+  const handleApplyDefault = async () => {
+    if (!selectedTenant) {
+      alert("Please select a tenant first");
+      return;
+    }
+
+    const tenantCountry = selectedTenant.country || "India";
+    
+    try {
+      const token = localStorage.getItem("admin_token");
+      const response = await fetch(
+        `${API_URL}/api/admin/compliance-policies-default?country=${encodeURIComponent(tenantCountry)}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      const data = await response.json();
+      
+      if (data.success && data.policy) {
+        const defaultPolicy = data.policy;
+        const updatedPolicies: CompliancePolicy = {
+          privacy_policy_title: "Privacy Policy",
+          privacy_policy_content: defaultPolicy.privacy_policy_content || "",
+          terms_conditions_title: "Terms & Conditions",
+          terms_conditions_content: defaultPolicy.terms_conditions_content || "",
+          disclaimer_title: "Disclaimer",
+          disclaimer_content: defaultPolicy.disclaimer_content || "",
+          consent_checkbox_text: defaultPolicy.consent_checkbox_text || "",
+          consent_details_content: defaultPolicy.consent_details_content || "",
+          dpa_required: defaultPolicy.dpa_required || false,
+          dpa_title: "Data Processing Agreement",
+          dpa_content: defaultPolicy.dpa_content || "",
+        };
+        setPolicies(updatedPolicies);
+        setEditedContent(getDocumentContent(updatedPolicies, activeDocument));
+        setHasChanges(true);
+        alert(`Default compliance content for ${tenantCountry} applied successfully! Click "Save Changes" to persist.`);
+      } else {
+        alert(`No default compliance content found for country: ${tenantCountry}`);
+      }
+    } catch (error) {
+      console.error("Failed to fetch default policies:", error);
+      alert("Failed to fetch default compliance content");
+    }
+  };
 
   // Utility: getDocumentTitle
   function getDocumentTitle(docType: DocumentType): string {
@@ -182,33 +265,6 @@ export default function CompliancePage() {
     const country = e.target.value;
     setSelectedCountry(country);
     fetchDefaultPolicies(country);
-  };
-
-  const handleApplyDefault = () => {
-    if (!selectedCountry || !defaultPoliciesByCountry[selectedCountry]) return;
-    const pol = defaultPoliciesByCountry[selectedCountry];
-    let content = "";
-    switch (activeDocument) {
-      case "privacy_policy":
-        content = pol.privacy_policy_content || "";
-        break;
-      case "terms_conditions":
-        content = pol.terms_conditions_content || "";
-        break;
-      case "disclaimer":
-        content = pol.disclaimer_content || "";
-        break;
-      case "consent":
-        content = pol.consent_details_content || "";
-        break;
-      case "dpa":
-        content = pol.dpa_content || "";
-        break;
-      default:
-        content = "";
-    }
-    setEditedContent(content);
-    setHasChanges(true);
   };
 
   const handleDocumentChange = (docType: DocumentType) => {
@@ -717,6 +773,21 @@ export default function CompliancePage() {
                       Unsaved changes
                     </span>
                   )}
+                  <button
+                    onClick={handleApplyDefault}
+                    style={{
+                      padding: "10px 24px",
+                      backgroundColor: "white",
+                      color: colors.primary,
+                      border: `2px solid ${colors.primary}`,
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Apply Default
+                  </button>
                   <button
                     onClick={handleSave}
                     disabled={saving || !hasChanges}

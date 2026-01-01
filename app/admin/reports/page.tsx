@@ -936,12 +936,6 @@ const MultiSelectDropdown = ({
 
 export default function ReportsAnalyticsPage() {
   const router = useRouter();
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [adminProfile, setAdminProfile] = useState<{
-    name: string;
-    email: string;
-    role: string;
-  } | null>(null);
 
   // Data states
   const [corporates, setCorporates] = useState<Corporate[]>([]);
@@ -1099,172 +1093,17 @@ export default function ReportsAnalyticsPage() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("admin_token");
-    document.cookie = "admin_token=; path=/; max-age=0";
-    window.location.href = "https://www.benefitnest.space";
-  };
-
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: colors.gray[50] }}>
-      {/* Header */}
-      <header
-        style={{
-          background: "linear-gradient(135deg, #1e293b, #334155)",
-          padding: "16px 32px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <div
-            onClick={() => router.push("/admin/dashboard")}
-            style={{
-              width: "44px",
-              height: "44px",
-              background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-              borderRadius: "12px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              boxShadow: "0 4px 15px rgba(99, 102, 241, 0.4)",
-            }}
-          >
-            <span style={{ fontSize: "24px" }}>🐝</span>
-          </div>
-          <div>
-            <h1
-              style={{
-                color: "white",
-                fontSize: "20px",
-                fontWeight: "700",
-                margin: 0,
-              }}
-            >
-              Reports & Analytics
-            </h1>
-            <p
-              style={{
-                color: "rgba(255,255,255,0.7)",
-                fontSize: "12px",
-                margin: 0,
-              }}
-            >
-              Claims Intelligence Dashboard
-            </p>
-          </div>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <button
-            onClick={() => router.push("/admin/dashboard")}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "rgba(255,255,255,0.1)",
-              color: "white",
-              border: "1px solid rgba(255,255,255,0.2)",
-              borderRadius: "10px",
-              fontSize: "14px",
-              fontWeight: "500",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            ← Dashboard
-          </button>
-
-          <div style={{ position: "relative" }}>
-            <div
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              style={{
-                width: "44px",
-                height: "44px",
-                background: "linear-gradient(135deg, #10b981, #059669)",
-                borderRadius: "12px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                color: "white",
-                fontWeight: "700",
-                fontSize: "16px",
-              }}
-            >
-              {adminProfile?.name?.charAt(0).toUpperCase() || "A"}
-            </div>
-
-            {showProfileMenu && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "calc(100% + 8px)",
-                  right: 0,
-                  backgroundColor: "white",
-                  borderRadius: "12px",
-                  boxShadow: "0 10px 40px rgba(0,0,0,0.15)",
-                  minWidth: "220px",
-                  overflow: "hidden",
-                  zIndex: 100,
-                }}
-              >
-                <div
-                  style={{
-                    padding: "16px",
-                    borderBottom: `1px solid ${colors.gray[100]}`,
-                  }}
-                >
-                  <div style={{ fontWeight: "600", color: colors.gray[800] }}>
-                    {adminProfile?.name}
-                  </div>
-                  <div style={{ fontSize: "12px", color: colors.gray[500] }}>
-                    {adminProfile?.email}
-                  </div>
-                  <div
-                    style={{
-                      marginTop: "6px",
-                      display: "inline-block",
-                      padding: "2px 8px",
-                      backgroundColor: colors.primaryLight,
-                      color: colors.primary,
-                      borderRadius: "4px",
-                      fontSize: "10px",
-                      fontWeight: "600",
-                    }}
-                  >
-                    {adminProfile?.role}
-                  </div>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  style={{
-                    width: "100%",
-                    padding: "12px 16px",
-                    backgroundColor: "white",
-                    border: "none",
-                    textAlign: "left",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    color: colors.danger,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                  }}
-                >
-                  🚪 Logout
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
+    <div style={{ minHeight: "100vh", backgroundColor: colors.gray[50], display: "flex", flexDirection: "column" }}>
+      <AdminTopBar
+        title="Reports & Analytics"
+        subtitle="Claims Intelligence Dashboard"
+        icon={<span style={{ fontSize: 24 }}>📊</span>}
+        showBack={true}
+      />
 
       {/* Main Content */}
-      <main style={{ padding: "32px", maxWidth: "1600px", margin: "0 auto" }}>
+      <main style={{ padding: "32px", maxWidth: "1600px", margin: "0 auto", flex: 1 }}>
         {/* Corporate Selection */}
         <div
           style={{
