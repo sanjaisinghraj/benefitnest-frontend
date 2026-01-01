@@ -210,6 +210,14 @@ const DEFAULT_CARDS = [
     color: "#059669",
   },
   {
+    id: "escalation",
+    title: "Escalation Matrix",
+    description: "Configure multi-level escalation contacts per corporate. AI-powered support, FAQ links, document uploads, and communication tracking.",
+    icon: "🎯",
+    link: "/admin/escalation",
+    color: "#dc2626",
+  },
+  {
     id: "system",
     title: "System Configuration",
     description: "Configure email/SMS templates, notification preferences, API keys, SSO providers, and feature toggles per tenant.",
