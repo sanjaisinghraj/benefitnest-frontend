@@ -381,13 +381,22 @@ export default function DocumentEditorPage() {
         setDocumentContent(data.content || data.text || "");
         setOriginalContent(data.content || data.text || "");
         updateCounts(data.content || data.text || "");
-        const successMsg = data.type === "ocr" 
-          ? "Text extracted from image successfully!" 
-          : "Document processed successfully!";
+        
+        // Show appropriate success message based on OCR engine used
+        let successMsg = "Document processed successfully!";
+        if (data.type === "ocr-groq") {
+          successMsg = "Text extracted using Groq Vision AI!";
+        } else if (data.type === "ocr-tesseract") {
+          successMsg = `Text extracted using Tesseract OCR (${data.confidence ? Math.round(data.confidence) + "% confidence" : "local processing"})`;
+        } else if (data.type === "ocr") {
+          successMsg = "Text extracted from image successfully!";
+        } else if (data.type === "direct") {
+          successMsg = "Document loaded successfully!";
+        }
         showToast(successMsg, "success");
       } else {
         // Fallback: show placeholder for manual editing
-        const placeholder = `[Document: ${file.name}]\n\nThe AI document parser is processing your file.\n\nFile Details:\n- Name: ${file.name}\n- Type: ${file.type || "Unknown"}\n- Size: ${formatFileSize(file.size)}\n\nYou can start typing or use the AI assistant below to help extract and format content.`;
+        const placeholder = data.content || `[Document: ${file.name}]\n\nThe AI document parser is processing your file.\n\nFile Details:\n- Name: ${file.name}\n- Type: ${file.type || "Unknown"}\n- Size: ${formatFileSize(file.size)}\n\nYou can start typing or use the AI assistant below to help extract and format content.`;
         setDocumentContent(placeholder);
         setOriginalContent(placeholder);
         updateCounts(placeholder);
