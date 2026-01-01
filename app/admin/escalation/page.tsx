@@ -1,5 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import AdminTopBar from '../components/AdminTopBar';
+import AdminFooter from '../components/AdminFooter';
 
 const API_BASE = 'https://benefitnest-backend.onrender.com';
 
@@ -389,32 +391,33 @@ export default function EscalationMatrixPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">🎯 Escalation Matrix</h1>
-        <p className="text-gray-600 mt-1">Configure escalation contacts for each corporate</p>
-      </div>
-
-      {/* Tenant Selection */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Select Corporate/Tenant</label>
-        <select
-          value={selectedTenant?.id || ''}
-          onChange={(e) => {
-            const t = tenants.find(t => t.id === e.target.value);
-            setSelectedTenant(t || null);
-          }}
-          className="w-full max-w-md px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-        >
-          <option value="">-- Select a Corporate --</option>
-          {tenants.map(t => (
-            <option key={t.id} value={t.id}>
-              {t.corporate_legal_name} ({t.tenant_code})
-            </option>
-          ))}
-        </select>
-      </div>
+    <div style={{ minHeight: '100vh', background: '#f9fafb' }}>
+      <AdminTopBar 
+        title="Escalation Matrix" 
+        subtitle="Configure escalation contacts for each corporate"
+        icon={<span style={{ fontSize: 28 }}>🎯</span>}
+      />
+      
+      <div style={{ maxWidth: 1400, margin: '0 auto', padding: '24px' }}>
+        {/* Tenant Selection */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Select Corporate/Tenant</label>
+          <select
+            value={selectedTenant?.id || ''}
+            onChange={(e) => {
+              const t = tenants.find(t => t.id === e.target.value);
+              setSelectedTenant(t || null);
+            }}
+            className="w-full max-w-md px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          >
+            <option value="">-- Select a Corporate --</option>
+            {tenants.map(t => (
+              <option key={t.id} value={t.id}>
+                {t.corporate_legal_name} ({t.tenant_code})
+              </option>
+            ))}
+          </select>
+        </div>
 
       {selectedTenant && (
         <>
@@ -858,6 +861,8 @@ export default function EscalationMatrixPage() {
           </div>
         </div>
       )}
+      
+      <AdminFooter />
     </div>
   );
 }
