@@ -35,15 +35,20 @@ const SUPPORTED_TYPES = {
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document": { ext: "DOCX", icon: "📝" },
   "text/plain": { ext: "TXT", icon: "📃" },
   "text/csv": { ext: "CSV", icon: "📊" },
-  "application/vnd.ms-excel": { ext: "XLS", icon: "📊" },
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": { ext: "XLSX", icon: "📊" },
-  "text/markdown": { ext: "MD", icon: "📋" },
-  "application/json": { ext: "JSON", icon: "🔧" },
-  "text/html": { ext: "HTML", icon: "🌐" },
   "image/png": { ext: "PNG", icon: "🖼️" },
   "image/jpeg": { ext: "JPEG", icon: "🖼️" },
   "image/jpg": { ext: "JPG", icon: "🖼️" },
 };
+
+// AI Analysis Tabs Configuration
+const AI_TABS = [
+  { id: "summary", label: "Summarize", icon: "📋", prompt: "Please provide a comprehensive summary of this document, highlighting the main topics, key points, and overall purpose." },
+  { id: "keypoints", label: "Key Points", icon: "🔑", prompt: "Extract all the key points and important information from this document. Present them as a clear, organized bullet list." },
+  { id: "grammar", label: "Fix Grammar", icon: "✏️", prompt: "Fix all grammar, spelling, and punctuation errors in this document. Return the corrected version while preserving the original meaning and structure." },
+  { id: "bullets", label: "Bullet Points", icon: "📌", prompt: "Convert the content of this document into well-organized bullet points. Group related items together under appropriate headings." },
+  { id: "professional", label: "Professional", icon: "💼", prompt: "Rewrite this document in a more professional and formal tone suitable for business communication. Improve clarity and structure." },
+  { id: "simplified", label: "Simplify", icon: "🎯", prompt: "Simplify this document using plain, easy-to-understand language. Remove jargon and complex terms while keeping the essential information." },
+];
 
 // Helper functions
 const getAuthHeaders = () => {
@@ -59,293 +64,91 @@ const formatFileSize = (bytes: number) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
-// UI Components
-const Button = ({
-  children,
-  variant = "primary",
-  size = "md",
-  icon,
-  onClick,
-  disabled,
-  loading,
-  style: customStyle,
-}: {
-  children: React.ReactNode;
-  variant?: "primary" | "outline" | "danger" | "success" | "ghost" | "ai";
-  size?: "xs" | "sm" | "md" | "lg";
-  icon?: React.ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-  loading?: boolean;
-  style?: React.CSSProperties;
-}) => {
-  const variants: Record<string, { bg: string; color: string; border: string }> = {
-    primary: {
-      bg: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
-      color: "white",
-      border: "none",
-    },
-    outline: {
-      bg: "white",
-      color: colors.gray[700],
-      border: `2px solid ${colors.gray[200]}`,
-    },
-    danger: {
-      bg: colors.error,
-      color: "white",
-      border: "none",
-    },
-    success: {
-      bg: colors.success,
-      color: "white",
-      border: "none",
-    },
-    ghost: {
-      bg: "transparent",
-      color: colors.gray[600],
-      border: "none",
-    },
-    ai: {
-      bg: "linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7)",
-      color: "white",
-      border: "none",
-    },
-  };
-  const sizes: Record<string, { padding: string; fontSize: string }> = {
-    xs: { padding: "4px 8px", fontSize: "11px" },
-    sm: { padding: "6px 12px", fontSize: "12px" },
-    md: { padding: "10px 18px", fontSize: "14px" },
-    lg: { padding: "14px 28px", fontSize: "16px" },
-  };
-  const v = variants[variant];
-  const s = sizes[size];
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled || loading}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "8px",
-        background: v.bg,
-        color: v.color,
-        border: v.border,
-        borderRadius: "10px",
-        padding: s.padding,
-        fontSize: s.fontSize,
-        fontWeight: 600,
-        cursor: disabled || loading ? "not-allowed" : "pointer",
-        opacity: disabled || loading ? 0.6 : 1,
-        transition: "all 0.2s",
-        boxShadow: variant === "ai" ? "0 4px 15px rgba(99, 102, 241, 0.3)" : "none",
-        ...customStyle,
-      }}
-    >
-      {loading ? "⏳" : icon}
-      {children}
-    </button>
-  );
-};
-
-const Toast = ({
-  message,
-  type,
-  onClose,
-}: {
-  message: string;
-  type: "success" | "error" | "info";
-  onClose: () => void;
-}) => {
+// Toast Component
+const Toast = ({ message, type, onClose }: { message: string; type: "success" | "error" | "info"; onClose: () => void }) => {
   React.useEffect(() => {
     const timer = setTimeout(onClose, 4000);
     return () => clearTimeout(timer);
   }, [onClose]);
 
-  const bgColors = {
-    success: "#10b981",
-    error: "#ef4444",
-    info: "#3b82f6",
-  };
+  const bgColors = { success: "#10b981", error: "#ef4444", info: "#3b82f6" };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        bottom: "24px",
-        right: "24px",
-        backgroundColor: bgColors[type],
-        color: "white",
-        padding: "14px 20px",
-        borderRadius: "10px",
-        boxShadow: "0 10px 25px rgba(0, 0, 0, 0.2)",
-        zIndex: 1001,
-        display: "flex",
-        alignItems: "center",
-        gap: "10px",
-        fontSize: "14px",
-        fontWeight: 500,
-        maxWidth: "400px",
-      }}
-    >
-      {type === "success" ? "✓" : type === "error" ? "✕" : "ℹ"}
-      {message}
+    <div style={{
+      position: "fixed", bottom: "24px", right: "24px", backgroundColor: bgColors[type],
+      color: "white", padding: "14px 20px", borderRadius: "10px",
+      boxShadow: "0 10px 25px rgba(0, 0, 0, 0.2)", zIndex: 1001,
+      display: "flex", alignItems: "center", gap: "10px", fontSize: "14px", fontWeight: 500, maxWidth: "400px",
+    }}>
+      {type === "success" ? "✓" : type === "error" ? "✕" : "ℹ"} {message}
     </div>
   );
 };
-
-// Toolbar Button Component
-const ToolbarButton = ({
-  icon,
-  label,
-  onClick,
-  active,
-}: {
-  icon: string;
-  label: string;
-  onClick: () => void;
-  active?: boolean;
-}) => (
-  <button
-    onClick={onClick}
-    title={label}
-    style={{
-      padding: "8px 12px",
-      background: active ? colors.primaryLight : "transparent",
-      border: "none",
-      borderRadius: "6px",
-      cursor: "pointer",
-      fontSize: "16px",
-      color: active ? colors.primary : colors.gray[600],
-      transition: "all 0.2s",
-    }}
-  >
-    {icon}
-  </button>
-);
 
 // Main Component
 export default function DocumentEditorPage() {
   // State
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
-  const [documentContent, setDocumentContent] = useState("");
   const [originalContent, setOriginalContent] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState("");
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState("");
-  const [isAiProcessing, setIsAiProcessing] = useState(false);
-  const [documentTitle, setDocumentTitle] = useState("Untitled Document");
-  const [wordCount, setWordCount] = useState(0);
-  const [charCount, setCharCount] = useState(0);
+  const [extractionEngine, setExtractionEngine] = useState("");
+  
+  // AI Analysis State
+  const [activeTab, setActiveTab] = useState("summary");
+  const [aiResponses, setAiResponses] = useState<Record<string, string>>({});
+  const [loadingTabs, setLoadingTabs] = useState<Record<string, boolean>>({});
+  const [processedTabs, setProcessedTabs] = useState<Record<string, boolean>>({});
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   const showToast = (message: string, type: "success" | "error" | "info") => {
     setToast({ message, type });
   };
 
-  // Update word/char count
-  const updateCounts = useCallback((text: string) => {
-    setCharCount(text.length);
-    setWordCount(text.trim() ? text.trim().split(/\s+/).length : 0);
-  }, []);
-
-  // Handle content change
-  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const text = e.target.value;
-    setDocumentContent(text);
-    updateCounts(text);
-  };
-
   // Handle file selection
   const handleFileSelect = async (file: File) => {
-    // Check file type
     const fileType = file.type || "";
     const isSupported = Object.keys(SUPPORTED_TYPES).some(
       (type) => fileType.includes(type.split("/")[1]) || type === fileType
-    );
+    ) || file.name.match(/\.(txt|md|csv|json|html|pdf|doc|docx|png|jpg|jpeg)$/i);
 
-    if (!isSupported && !file.name.match(/\.(txt|md|csv|json|html|pdf|doc|docx|xls|xlsx|png|jpg|jpeg)$/i)) {
-      showToast("Unsupported file type. Please upload a supported document.", "error");
+    if (!isSupported) {
+      showToast("Unsupported file type. Please upload PDF, Image, or Text files.", "error");
       return;
     }
 
     setUploadedFile(file);
-    setDocumentTitle(file.name.replace(/\.[^/.]+$/, ""));
+    setAiResponses({});
+    setProcessedTabs({});
+    setFilePreview(null);
 
-    // For text-based files, read directly
-    if (file.type === "text/plain" || file.name.endsWith(".txt") || file.name.endsWith(".md")) {
-      const text = await file.text();
-      setDocumentContent(text);
-      setOriginalContent(text);
-      updateCounts(text);
-      showToast("Text file loaded successfully!", "success");
-      return;
-    }
-
-    // For JSON files
-    if (file.type === "application/json" || file.name.endsWith(".json")) {
-      const text = await file.text();
-      try {
-        const formatted = JSON.stringify(JSON.parse(text), null, 2);
-        setDocumentContent(formatted);
-        setOriginalContent(formatted);
-        updateCounts(formatted);
-        showToast("JSON file loaded and formatted!", "success");
-      } catch {
-        setDocumentContent(text);
-        setOriginalContent(text);
-        updateCounts(text);
-      }
-      return;
-    }
-
-    // For CSV files
-    if (file.type === "text/csv" || file.name.endsWith(".csv")) {
-      const text = await file.text();
-      setDocumentContent(text);
-      setOriginalContent(text);
-      updateCounts(text);
-      showToast("CSV file loaded successfully!", "success");
-      return;
-    }
-
-    // For HTML files
-    if (file.type === "text/html" || file.name.endsWith(".html")) {
-      const text = await file.text();
-      setDocumentContent(text);
-      setOriginalContent(text);
-      updateCounts(text);
-      showToast("HTML file loaded successfully!", "success");
-      return;
-    }
-
-    // For images, create preview and use AI to extract text
-    if (file.type.startsWith("image/")) {
+    // For images, create preview
+    const isImage = file.type?.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(file.name);
+    if (isImage) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setFilePreview(e.target?.result as string);
-      };
+      reader.onload = (e) => setFilePreview(e.target?.result as string);
       reader.readAsDataURL(file);
-      // Will process with AI
-      await processWithAI(file);
-      return;
     }
 
-    // For PDF/DOC/DOCX/XLS/XLSX, process with AI
-    await processWithAI(file);
+    // Process with backend
+    await processDocument(file);
   };
 
-  // Process document with Groq AI
-  const processWithAI = async (file: File) => {
+  // Process document with backend (FREE - Tesseract/pdf-parse)
+  const processDocument = async (file: File) => {
     setIsProcessing(true);
+    const isImage = file.type?.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(file.name);
+    const isPdf = file.type === "application/pdf" || file.name.endsWith(".pdf");
     
-    const isImage = file.type.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(file.name);
-    
-    setProcessingStatus(isImage ? "Uploading image for OCR..." : "Uploading document...");
+    setProcessingStatus(
+      isImage ? "Extracting text using Tesseract OCR..." :
+      isPdf ? "Extracting text from PDF..." :
+      "Processing document..."
+    );
 
     try {
       // Convert file to base64
@@ -358,21 +161,9 @@ export default function DocumentEditorPage() {
         reader.readAsDataURL(file);
       });
 
-      setProcessingStatus(
-        isImage 
-          ? "Extracting text using Tesseract OCR (local)..." 
-          : file.type === "application/pdf" || file.name.endsWith(".pdf")
-            ? "Extracting text from PDF (local)..."
-            : "Processing document..."
-      );
-
-      // Send to backend for processing (FREE: Tesseract for images, pdf-parse for PDFs)
       const response = await fetch(`${API_URL}/api/admin/document/parse`, {
         method: "POST",
-        headers: {
-          ...getAuthHeaders(),
-          "Content-Type": "application/json",
-        },
+        headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
         body: JSON.stringify({
           fileName: file.name,
           fileType: file.type,
@@ -383,605 +174,554 @@ export default function DocumentEditorPage() {
 
       const data = await response.json();
 
-      if (data.success) {
-        setDocumentContent(data.content || data.text || "");
-        setOriginalContent(data.content || data.text || "");
-        updateCounts(data.content || data.text || "");
+      if (data.success && data.content) {
+        setOriginalContent(data.content);
+        setExtractionEngine(data.engine || "Local Processing");
         
-        // Show appropriate success message based on extraction engine used
         let successMsg = "Document processed successfully!";
-        if (data.type === "pdf-extract") {
-          successMsg = `PDF text extracted (${data.numPages} pages). Use AI Assistant to format.`;
-        } else if (data.type === "pdf-scanned") {
-          successMsg = "PDF is scanned/image-based. Screenshot pages for OCR.";
-        } else if (data.type === "ocr-tesseract") {
-          successMsg = `Text extracted via OCR (${data.confidence ? Math.round(data.confidence) + "% confidence" : "local"}). Use AI Assistant to improve.`;
-        } else if (data.type === "direct") {
-          successMsg = "Text file loaded successfully!";
-        } else if (data.type === "word-placeholder" || data.type === "spreadsheet-placeholder") {
-          successMsg = "Convert to PDF or paste content directly.";
-        }
+        if (data.type === "pdf-extract") successMsg = `PDF text extracted (${data.numPages} pages)`;
+        else if (data.type === "ocr-tesseract") successMsg = `OCR completed (${Math.round(data.confidence || 0)}% confidence)`;
+        else if (data.type === "direct") successMsg = "Text file loaded";
+        
         showToast(successMsg, "success");
       } else {
-        // Fallback: show placeholder for manual editing
-        const placeholder = data.content || `[Document: ${file.name}]\n\nThe AI document parser is processing your file.\n\nFile Details:\n- Name: ${file.name}\n- Type: ${file.type || "Unknown"}\n- Size: ${formatFileSize(file.size)}\n\nYou can start typing or use the AI assistant below to help extract and format content.`;
-        setDocumentContent(placeholder);
-        setOriginalContent(placeholder);
-        updateCounts(placeholder);
-        showToast(data.error || "Document loaded. Use AI assistant to help process content.", "info");
+        setOriginalContent(data.content || `[Unable to extract text from ${file.name}]\n\nPlease try a different file format.`);
+        showToast(data.error || "Document loaded with limited extraction", "info");
       }
     } catch (err) {
       console.error("Processing error:", err);
-      const placeholder = `[Document: ${file.name}]\n\nFile loaded but requires AI processing.\n\nFile Details:\n- Name: ${file.name}\n- Type: ${file.type || "Unknown"}\n- Size: ${formatFileSize(file.size)}\n\nUse the AI assistant below to help extract and format content.`;
-      setDocumentContent(placeholder);
-      setOriginalContent(placeholder);
-      updateCounts(placeholder);
-      showToast("Document loaded. AI processing available via assistant.", "info");
+      setOriginalContent(`[Error processing ${file.name}]\n\nPlease try again or use a different file.`);
+      showToast("Error processing document", "error");
     } finally {
       setIsProcessing(false);
       setProcessingStatus("");
     }
   };
 
-  // AI Assistant for document processing
-  const handleAIAssist = async () => {
-    if (!aiPrompt.trim()) {
-      showToast("Please enter a prompt for the AI assistant", "error");
+  // Process AI Analysis for a specific tab
+  const processAIAnalysis = async (tabId: string) => {
+    if (!originalContent || originalContent.startsWith("[")) {
+      showToast("Please upload a valid document first", "error");
       return;
     }
 
-    setIsAiProcessing(true);
+    const tab = AI_TABS.find(t => t.id === tabId);
+    if (!tab) return;
+
+    setLoadingTabs(prev => ({ ...prev, [tabId]: true }));
 
     try {
       const response = await fetch(`${API_URL}/api/admin/document/ai-assist`, {
         method: "POST",
-        headers: {
-          ...getAuthHeaders(),
-          "Content-Type": "application/json",
-        },
+        headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
         body: JSON.stringify({
-          prompt: aiPrompt,
-          currentContent: documentContent,
-          fileName: uploadedFile?.name || documentTitle,
+          prompt: tab.prompt,
+          currentContent: originalContent,
+          fileName: uploadedFile?.name || "document",
         }),
       });
 
       const data = await response.json();
 
       if (data.success && data.content) {
-        setDocumentContent(data.content);
-        updateCounts(data.content);
-        showToast("AI assistant updated the document!", "success");
-        setAiPrompt("");
+        setAiResponses(prev => ({ ...prev, [tabId]: data.content }));
+        setProcessedTabs(prev => ({ ...prev, [tabId]: true }));
+        showToast(`${tab.label} analysis complete!`, "success");
       } else {
-        showToast(data.error || "AI processing failed", "error");
+        showToast(data.error || "AI analysis failed", "error");
       }
     } catch (err) {
-      console.error("AI assist error:", err);
-      showToast("Failed to process AI request", "error");
+      console.error("AI analysis error:", err);
+      showToast("Failed to process AI analysis", "error");
     } finally {
-      setIsAiProcessing(false);
+      setLoadingTabs(prev => ({ ...prev, [tabId]: false }));
     }
   };
 
   // Drag and drop handlers
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
-  };
+  }, []);
 
-  const handleDragLeave = (e: React.DragEvent) => {
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-  };
+  }, []);
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      handleFileSelect(files[0]);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileSelect(file);
+  }, []);
+
+  // Export document
+  const exportDocument = (format: "txt" | "md" | "html", content: string) => {
+    if (!content) {
+      showToast("No content to export", "error");
+      return;
     }
-  };
 
-  // File input change
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      handleFileSelect(files[0]);
-    }
-  };
-
-  // Text formatting helpers
-  const insertAtCursor = (before: string, after: string = "") => {
-    const textarea = textAreaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = documentContent;
-    const selectedText = text.substring(start, end);
-
-    const newText = text.substring(0, start) + before + selectedText + after + text.substring(end);
-    setDocumentContent(newText);
-    updateCounts(newText);
-
-    // Restore cursor position
-    setTimeout(() => {
-      textarea.focus();
-      textarea.selectionStart = start + before.length;
-      textarea.selectionEnd = end + before.length;
-    }, 0);
-  };
-
-  // Download document
-  const handleDownload = (format: "txt" | "md" | "html") => {
-    let content = documentContent;
+    let exportContent = content;
     let mimeType = "text/plain";
     let extension = "txt";
 
-    if (format === "md") {
-      mimeType = "text/markdown";
-      extension = "md";
-    } else if (format === "html") {
-      // Convert to basic HTML
-      content = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>${documentTitle}</title>
-  <style>
-    body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; }
-    pre { background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }
-  </style>
-</head>
-<body>
-  <h1>${documentTitle}</h1>
-  <div>${documentContent.replace(/\n/g, "<br>")}</div>
-</body>
-</html>`;
+    if (format === "html") {
+      exportContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${uploadedFile?.name || "Document"}</title><style>body{font-family:system-ui,sans-serif;line-height:1.6;max-width:800px;margin:40px auto;padding:20px;}</style></head><body>${content.replace(/\n/g, "<br>")}</body></html>`;
       mimeType = "text/html";
       extension = "html";
+    } else if (format === "md") {
+      mimeType = "text/markdown";
+      extension = "md";
     }
 
-    const blob = new Blob([content], { type: mimeType });
+    const blob = new Blob([exportContent], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${documentTitle}.${extension}`;
-    document.body.appendChild(a);
+    a.download = `${uploadedFile?.name?.replace(/\.[^/.]+$/, "") || "document"}-${activeTab}.${extension}`;
     a.click();
-    document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast(`Downloaded as ${extension.toUpperCase()}!`, "success");
+    showToast(`Exported as ${format.toUpperCase()}`, "success");
   };
 
   // Copy to clipboard
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(documentContent);
-      showToast("Copied to clipboard!", "success");
-    } catch {
-      showToast("Failed to copy", "error");
-    }
-  };
-
-  // Clear document
-  const handleClear = () => {
-    if (documentContent && !confirm("Are you sure you want to clear the document?")) return;
-    setDocumentContent("");
-    setOriginalContent("");
-    setUploadedFile(null);
-    setFilePreview(null);
-    setDocumentTitle("Untitled Document");
-    updateCounts("");
-  };
-
-  // Revert to original
-  const handleRevert = () => {
-    if (confirm("Revert to original content? All changes will be lost.")) {
-      setDocumentContent(originalContent);
-      updateCounts(originalContent);
-      showToast("Reverted to original", "info");
-    }
+  const copyToClipboard = (content: string) => {
+    navigator.clipboard.writeText(content);
+    showToast("Copied to clipboard!", "success");
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: `linear-gradient(135deg, ${colors.gray[50]}, ${colors.primaryLight})`,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <AdminTopBar
-        title="AI Document Editor"
-        subtitle="Upload documents, extract content with AI, and edit"
-        icon={<span style={{ fontSize: 24 }}>📄</span>}
-        showBack={true}
-      />
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: colors.gray[50] }}>
+      <AdminTopBar />
 
-      <main style={{ padding: "24px 32px", maxWidth: "1400px", margin: "0 auto", flex: 1, width: "100%" }}>
-        {/* Upload Section */}
-        {!uploadedFile && !documentContent && (
+      {/* Header */}
+      <div style={{
+        background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+        padding: "24px 32px",
+        color: "white",
+      }}>
+        <div style={{ maxWidth: "1600px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <h1 style={{ fontSize: "28px", fontWeight: 700, margin: 0 }}>📄 AI Document Editor</h1>
+            <p style={{ opacity: 0.9, margin: "8px 0 0 0" }}>Upload documents, extract content, and analyze with AI</p>
+          </div>
+          {uploadedFile && (
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: "14px", opacity: 0.8 }}>{uploadedFile.name}</div>
+              <div style={{ fontSize: "12px", opacity: 0.7 }}>{formatFileSize(uploadedFile.size)} • {extractionEngine}</div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div style={{ flex: 1, padding: "24px 32px", maxWidth: "1600px", margin: "0 auto", width: "100%" }}>
+        
+        {/* Upload Area - Show when no file */}
+        {!uploadedFile && (
           <div
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
             style={{
-              background: isDragging ? colors.primaryLight : "white",
               border: `3px dashed ${isDragging ? colors.primary : colors.gray[300]}`,
-              borderRadius: "20px",
+              borderRadius: "16px",
               padding: "80px 40px",
               textAlign: "center",
               cursor: "pointer",
+              background: isDragging ? colors.primaryLight : "white",
               transition: "all 0.3s",
-              marginBottom: "24px",
             }}
           >
+            <div style={{ fontSize: "64px", marginBottom: "16px" }}>📁</div>
+            <h3 style={{ fontSize: "24px", color: colors.gray[800], marginBottom: "8px" }}>
+              Drop your document here
+            </h3>
+            <p style={{ color: colors.gray[500], marginBottom: "24px" }}>
+              or click to browse • PDF, Images (JPG, PNG), Text files
+            </p>
+            <div style={{
+              display: "inline-block",
+              background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
+              color: "white",
+              padding: "12px 32px",
+              borderRadius: "10px",
+              fontWeight: 600,
+            }}>
+              Select File
+            </div>
             <input
               ref={fileInputRef}
               type="file"
-              onChange={handleFileInputChange}
-              accept=".pdf,.doc,.docx,.txt,.csv,.xls,.xlsx,.md,.json,.html,.png,.jpg,.jpeg"
+              accept=".pdf,.doc,.docx,.txt,.md,.csv,.json,.html,.png,.jpg,.jpeg,.gif,.webp"
+              onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
               style={{ display: "none" }}
             />
-            <div style={{ fontSize: "64px", marginBottom: "20px" }}>
-              {isDragging ? "📥" : "📄"}
-            </div>
-            <h2 style={{ fontSize: "24px", fontWeight: 700, color: colors.gray[800], marginBottom: "12px" }}>
-              {isDragging ? "Drop your file here" : "Upload a Document"}
-            </h2>
-            <p style={{ fontSize: "15px", color: colors.gray[500], marginBottom: "24px" }}>
-              Drag & drop or click to browse
-            </p>
-            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "8px" }}>
-              {Object.entries(SUPPORTED_TYPES).slice(0, 8).map(([, info]) => (
-                <span
-                  key={info.ext}
-                  style={{
-                    padding: "6px 12px",
-                    background: colors.gray[100],
-                    borderRadius: "20px",
-                    fontSize: "12px",
-                    color: colors.gray[600],
-                  }}
-                >
-                  {info.icon} {info.ext}
-                </span>
-              ))}
-            </div>
           </div>
         )}
 
-        {/* Processing Overlay */}
+        {/* Processing Indicator */}
         {isProcessing && (
-          <div
-            style={{
+          <div style={{
+            background: "white",
+            borderRadius: "16px",
+            padding: "40px",
+            textAlign: "center",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+          }}>
+            <div style={{ fontSize: "48px", marginBottom: "16px", animation: "pulse 1.5s infinite" }}>⏳</div>
+            <h3 style={{ color: colors.gray[800], marginBottom: "8px" }}>{processingStatus}</h3>
+            <p style={{ color: colors.gray[500] }}>Please wait while we extract the content...</p>
+          </div>
+        )}
+
+        {/* Split View - Show when file is uploaded */}
+        {uploadedFile && !isProcessing && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", minHeight: "600px" }}>
+            
+            {/* LEFT PANEL - Original Document */}
+            <div style={{
               background: "white",
               borderRadius: "16px",
-              padding: "60px 40px",
-              textAlign: "center",
               boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-              marginBottom: "24px",
-            }}
-          >
-            <div
-              style={{
-                width: "60px",
-                height: "60px",
-                border: `4px solid ${colors.gray[200]}`,
-                borderTopColor: colors.primary,
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite",
-                margin: "0 auto 20px",
-              }}
-            />
-            <h3 style={{ fontSize: "18px", fontWeight: 600, color: colors.gray[800], marginBottom: "8px" }}>
-              {processingStatus}
-            </h3>
-            <p style={{ fontSize: "14px", color: colors.gray[500] }}>
-              Please wait while we process your document with AI...
-            </p>
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-          </div>
-        )}
-
-        {/* Editor Section */}
-        {(uploadedFile || documentContent) && !isProcessing && (
-          <>
-            {/* File Info Bar */}
-            <div
-              style={{
-                background: "white",
-                borderRadius: "12px",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}>
+              {/* Panel Header */}
+              <div style={{
                 padding: "16px 20px",
-                marginBottom: "16px",
+                borderBottom: `1px solid ${colors.gray[200]}`,
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                {uploadedFile && (
+                background: colors.gray[50],
+              }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600, color: colors.gray[800] }}>
+                    📄 Original Document
+                  </h3>
+                  <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: colors.gray[500] }}>
+                    Extracted content from your file
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setUploadedFile(null);
+                    setOriginalContent("");
+                    setAiResponses({});
+                    setProcessedTabs({});
+                    setFilePreview(null);
+                  }}
+                  style={{
+                    padding: "8px 16px",
+                    background: colors.gray[100],
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                    color: colors.gray[600],
+                  }}
+                >
+                  ↺ Upload New
+                </button>
+              </div>
+
+              {/* Image Preview (if applicable) */}
+              {filePreview && (
+                <div style={{ padding: "16px", borderBottom: `1px solid ${colors.gray[200]}`, background: colors.gray[100] }}>
+                  <img
+                    src={filePreview}
+                    alt="Document preview"
+                    style={{ maxWidth: "100%", maxHeight: "200px", borderRadius: "8px", objectFit: "contain" }}
+                  />
+                </div>
+              )}
+
+              {/* Document Content */}
+              <div style={{ flex: 1, overflow: "auto", padding: "20px" }}>
+                <pre style={{
+                  fontFamily: "system-ui, -apple-system, sans-serif",
+                  fontSize: "14px",
+                  lineHeight: "1.7",
+                  color: colors.gray[700],
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  margin: 0,
+                }}>
+                  {originalContent}
+                </pre>
+              </div>
+
+              {/* Panel Footer */}
+              <div style={{
+                padding: "12px 20px",
+                borderTop: `1px solid ${colors.gray[200]}`,
+                background: colors.gray[50],
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}>
+                <span style={{ fontSize: "12px", color: colors.gray[500] }}>
+                  {originalContent.trim().split(/\s+/).length} words • {originalContent.length} chars
+                </span>
+                <button
+                  onClick={() => copyToClipboard(originalContent)}
+                  style={{
+                    padding: "6px 12px",
+                    background: colors.primary,
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                  }}
+                >
+                  📋 Copy
+                </button>
+              </div>
+            </div>
+
+            {/* RIGHT PANEL - AI Analysis */}
+            <div style={{
+              background: "white",
+              borderRadius: "16px",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}>
+              {/* AI Tabs */}
+              <div style={{
+                display: "flex",
+                gap: "4px",
+                padding: "12px 16px",
+                borderBottom: `1px solid ${colors.gray[200]}`,
+                background: colors.gray[50],
+                overflowX: "auto",
+              }}>
+                {AI_TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    style={{
+                      padding: "10px 16px",
+                      background: activeTab === tab.id 
+                        ? `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` 
+                        : "white",
+                      color: activeTab === tab.id ? "white" : colors.gray[600],
+                      border: activeTab === tab.id ? "none" : `1px solid ${colors.gray[200]}`,
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                      fontWeight: 500,
+                      whiteSpace: "nowrap",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    {tab.icon} {tab.label}
+                    {processedTabs[tab.id] && <span style={{ fontSize: "10px" }}>✓</span>}
+                  </button>
+                ))}
+              </div>
+
+              {/* Tab Content */}
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+                {/* Process Button Area */}
+                {!processedTabs[activeTab] && !loadingTabs[activeTab] && (
+                  <div style={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "40px",
+                    textAlign: "center",
+                  }}>
+                    <div style={{ fontSize: "48px", marginBottom: "16px" }}>
+                      {AI_TABS.find(t => t.id === activeTab)?.icon}
+                    </div>
+                    <h3 style={{ color: colors.gray[800], marginBottom: "8px" }}>
+                      {AI_TABS.find(t => t.id === activeTab)?.label}
+                    </h3>
+                    <p style={{ color: colors.gray[500], marginBottom: "24px", maxWidth: "300px" }}>
+                      Click the button below to analyze your document using AI
+                    </p>
+                    <button
+                      onClick={() => processAIAnalysis(activeTab)}
+                      style={{
+                        padding: "14px 32px",
+                        background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
+                        color: "white",
+                        border: "none",
+                        borderRadius: "10px",
+                        cursor: "pointer",
+                        fontSize: "15px",
+                        fontWeight: 600,
+                        boxShadow: "0 4px 15px rgba(99, 102, 241, 0.3)",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}
+                    >
+                      ✨ Process with AI
+                    </button>
+                    <p style={{ fontSize: "12px", color: colors.gray[400], marginTop: "16px" }}>
+                      Uses Groq AI (llama-3.3-70b)
+                    </p>
+                  </div>
+                )}
+
+                {/* Loading State */}
+                {loadingTabs[activeTab] && (
+                  <div style={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "40px",
+                  }}>
+                    <div style={{ fontSize: "48px", marginBottom: "16px", animation: "spin 1s linear infinite" }}>⚙️</div>
+                    <h3 style={{ color: colors.gray[800], marginBottom: "8px" }}>Processing...</h3>
+                    <p style={{ color: colors.gray[500] }}>AI is analyzing your document</p>
+                  </div>
+                )}
+
+                {/* AI Response */}
+                {processedTabs[activeTab] && aiResponses[activeTab] && !loadingTabs[activeTab] && (
                   <>
-                    <span style={{ fontSize: "28px" }}>
-                      {SUPPORTED_TYPES[uploadedFile.type as keyof typeof SUPPORTED_TYPES]?.icon || "📄"}
-                    </span>
-                    <div>
-                      <input
-                        type="text"
-                        value={documentTitle}
-                        onChange={(e) => setDocumentTitle(e.target.value)}
-                        style={{
-                          fontSize: "16px",
-                          fontWeight: 600,
-                          color: colors.gray[800],
-                          border: "none",
-                          background: "transparent",
-                          outline: "none",
-                          width: "300px",
-                        }}
-                      />
-                      <div style={{ fontSize: "12px", color: colors.gray[500] }}>
-                        {formatFileSize(uploadedFile.size)} • {uploadedFile.type || "Unknown type"}
+                    <div style={{ flex: 1, overflow: "auto", padding: "20px" }}>
+                      <pre style={{
+                        fontFamily: "system-ui, -apple-system, sans-serif",
+                        fontSize: "14px",
+                        lineHeight: "1.7",
+                        color: colors.gray[700],
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                        margin: 0,
+                      }}>
+                        {aiResponses[activeTab]}
+                      </pre>
+                    </div>
+
+                    {/* Response Footer */}
+                    <div style={{
+                      padding: "12px 20px",
+                      borderTop: `1px solid ${colors.gray[200]}`,
+                      background: colors.gray[50],
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button
+                          onClick={() => {
+                            setProcessedTabs(prev => ({ ...prev, [activeTab]: false }));
+                            setAiResponses(prev => ({ ...prev, [activeTab]: "" }));
+                          }}
+                          style={{
+                            padding: "6px 12px",
+                            background: colors.gray[200],
+                            color: colors.gray[700],
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                          }}
+                        >
+                          ↺ Regenerate
+                        </button>
+                        <button
+                          onClick={() => copyToClipboard(aiResponses[activeTab])}
+                          style={{
+                            padding: "6px 12px",
+                            background: colors.primary,
+                            color: "white",
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                          }}
+                        >
+                          📋 Copy
+                        </button>
+                      </div>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button
+                          onClick={() => exportDocument("txt", aiResponses[activeTab])}
+                          style={{
+                            padding: "6px 12px",
+                            background: colors.gray[100],
+                            color: colors.gray[700],
+                            border: `1px solid ${colors.gray[200]}`,
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                          }}
+                        >
+                          TXT
+                        </button>
+                        <button
+                          onClick={() => exportDocument("md", aiResponses[activeTab])}
+                          style={{
+                            padding: "6px 12px",
+                            background: colors.gray[100],
+                            color: colors.gray[700],
+                            border: `1px solid ${colors.gray[200]}`,
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                          }}
+                        >
+                          MD
+                        </button>
+                        <button
+                          onClick={() => exportDocument("html", aiResponses[activeTab])}
+                          style={{
+                            padding: "6px 12px",
+                            background: colors.success,
+                            color: "white",
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                          }}
+                        >
+                          HTML
+                        </button>
                       </div>
                     </div>
                   </>
                 )}
-                {!uploadedFile && documentContent && (
-                  <input
-                    type="text"
-                    value={documentTitle}
-                    onChange={(e) => setDocumentTitle(e.target.value)}
-                    style={{
-                      fontSize: "18px",
-                      fontWeight: 600,
-                      color: colors.gray[800],
-                      border: "none",
-                      background: "transparent",
-                      outline: "none",
-                      width: "300px",
-                    }}
-                  />
-                )}
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <span style={{ fontSize: "13px", color: colors.gray[500] }}>
-                  {wordCount} words • {charCount} chars
-                </span>
-                <Button variant="outline" size="sm" icon="📤" onClick={() => fileInputRef.current?.click()}>
-                  Upload New
-                </Button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  onChange={handleFileInputChange}
-                  accept=".pdf,.doc,.docx,.txt,.csv,.xls,.xlsx,.md,.json,.html,.png,.jpg,.jpeg"
-                  style={{ display: "none" }}
-                />
               </div>
             </div>
-
-            {/* Image Preview */}
-            {filePreview && uploadedFile?.type.startsWith("image/") && (
-              <div
-                style={{
-                  background: "white",
-                  borderRadius: "12px",
-                  padding: "16px",
-                  marginBottom: "16px",
-                  textAlign: "center",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                }}
-              >
-                <img
-                  src={filePreview}
-                  alt="Preview"
-                  style={{ maxWidth: "100%", maxHeight: "300px", borderRadius: "8px" }}
-                />
-              </div>
-            )}
-
-            {/* Toolbar */}
-            <div
-              style={{
-                background: "white",
-                borderRadius: "12px 12px 0 0",
-                padding: "8px 16px",
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-                borderBottom: `1px solid ${colors.gray[200]}`,
-                flexWrap: "wrap",
-              }}
-            >
-              <ToolbarButton icon="𝐁" label="Bold" onClick={() => insertAtCursor("**", "**")} />
-              <ToolbarButton icon="𝐼" label="Italic" onClick={() => insertAtCursor("*", "*")} />
-              <ToolbarButton icon="U̲" label="Underline" onClick={() => insertAtCursor("<u>", "</u>")} />
-              <div style={{ width: "1px", height: "24px", background: colors.gray[200], margin: "0 8px" }} />
-              <ToolbarButton icon="H1" label="Heading 1" onClick={() => insertAtCursor("# ")} />
-              <ToolbarButton icon="H2" label="Heading 2" onClick={() => insertAtCursor("## ")} />
-              <ToolbarButton icon="H3" label="Heading 3" onClick={() => insertAtCursor("### ")} />
-              <div style={{ width: "1px", height: "24px", background: colors.gray[200], margin: "0 8px" }} />
-              <ToolbarButton icon="•" label="Bullet List" onClick={() => insertAtCursor("- ")} />
-              <ToolbarButton icon="1." label="Numbered List" onClick={() => insertAtCursor("1. ")} />
-              <ToolbarButton icon="❝" label="Quote" onClick={() => insertAtCursor("> ")} />
-              <ToolbarButton icon="💻" label="Code Block" onClick={() => insertAtCursor("```\n", "\n```")} />
-              <div style={{ width: "1px", height: "24px", background: colors.gray[200], margin: "0 8px" }} />
-              <ToolbarButton icon="🔗" label="Link" onClick={() => insertAtCursor("[", "](url)")} />
-              <ToolbarButton icon="📋" label="Copy" onClick={handleCopy} />
-              <div style={{ flex: 1 }} />
-              <Button variant="ghost" size="sm" icon="↩️" onClick={handleRevert} disabled={documentContent === originalContent}>
-                Revert
-              </Button>
-              <Button variant="ghost" size="sm" icon="🗑️" onClick={handleClear}>
-                Clear
-              </Button>
-            </div>
-
-            {/* Text Editor */}
-            <textarea
-              ref={textAreaRef}
-              value={documentContent}
-              onChange={handleContentChange}
-              placeholder="Start typing or paste content here..."
-              style={{
-                width: "100%",
-                minHeight: "500px",
-                padding: "24px",
-                border: "none",
-                borderRadius: "0 0 12px 12px",
-                fontSize: "15px",
-                lineHeight: "1.8",
-                fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-                resize: "vertical",
-                outline: "none",
-                background: "white",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.04)",
-              }}
-            />
-
-            {/* AI Assistant Section */}
-            <div
-              style={{
-                background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-                borderRadius: "16px",
-                padding: "24px",
-                marginTop: "24px",
-                boxShadow: "0 4px 20px rgba(99, 102, 241, 0.2)",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
-                <span style={{ fontSize: "24px" }}>🤖</span>
-                <div>
-                  <h3 style={{ fontSize: "18px", fontWeight: 700, color: "white", margin: 0 }}>
-                    AI Document Assistant
-                  </h3>
-                  <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.8)", margin: "4px 0 0" }}>
-                    Ask AI to summarize, reformat, extract data, translate, or improve your document
-                  </p>
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: "12px" }}>
-                <input
-                  type="text"
-                  value={aiPrompt}
-                  onChange={(e) => setAiPrompt(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && !isAiProcessing && handleAIAssist()}
-                  placeholder="e.g., 'Summarize this document', 'Extract all names and dates', 'Convert to bullet points'..."
-                  style={{
-                    flex: 1,
-                    padding: "14px 18px",
-                    borderRadius: "10px",
-                    border: "none",
-                    fontSize: "14px",
-                    outline: "none",
-                  }}
-                />
-                <Button
-                  variant="outline"
-                  onClick={handleAIAssist}
-                  loading={isAiProcessing}
-                  disabled={!aiPrompt.trim()}
-                  style={{ background: "white", color: colors.primary }}
-                >
-                  ✨ Process
-                </Button>
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "12px" }}>
-                {[
-                  "Summarize document",
-                  "Extract key points",
-                  "Fix grammar & spelling",
-                  "Convert to bullet points",
-                  "Make it more professional",
-                  "Simplify language",
-                ].map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    onClick={() => setAiPrompt(suggestion)}
-                    style={{
-                      padding: "6px 12px",
-                      background: "rgba(255,255,255,0.2)",
-                      border: "1px solid rgba(255,255,255,0.3)",
-                      borderRadius: "20px",
-                      color: "white",
-                      fontSize: "12px",
-                      cursor: "pointer",
-                      transition: "all 0.2s",
-                    }}
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Export Section */}
-            <div
-              style={{
-                background: "white",
-                borderRadius: "16px",
-                padding: "20px 24px",
-                marginTop: "24px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-              }}
-            >
-              <div>
-                <h4 style={{ fontSize: "15px", fontWeight: 600, color: colors.gray[800], margin: "0 0 4px" }}>
-                  Export Document
-                </h4>
-                <p style={{ fontSize: "13px", color: colors.gray[500], margin: 0 }}>
-                  Download your edited document in various formats
-                </p>
-              </div>
-              <div style={{ display: "flex", gap: "10px" }}>
-                <Button variant="outline" size="sm" icon="📃" onClick={() => handleDownload("txt")}>
-                  Text (.txt)
-                </Button>
-                <Button variant="outline" size="sm" icon="📋" onClick={() => handleDownload("md")}>
-                  Markdown (.md)
-                </Button>
-                <Button variant="primary" size="sm" icon="🌐" onClick={() => handleDownload("html")}>
-                  HTML (.html)
-                </Button>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Start Fresh Button */}
-        {!uploadedFile && !documentContent && (
-          <div style={{ textAlign: "center", marginTop: "24px" }}>
-            <p style={{ fontSize: "14px", color: colors.gray[500], marginBottom: "16px" }}>
-              Or start with a blank document
-            </p>
-            <Button
-              variant="outline"
-              icon="✍️"
-              onClick={() => {
-                setDocumentContent("");
-                setDocumentTitle("New Document");
-                setUploadedFile({ name: "New Document", size: 0, type: "text/plain" } as File);
-              }}
-            >
-              Create Blank Document
-            </Button>
           </div>
         )}
-      </main>
+      </div>
 
       <AdminFooter />
 
       {/* Toast */}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+      {/* Animations */}
+      <style jsx global>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
