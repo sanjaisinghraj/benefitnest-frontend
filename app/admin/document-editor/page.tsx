@@ -102,6 +102,9 @@ export default function DocumentEditorPage() {
   const [aiResponses, setAiResponses] = useState<Record<string, string>>({});
   const [loadingTabs, setLoadingTabs] = useState<Record<string, boolean>>({});
   const [processedTabs, setProcessedTabs] = useState<Record<string, boolean>>({});
+  
+  // Track if original document was edited
+  const [isDocumentEdited, setIsDocumentEdited] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -398,14 +401,29 @@ export default function DocumentEditorPage() {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                background: colors.gray[50],
+                background: isDocumentEdited ? colors.warning + "15" : colors.gray[50],
               }}>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600, color: colors.gray[800] }}>
-                    📄 Original Document
-                  </h3>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600, color: colors.gray[800] }}>
+                      📄 Original Document
+                    </h3>
+                    {isDocumentEdited && (
+                      <span style={{
+                        background: colors.warning,
+                        color: "white",
+                        padding: "3px 10px",
+                        borderRadius: "12px",
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        animation: "pulse 2s infinite",
+                      }}>
+                        ✏️ EDITED
+                      </span>
+                    )}
+                  </div>
                   <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: colors.gray[500] }}>
-                    Extracted content from your file
+                    {isDocumentEdited ? "You have modified this content" : "Extracted content from your file"}
                   </p>
                 </div>
                 <button
@@ -415,6 +433,7 @@ export default function DocumentEditorPage() {
                     setAiResponses({});
                     setProcessedTabs({});
                     setFilePreview(null);
+                    setIsDocumentEdited(false);
                   }}
                   style={{
                     padding: "8px 16px",
@@ -441,47 +460,89 @@ export default function DocumentEditorPage() {
                 </div>
               )}
 
-              {/* Document Content */}
+              {/* Document Content - Editable */}
               <div style={{ flex: 1, overflow: "auto", padding: "20px" }}>
-                <pre style={{
-                  fontFamily: "system-ui, -apple-system, sans-serif",
-                  fontSize: "14px",
-                  lineHeight: "1.7",
-                  color: colors.gray[700],
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                  margin: 0,
-                }}>
-                  {originalContent}
-                </pre>
+                <textarea
+                  value={originalContent}
+                  onChange={(e) => {
+                    setOriginalContent(e.target.value);
+                    if (!isDocumentEdited) setIsDocumentEdited(true);
+                    // Clear AI responses when content changes
+                    setAiResponses({});
+                    setProcessedTabs({});
+                  }}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    minHeight: "400px",
+                    fontFamily: "system-ui, -apple-system, sans-serif",
+                    fontSize: "14px",
+                    lineHeight: "1.7",
+                    color: colors.gray[700],
+                    border: isDocumentEdited ? `2px solid ${colors.warning}` : `1px solid ${colors.gray[200]}`,
+                    borderRadius: "8px",
+                    padding: "16px",
+                    resize: "none",
+                    outline: "none",
+                    background: isDocumentEdited ? colors.warning + "08" : "white",
+                    transition: "all 0.2s",
+                  }}
+                  placeholder="Document content will appear here after upload..."
+                />
               </div>
 
               {/* Panel Footer */}
               <div style={{
                 padding: "12px 20px",
                 borderTop: `1px solid ${colors.gray[200]}`,
-                background: colors.gray[50],
+                background: isDocumentEdited ? colors.warning + "10" : colors.gray[50],
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
               }}>
-                <span style={{ fontSize: "12px", color: colors.gray[500] }}>
+                <span style={{ fontSize: "12px", color: isDocumentEdited ? colors.warning : colors.gray[500] }}>
+                  {isDocumentEdited && "✎ "}
                   {originalContent.trim().split(/\s+/).length} words • {originalContent.length} chars
                 </span>
-                <button
-                  onClick={() => copyToClipboard(originalContent)}
-                  style={{
-                    padding: "6px 12px",
-                    background: colors.primary,
-                    color: "white",
-                    border: "none",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                    fontSize: "12px",
-                  }}
-                >
-                  📋 Copy
-                </button>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  {isDocumentEdited && (
+                    <button
+                      onClick={() => {
+                        if (uploadedFile) {
+                          processDocument(uploadedFile);
+                          setIsDocumentEdited(false);
+                          setAiResponses({});
+                          setProcessedTabs({});
+                        }
+                      }}
+                      style={{
+                        padding: "6px 12px",
+                        background: colors.warning,
+                        color: "white",
+                        border: "none",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        fontSize: "12px",
+                      }}
+                    >
+                      ↺ Reset
+                    </button>
+                  )}
+                  <button
+                    onClick={() => copyToClipboard(originalContent)}
+                    style={{
+                      padding: "6px 12px",
+                      background: colors.primary,
+                      color: "white",
+                      border: "none",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      fontSize: "12px",
+                    }}
+                  >
+                    📋 Copy
+                  </button>
+                </div>
               </div>
             </div>
 
