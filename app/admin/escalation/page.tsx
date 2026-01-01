@@ -861,6 +861,7 @@ export default function EscalationMatrixPage() {
           </div>
         </div>
       )}
+      </div>
       
       <AdminFooter />
     </div>
