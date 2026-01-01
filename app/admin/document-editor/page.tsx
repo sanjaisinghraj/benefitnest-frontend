@@ -358,9 +358,15 @@ export default function DocumentEditorPage() {
         reader.readAsDataURL(file);
       });
 
-      setProcessingStatus(isImage ? "Extracting text from image with AI Vision..." : "Analyzing document with AI...");
+      setProcessingStatus(
+        isImage 
+          ? "Extracting text using Tesseract OCR (local)..." 
+          : file.type === "application/pdf" || file.name.endsWith(".pdf")
+            ? "Extracting text from PDF (local)..."
+            : "Processing document..."
+      );
 
-      // Send to backend for AI processing
+      // Send to backend for processing (FREE: Tesseract for images, pdf-parse for PDFs)
       const response = await fetch(`${API_URL}/api/admin/document/parse`, {
         method: "POST",
         headers: {
@@ -382,16 +388,18 @@ export default function DocumentEditorPage() {
         setOriginalContent(data.content || data.text || "");
         updateCounts(data.content || data.text || "");
         
-        // Show appropriate success message based on OCR engine used
+        // Show appropriate success message based on extraction engine used
         let successMsg = "Document processed successfully!";
-        if (data.type === "ocr-groq") {
-          successMsg = "Text extracted using Groq Vision AI!";
+        if (data.type === "pdf-extract") {
+          successMsg = `PDF text extracted (${data.numPages} pages). Use AI Assistant to format.`;
+        } else if (data.type === "pdf-scanned") {
+          successMsg = "PDF is scanned/image-based. Screenshot pages for OCR.";
         } else if (data.type === "ocr-tesseract") {
-          successMsg = `Text extracted using Tesseract OCR (${data.confidence ? Math.round(data.confidence) + "% confidence" : "local processing"})`;
-        } else if (data.type === "ocr") {
-          successMsg = "Text extracted from image successfully!";
+          successMsg = `Text extracted via OCR (${data.confidence ? Math.round(data.confidence) + "% confidence" : "local"}). Use AI Assistant to improve.`;
         } else if (data.type === "direct") {
-          successMsg = "Document loaded successfully!";
+          successMsg = "Text file loaded successfully!";
+        } else if (data.type === "word-placeholder" || data.type === "spreadsheet-placeholder") {
+          successMsg = "Convert to PDF or paste content directly.";
         }
         showToast(successMsg, "success");
       } else {
