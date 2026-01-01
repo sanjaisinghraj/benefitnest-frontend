@@ -957,27 +957,6 @@ export default function ReportsAnalyticsPage() {
   const getToken = () => localStorage.getItem("admin_token");
   const getAuthHeaders = () => ({ Authorization: `Bearer ${getToken()}` });
 
-  // Load admin profile
-  useEffect(() => {
-    const token = getToken();
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        setAdminProfile({
-          name: payload.name || payload.username || "Administrator",
-          email: payload.email || "admin@benefitnest.space",
-          role: payload.role || "Super Admin",
-        });
-      } catch {
-        setAdminProfile({
-          name: "Administrator",
-          email: "admin@benefitnest.space",
-          role: "Super Admin",
-        });
-      }
-    }
-  }, []);
-
   // Load corporates
   useEffect(() => {
     const loadCorporates = async () => {
