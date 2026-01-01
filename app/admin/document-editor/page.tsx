@@ -64,6 +64,62 @@ const formatFileSize = (bytes: number) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
+// Simple Markdown to HTML converter
+const markdownToHtml = (md: string): string => {
+  if (!md) return "";
+  let html = md
+    // Escape HTML
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    // Headers
+    .replace(/^### (.+)$/gm, '<h3 style="color:#374151;margin:16px 0 8px 0;font-size:16px;">$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2 style="color:#1f2937;margin:20px 0 10px 0;font-size:18px;border-bottom:1px solid #e5e7eb;padding-bottom:6px;">$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1 style="color:#111827;margin:24px 0 12px 0;font-size:22px;font-weight:700;">$1</h1>')
+    // Bold and Italic
+    .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/__(.+?)__/g, '<strong>$1</strong>')
+    .replace(/_(.+?)_/g, '<em>$1</em>')
+    // Bullet lists
+    .replace(/^\* (.+)$/gm, '<li style="margin:4px 0;">$1</li>')
+    .replace(/^- (.+)$/gm, '<li style="margin:4px 0;">$1</li>')
+    .replace(/^• (.+)$/gm, '<li style="margin:4px 0;">$1</li>')
+    // Numbered lists
+    .replace(/^\d+\. (.+)$/gm, '<li style="margin:4px 0;">$1</li>')
+    // Paragraphs (double newlines)
+    .replace(/\n\n/g, '</p><p style="margin:12px 0;">')
+    // Single newlines to <br>
+    .replace(/\n/g, '<br>');
+  
+  // Wrap consecutive <li> in <ul>
+  html = html.replace(/(<li[^>]*>.*?<\/li>)(?=\s*<li)/g, '$1');
+  html = html.replace(/(<li[^>]*>.*?<\/li>)+/g, '<ul style="margin:12px 0;padding-left:24px;">$&</ul>');
+  
+  return `<div style="font-family:system-ui,-apple-system,sans-serif;line-height:1.7;color:#374151;"><p style="margin:12px 0;">${html}</p></div>`;
+};
+
+// Check if content has tabular data (for Excel export)
+const hasTabularData = (content: string): boolean => {
+  // Check for table-like patterns: multiple lines with consistent separators
+  const lines = content.split('\n').filter(l => l.trim());
+  if (lines.length < 2) return false;
+  
+  // Check for markdown tables
+  if (content.includes('|') && lines.some(l => l.includes('---'))) return true;
+  
+  // Check for CSV-like data (multiple lines with commas or tabs)
+  const commaLines = lines.filter(l => l.includes(',') || l.includes('\t'));
+  if (commaLines.length >= 3) return true;
+  
+  // Check for colon-separated key-value pairs
+  const colonLines = lines.filter(l => /^[^:]+:\s*.+/.test(l));
+  if (colonLines.length >= 3) return true;
+  
+  return false;
+};
+
 // Toast Component
 const Toast = ({ message, type, onClose }: { message: string; type: "success" | "error" | "info"; onClose: () => void }) => {
   React.useEffect(() => {
@@ -102,6 +158,9 @@ export default function DocumentEditorPage() {
   const [aiResponses, setAiResponses] = useState<Record<string, string>>({});
   const [loadingTabs, setLoadingTabs] = useState<Record<string, boolean>>({});
   const [processedTabs, setProcessedTabs] = useState<Record<string, boolean>>({});
+  const [editedAiResponses, setEditedAiResponses] = useState<Record<string, boolean>>({});
+  const [viewMode, setViewMode] = useState<"formatted" | "edit">("formatted");
+  const aiResponseRef = useRef<HTMLDivElement>(null);
   
   // Track if original document was edited
   const [isDocumentEdited, setIsDocumentEdited] = useState(false);
@@ -266,9 +325,88 @@ export default function DocumentEditorPage() {
   }, []);
 
   // Export document
-  const exportDocument = (format: "txt" | "md" | "html", content: string) => {
+  const exportDocument = (format: "txt" | "md" | "html" | "docx" | "xlsx", content: string) => {
     if (!content) {
       showToast("No content to export", "error");
+      return;
+    }
+
+    const fileName = uploadedFile?.name?.replace(/\.[^/.]+$/, "") || "document";
+    
+    if (format === "docx") {
+      // Export as Word document using HTML conversion
+      const htmlContent = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'><title>${fileName}</title>
+        <style>
+          body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.5; }
+          h1 { font-size: 16pt; font-weight: bold; color: #1f2937; }
+          h2 { font-size: 14pt; font-weight: bold; color: #374151; }
+          h3 { font-size: 12pt; font-weight: bold; color: #4b5563; }
+          ul, ol { margin: 10px 0; padding-left: 20px; }
+          li { margin: 5px 0; }
+        </style>
+        </head>
+        <body>${markdownToHtml(content)}</body>
+        </html>
+      `;
+      const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${fileName}-${activeTab}.doc`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("Exported as Word Document", "success");
+      return;
+    }
+    
+    if (format === "xlsx") {
+      // Export as Excel-compatible CSV with tab separators
+      const lines = content.split('\n').filter(l => l.trim());
+      let csvContent = '';
+      
+      // Try to parse structured data
+      lines.forEach(line => {
+        // Handle markdown table rows
+        if (line.includes('|')) {
+          const cells = line.split('|').filter(c => c.trim() && !c.match(/^[\s-:]+$/));
+          csvContent += cells.map(c => `"${c.trim()}"`).join('\t') + '\n';
+        }
+        // Handle key: value pairs
+        else if (line.includes(':')) {
+          const [key, ...valueParts] = line.split(':');
+          const value = valueParts.join(':').trim();
+          csvContent += `"${key.trim()}"\t"${value}"\n`;
+        }
+        // Handle comma-separated values
+        else if (line.includes(',')) {
+          const cells = line.split(',');
+          csvContent += cells.map(c => `"${c.trim()}"`).join('\t') + '\n';
+        }
+        // Handle bullet points
+        else if (line.match(/^[\s]*[-*•]\s+/)) {
+          const text = line.replace(/^[\s]*[-*•]\s+/, '');
+          csvContent += `"${text}"\n`;
+        }
+        // Handle numbered lists
+        else if (line.match(/^\d+\.\s+/)) {
+          const text = line.replace(/^\d+\.\s+/, '');
+          csvContent += `"${text}"\n`;
+        }
+        else {
+          csvContent += `"${line}"\n`;
+        }
+      });
+      
+      const blob = new Blob(['\ufeff' + csvContent], { type: 'application/vnd.ms-excel;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${fileName}-${activeTab}.xls`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("Exported as Excel", "success");
       return;
     }
 
@@ -277,7 +415,7 @@ export default function DocumentEditorPage() {
     let extension = "txt";
 
     if (format === "html") {
-      exportContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${uploadedFile?.name || "Document"}</title><style>body{font-family:system-ui,sans-serif;line-height:1.6;max-width:800px;margin:40px auto;padding:20px;}</style></head><body>${content.replace(/\n/g, "<br>")}</body></html>`;
+      exportContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${uploadedFile?.name || "Document"}</title><style>body{font-family:system-ui,sans-serif;line-height:1.6;max-width:800px;margin:40px auto;padding:20px;}</style></head><body>${markdownToHtml(content)}</body></html>`;
       mimeType = "text/html";
       extension = "html";
     } else if (format === "md") {
@@ -289,7 +427,7 @@ export default function DocumentEditorPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${uploadedFile?.name?.replace(/\.[^/.]+$/, "") || "document"}-${activeTab}.${extension}`;
+    a.download = `${fileName}-${activeTab}.${extension}`;
     a.click();
     URL.revokeObjectURL(url);
     showToast(`Exported as ${format.toUpperCase()}`, "success");
@@ -299,6 +437,50 @@ export default function DocumentEditorPage() {
   const copyToClipboard = (content: string) => {
     navigator.clipboard.writeText(content);
     showToast("Copied to clipboard!", "success");
+  };
+
+  // Apply text formatting
+  const applyFormat = (format: "bold" | "italic" | "underline" | "heading") => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      showToast("Select text to format", "info");
+      return;
+    }
+    
+    const selectedText = selection.toString();
+    if (!selectedText) {
+      showToast("Select text to format", "info");
+      return;
+    }
+    
+    let formattedText = selectedText;
+    switch (format) {
+      case "bold":
+        formattedText = `**${selectedText}**`;
+        break;
+      case "italic":
+        formattedText = `*${selectedText}*`;
+        break;
+      case "underline":
+        formattedText = `__${selectedText}__`;
+        break;
+      case "heading":
+        formattedText = `\n## ${selectedText}\n`;
+        break;
+    }
+    
+    // Update the AI response with formatted text
+    const currentResponse = aiResponses[activeTab] || "";
+    const newResponse = currentResponse.replace(selectedText, formattedText);
+    setAiResponses(prev => ({ ...prev, [activeTab]: newResponse }));
+    setEditedAiResponses(prev => ({ ...prev, [activeTab]: true }));
+    showToast(`Applied ${format} formatting`, "success");
+  };
+
+  // Handle AI response edit
+  const handleAiResponseEdit = (newContent: string) => {
+    setAiResponses(prev => ({ ...prev, [activeTab]: newContent }));
+    setEditedAiResponses(prev => ({ ...prev, [activeTab]: true }));
   };
 
   return (
@@ -664,19 +846,194 @@ export default function DocumentEditorPage() {
                 {/* AI Response */}
                 {processedTabs[activeTab] && aiResponses[activeTab] && !loadingTabs[activeTab] && (
                   <>
-                    <div style={{ flex: 1, overflow: "auto", padding: "20px" }}>
-                      <pre style={{
-                        fontFamily: "system-ui, -apple-system, sans-serif",
-                        fontSize: "14px",
-                        lineHeight: "1.7",
-                        color: colors.gray[700],
-                        whiteSpace: "pre-wrap",
-                        wordBreak: "break-word",
-                        margin: 0,
+                    {/* Formatting Toolbar */}
+                    <div style={{
+                      padding: "8px 16px",
+                      borderBottom: `1px solid ${colors.gray[200]}`,
+                      background: colors.gray[50],
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}>
+                      {/* View Mode Toggle */}
+                      <div style={{ 
+                        display: "flex", 
+                        background: colors.gray[200], 
+                        borderRadius: "6px", 
+                        padding: "2px",
+                        marginRight: "12px",
                       }}>
-                        {aiResponses[activeTab]}
-                      </pre>
+                        <button
+                          onClick={() => setViewMode("formatted")}
+                          style={{
+                            padding: "4px 10px",
+                            background: viewMode === "formatted" ? "white" : "transparent",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            fontSize: "11px",
+                            fontWeight: viewMode === "formatted" ? 600 : 400,
+                            color: viewMode === "formatted" ? colors.primary : colors.gray[600],
+                            boxShadow: viewMode === "formatted" ? "0 1px 2px rgba(0,0,0,0.1)" : "none",
+                          }}
+                        >
+                          👁 View
+                        </button>
+                        <button
+                          onClick={() => setViewMode("edit")}
+                          style={{
+                            padding: "4px 10px",
+                            background: viewMode === "edit" ? "white" : "transparent",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            fontSize: "11px",
+                            fontWeight: viewMode === "edit" ? 600 : 400,
+                            color: viewMode === "edit" ? colors.primary : colors.gray[600],
+                            boxShadow: viewMode === "edit" ? "0 1px 2px rgba(0,0,0,0.1)" : "none",
+                          }}
+                        >
+                          ✎ Edit
+                        </button>
+                      </div>
+
+                      {viewMode === "formatted" && (
+                        <>
+                          <span style={{ fontSize: "12px", color: colors.gray[500], marginRight: "8px" }}>Format:</span>
+                          <button
+                            onClick={() => applyFormat("bold")}
+                            title="Bold (select text first)"
+                            style={{
+                              padding: "4px 10px",
+                              background: "white",
+                              border: `1px solid ${colors.gray[300]}`,
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              fontWeight: "bold",
+                              fontSize: "13px",
+                            }}
+                          >
+                            B
+                          </button>
+                          <button
+                            onClick={() => applyFormat("italic")}
+                            title="Italic (select text first)"
+                            style={{
+                              padding: "4px 10px",
+                              background: "white",
+                              border: `1px solid ${colors.gray[300]}`,
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              fontStyle: "italic",
+                              fontSize: "13px",
+                            }}
+                          >
+                            I
+                          </button>
+                          <button
+                            onClick={() => applyFormat("underline")}
+                            title="Underline (select text first)"
+                            style={{
+                              padding: "4px 10px",
+                              background: "white",
+                              border: `1px solid ${colors.gray[300]}`,
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              textDecoration: "underline",
+                              fontSize: "13px",
+                            }}
+                          >
+                            U
+                          </button>
+                          <button
+                            onClick={() => applyFormat("heading")}
+                            title="Make Heading (select text first)"
+                            style={{
+                              padding: "4px 10px",
+                              background: "white",
+                              border: `1px solid ${colors.gray[300]}`,
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              fontSize: "13px",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            H
+                          </button>
+                        </>
+                      )}
+                      <div style={{ flex: 1 }} />
+                      {editedAiResponses[activeTab] && (
+                        <span style={{
+                          fontSize: "11px",
+                          color: colors.warning,
+                          background: "#fef3c7",
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          fontWeight: 500,
+                        }}>
+                          ✎ EDITED
+                        </span>
+                      )}
                     </div>
+
+                    {/* Formatted Response Display (View Mode) */}
+                    {viewMode === "formatted" && (
+                      <div 
+                        ref={aiResponseRef}
+                        style={{ 
+                          flex: 1, 
+                          overflow: "auto", 
+                          padding: "20px",
+                          background: "white",
+                        }}
+                      >
+                        <div
+                          dangerouslySetInnerHTML={{ __html: markdownToHtml(aiResponses[activeTab]) }}
+                          style={{
+                            fontSize: "14px",
+                            lineHeight: "1.7",
+                            color: colors.gray[700],
+                          }}
+                        />
+                      </div>
+                    )}
+
+                    {/* Raw Edit Mode */}
+                    {viewMode === "edit" && (
+                      <div style={{ flex: 1, padding: "16px", overflow: "auto" }}>
+                        <textarea
+                          value={aiResponses[activeTab]}
+                          onChange={(e) => handleAiResponseEdit(e.target.value)}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            minHeight: "300px",
+                            padding: "16px",
+                            border: `2px solid ${colors.gray[200]}`,
+                            borderRadius: "8px",
+                            fontSize: "14px",
+                            lineHeight: "1.6",
+                            fontFamily: "Monaco, Consolas, monospace",
+                            resize: "none",
+                            outline: "none",
+                          }}
+                          placeholder="Edit your content here using Markdown syntax..."
+                        />
+                        <p style={{ 
+                          fontSize: "11px", 
+                          color: colors.gray[500], 
+                          marginTop: "8px",
+                          display: "flex",
+                          gap: "12px",
+                        }}>
+                          <span><strong>**bold**</strong></span>
+                          <span><em>*italic*</em></span>
+                          <span>## Heading</span>
+                          <span>- bullet list</span>
+                        </p>
+                      </div>
+                    )}
 
                     {/* Response Footer */}
                     <div style={{
@@ -686,12 +1043,15 @@ export default function DocumentEditorPage() {
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
+                      flexWrap: "wrap",
+                      gap: "8px",
                     }}>
                       <div style={{ display: "flex", gap: "8px" }}>
                         <button
                           onClick={() => {
                             setProcessedTabs(prev => ({ ...prev, [activeTab]: false }));
                             setAiResponses(prev => ({ ...prev, [activeTab]: "" }));
+                            setEditedAiResponses(prev => ({ ...prev, [activeTab]: false }));
                           }}
                           style={{
                             padding: "6px 12px",
@@ -720,17 +1080,17 @@ export default function DocumentEditorPage() {
                           📋 Copy
                         </button>
                       </div>
-                      <div style={{ display: "flex", gap: "8px" }}>
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                         <button
                           onClick={() => exportDocument("txt", aiResponses[activeTab])}
                           style={{
-                            padding: "6px 12px",
+                            padding: "6px 10px",
                             background: colors.gray[100],
                             color: colors.gray[700],
                             border: `1px solid ${colors.gray[200]}`,
                             borderRadius: "6px",
                             cursor: "pointer",
-                            fontSize: "12px",
+                            fontSize: "11px",
                           }}
                         >
                           TXT
@@ -738,13 +1098,13 @@ export default function DocumentEditorPage() {
                         <button
                           onClick={() => exportDocument("md", aiResponses[activeTab])}
                           style={{
-                            padding: "6px 12px",
+                            padding: "6px 10px",
                             background: colors.gray[100],
                             color: colors.gray[700],
                             border: `1px solid ${colors.gray[200]}`,
                             borderRadius: "6px",
                             cursor: "pointer",
-                            fontSize: "12px",
+                            fontSize: "11px",
                           }}
                         >
                           MD
@@ -752,17 +1112,49 @@ export default function DocumentEditorPage() {
                         <button
                           onClick={() => exportDocument("html", aiResponses[activeTab])}
                           style={{
-                            padding: "6px 12px",
-                            background: colors.success,
-                            color: "white",
-                            border: "none",
+                            padding: "6px 10px",
+                            background: colors.gray[100],
+                            color: colors.gray[700],
+                            border: `1px solid ${colors.gray[200]}`,
                             borderRadius: "6px",
                             cursor: "pointer",
-                            fontSize: "12px",
+                            fontSize: "11px",
                           }}
                         >
                           HTML
                         </button>
+                        <button
+                          onClick={() => exportDocument("docx", aiResponses[activeTab])}
+                          style={{
+                            padding: "6px 10px",
+                            background: "#2563eb",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            fontSize: "11px",
+                            fontWeight: 500,
+                          }}
+                        >
+                          📄 Word
+                        </button>
+                        {hasTabularData(aiResponses[activeTab]) && (
+                          <button
+                            onClick={() => exportDocument("xlsx", aiResponses[activeTab])}
+                            style={{
+                              padding: "6px 10px",
+                              background: "#16a34a",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "6px",
+                              cursor: "pointer",
+                              fontSize: "11px",
+                              fontWeight: 500,
+                            }}
+                          >
+                            📊 Excel
+                          </button>
+                        )}
                       </div>
                     </div>
                   </>
