@@ -177,18 +177,24 @@ export default function DocumentEditorPage() {
 
       const data = await response.json();
 
+      console.log("Document parse response:", data); // Debug log
+
       if (data.success && data.content) {
         setOriginalContent(data.content);
         setExtractionEngine(data.engine || "Local Processing");
         
         let successMsg = "Document processed successfully!";
-        if (data.type === "pdf-extract") successMsg = `PDF text extracted (${data.numPages} pages)`;
+        if (data.type === "pdf-extract") successMsg = `PDF text extracted (${data.numPages} pages) using ${data.engine}`;
         else if (data.type === "ocr-tesseract") successMsg = `OCR completed (${Math.round(data.confidence || 0)}% confidence)`;
         else if (data.type === "direct") successMsg = "Text file loaded";
+        else if (data.type === "pdf-scanned") successMsg = "PDF appears to be scanned - see details";
         
-        showToast(successMsg, "success");
+        showToast(successMsg, data.type === "pdf-scanned" ? "info" : "success");
       } else {
-        setOriginalContent(data.content || `[Unable to extract text from ${file.name}]\n\nPlease try a different file format.`);
+        // Show the actual content/error from backend
+        const errorContent = data.content || data.error || `[Unable to extract text from ${file.name}]\n\nPlease try a different file format.`;
+        setOriginalContent(errorContent);
+        setExtractionEngine(data.engine || "Error");
         showToast(data.error || "Document loaded with limited extraction", "info");
       }
     } catch (err) {
