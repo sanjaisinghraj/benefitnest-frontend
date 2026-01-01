@@ -342,7 +342,10 @@ export default function DocumentEditorPage() {
   // Process document with Groq AI
   const processWithAI = async (file: File) => {
     setIsProcessing(true);
-    setProcessingStatus("Uploading document...");
+    
+    const isImage = file.type.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(file.name);
+    
+    setProcessingStatus(isImage ? "Uploading image for OCR..." : "Uploading document...");
 
     try {
       // Convert file to base64
@@ -355,7 +358,7 @@ export default function DocumentEditorPage() {
         reader.readAsDataURL(file);
       });
 
-      setProcessingStatus("Analyzing document with AI...");
+      setProcessingStatus(isImage ? "Extracting text from image with AI Vision..." : "Analyzing document with AI...");
 
       // Send to backend for AI processing
       const response = await fetch(`${API_URL}/api/admin/document/parse`, {
@@ -378,14 +381,17 @@ export default function DocumentEditorPage() {
         setDocumentContent(data.content || data.text || "");
         setOriginalContent(data.content || data.text || "");
         updateCounts(data.content || data.text || "");
-        showToast("Document processed successfully!", "success");
+        const successMsg = data.type === "ocr" 
+          ? "Text extracted from image successfully!" 
+          : "Document processed successfully!";
+        showToast(successMsg, "success");
       } else {
         // Fallback: show placeholder for manual editing
         const placeholder = `[Document: ${file.name}]\n\nThe AI document parser is processing your file.\n\nFile Details:\n- Name: ${file.name}\n- Type: ${file.type || "Unknown"}\n- Size: ${formatFileSize(file.size)}\n\nYou can start typing or use the AI assistant below to help extract and format content.`;
         setDocumentContent(placeholder);
         setOriginalContent(placeholder);
         updateCounts(placeholder);
-        showToast("Document loaded. Use AI assistant to help process content.", "info");
+        showToast(data.error || "Document loaded. Use AI assistant to help process content.", "info");
       }
     } catch (err) {
       console.error("Processing error:", err);
