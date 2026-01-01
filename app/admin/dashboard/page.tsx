@@ -194,6 +194,14 @@ const DEFAULT_CARDS = [
     color: "#0d9488",
   },
   {
+    id: "document-editor",
+    title: "AI Document Editor",
+    description: "Upload documents, extract content using AI, edit in a rich text editor, and export in various formats.",
+    icon: "📄",
+    link: "/admin/document-editor",
+    color: "#7c3aed",
+  },
+  {
     id: "system",
     title: "System Configuration",
     description: "Configure email/SMS templates, notification preferences, API keys, SSO providers, and feature toggles per tenant.",
