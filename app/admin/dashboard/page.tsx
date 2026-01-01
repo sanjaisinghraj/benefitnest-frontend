@@ -202,6 +202,14 @@ const DEFAULT_CARDS = [
     color: "#7c3aed",
   },
   {
+    id: "events",
+    title: "Event Management",
+    description: "Create and manage virtual events - workshops, webinars, Q&A sessions. Send invitations, track registrations and attendance.",
+    icon: "📅",
+    link: "/admin/events",
+    color: "#059669",
+  },
+  {
     id: "system",
     title: "System Configuration",
     description: "Configure email/SMS templates, notification preferences, API keys, SSO providers, and feature toggles per tenant.",
