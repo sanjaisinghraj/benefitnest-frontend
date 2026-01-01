@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import AdminTopBar from "../components/AdminTopBar";
+import AdminFooter from "../components/AdminFooter";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://benefitnest-backend.onrender.com";
 
@@ -865,11 +867,6 @@ export default function FAQManagementPage() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("admin_token");
-    router.push("/admin");
-  };
-
   const getMappingInfo = (faqId: string) => {
     const mapping = faqMappings.find((m) => m.faq_id === faqId);
     if (!mapping) return null;
@@ -919,61 +916,32 @@ export default function FAQManagementPage() {
       style={{
         minHeight: "100vh",
         background: `linear-gradient(135deg, ${colors.gray[50]}, ${colors.primaryLight})`,
+        display: "flex",
+        flexDirection: "column",
       }}
     >
-      {/* Header */}
-      <header
-        style={{
-          background: "white",
-          borderBottom: `1px solid ${colors.gray[200]}`,
-          padding: "16px 32px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <button
-            onClick={() => router.push("/admin/dashboard")}
-            style={{
-              background: "none",
-              border: "none",
-              fontSize: "20px",
-              cursor: "pointer",
-              padding: "8px",
-            }}
-          >
-            ←
-          </button>
-          <div>
-            <h1
-              style={{
-                fontSize: "22px",
-                fontWeight: 700,
-                color: colors.gray[800],
-                margin: 0,
-              }}
-            >
-              📚 Master FAQ Management
-            </h1>
-            <p style={{ fontSize: "13px", color: colors.gray[500], margin: "4px 0 0" }}>
-              Manage frequently asked questions by country, category, and policy type
-            </p>
-          </div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+      <AdminTopBar
+        title="Master FAQ Management"
+        subtitle="Manage frequently asked questions by country, category, and policy type"
+        icon={<span style={{ fontSize: 24 }}>📚</span>}
+        showBack={true}
+      />
+
+      {/* Main Content */}
+      <main style={{ padding: "24px 32px", maxWidth: "1600px", margin: "0 auto", flex: 1 }}>
+        {/* Action Bar */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            marginBottom: "16px",
+          }}
+        >
           <Button variant="success" icon="💾" onClick={handleSaveAll} loading={saving}>
             Save All to Database
           </Button>
-          <Button variant="outline" icon="🚪" onClick={handleLogout}>
-            Logout
-          </Button>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main style={{ padding: "24px 32px", maxWidth: "1600px", margin: "0 auto" }}>
         {/* Stats Cards */}
         <div
           style={{
@@ -1423,6 +1391,8 @@ export default function FAQManagementPage() {
 
       {/* Toast */}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      
+      <AdminFooter />
     </div>
   );
 }
