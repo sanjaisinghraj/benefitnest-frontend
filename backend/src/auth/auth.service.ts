@@ -22,12 +22,18 @@ export class AuthService {
       return null;
     }
 
-    const isPasswordValid = await bcrypt.compare(password, admin.password);
+    // Check password_hash or password field
+    const storedPassword = admin.password_hash || admin.password;
+    if (!storedPassword) {
+      return null;
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, storedPassword);
     if (!isPasswordValid) {
       return null;
     }
 
-    const { password: _, ...result } = admin;
+    const { password: _, password_hash: __, ...result } = admin;
     return result;
   }
 
