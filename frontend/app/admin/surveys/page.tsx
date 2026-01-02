@@ -1,0 +1,22 @@
+"use client";
+import React from "react";
+import AdminTopBar from "../components/AdminTopBar";
+import AdminFooter from "../components/AdminFooter";
+import SurveyManager from "./SurveyManager";
+
+export default function Page() {
+  return (
+    <div style={{ minHeight: "100vh", background: "#f9fafb", display: "flex", flexDirection: "column" }}>
+      <AdminTopBar
+        title="Surveys & Feedback"
+        subtitle="Manage polls, feedback channels, sentiment analysis, and engagement analytics."
+        icon={<span style={{ fontSize: 24 }}>📣</span>}
+        showBack={true}
+      />
+      <main style={{ flex: 1, width: "100%", maxWidth: 1400, margin: "0 auto", padding: 24 }}>
+        <SurveyManager />
+      </main>
+      <AdminFooter />
+    </div>
+  );
+}
