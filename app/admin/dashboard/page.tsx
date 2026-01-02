@@ -59,14 +59,6 @@ const DEFAULT_CARDS = [
     color: "#10b981",
   },
   {
-    id: "policy",
-    title: "Policy & Product Setup",
-    description: "Configure GMC, GPA, GTL, OPD, parental, keyman, workmen comp, voluntary, top-up, riders. Manage SI slabs, premium matrix, and EMI options.",
-    icon: "📋",
-    link: "/admin/plan-config",
-    color: "#f59e0b",
-  },
-  {
     id: "enrollment",
     title: "Enrollment Management",
     description: "Control enrollment windows (inception, new joiners, special), grace periods, eligibility filters, trade-off logic, and wallet panel setup.",
