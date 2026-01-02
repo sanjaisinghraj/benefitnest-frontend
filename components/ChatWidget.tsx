@@ -11,6 +11,8 @@ interface Message {
   quickReplies?: { text: string; action?: string }[];
   isEscalation?: boolean;
   contact?: { name: string; email: string; phone: string };
+  suggestedCard?: { id: string; name: string; icon: string; path: string };
+  moduleStatus?: { configured: string[]; notConfigured: string[] };
 }
 
 interface ChatWidgetProps {
@@ -154,7 +156,9 @@ export default function ChatWidget({
           timestamp: new Date(),
           quickReplies: data.message.quickReplies,
           isEscalation: data.message.isEscalation,
-          contact: data.message.contact
+          contact: data.message.contact,
+          suggestedCard: data.suggestedCard,
+          moduleStatus: data.moduleStatus
         };
         setMessages(prev => [...prev, assistantMessage]);
       }
@@ -522,6 +526,114 @@ export default function ChatWidget({
                         </>
                       )}
                     </div>
+                  </div>
+                )}
+
+                {/* Admin Card Navigation Suggestion */}
+                {msg.suggestedCard && (
+                  <div style={{
+                    marginTop: 12,
+                    padding: 16,
+                    background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+                    borderRadius: 12,
+                    border: '1px solid #bae6fd',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                  }}>
+                    <div style={{ fontWeight: 600, marginBottom: 8, color: '#0369a1' }}>
+                      🎯 Suggested Module
+                    </div>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 12, 
+                      marginBottom: 12 
+                    }}>
+                      <span style={{ fontSize: 32 }}>{msg.suggestedCard.icon}</span>
+                      <div>
+                        <div style={{ fontWeight: 600, color: '#0c4a6e' }}>
+                          {msg.suggestedCard.name}
+                        </div>
+                        <div style={{ fontSize: 12, color: '#64748b' }}>
+                          {msg.suggestedCard.path}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        window.location.href = msg.suggestedCard!.path;
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 16px',
+                        background: '#0284c7',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: 8,
+                        cursor: 'pointer',
+                        fontSize: 14,
+                        fontWeight: 500,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8
+                      }}
+                    >
+                      Go to {msg.suggestedCard.name} →
+                    </button>
+                  </div>
+                )}
+
+                {/* Module Status Display */}
+                {msg.moduleStatus && (
+                  <div style={{
+                    marginTop: 12,
+                    padding: 16,
+                    background: 'white',
+                    borderRadius: 12,
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                  }}>
+                    <div style={{ fontWeight: 600, marginBottom: 12 }}>📊 Module Status</div>
+                    {msg.moduleStatus.configured.length > 0 && (
+                      <div style={{ marginBottom: 8 }}>
+                        <div style={{ fontSize: 12, color: '#22c55e', fontWeight: 600, marginBottom: 4 }}>
+                          ✅ Configured
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                          {msg.moduleStatus.configured.map((mod, idx) => (
+                            <span key={idx} style={{
+                              padding: '4px 10px',
+                              background: '#dcfce7',
+                              color: '#166534',
+                              borderRadius: 12,
+                              fontSize: 12
+                            }}>
+                              {mod}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {msg.moduleStatus.notConfigured.length > 0 && (
+                      <div>
+                        <div style={{ fontSize: 12, color: '#ef4444', fontWeight: 600, marginBottom: 4 }}>
+                          ❌ Not Configured
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                          {msg.moduleStatus.notConfigured.map((mod, idx) => (
+                            <span key={idx} style={{
+                              padding: '4px 10px',
+                              background: '#fee2e2',
+                              color: '#991b1b',
+                              borderRadius: 12,
+                              fontSize: 12
+                            }}>
+                              {mod}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
