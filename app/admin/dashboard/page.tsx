@@ -19,7 +19,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import ChatWidget from "../../components/ChatWidget";
+import ChatWidget from "../../../components/ChatWidget";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "https://benefitnest-backend.onrender.com";
@@ -613,8 +613,8 @@ const AdminDashboard = () => {
       {/* AI Chat Widget for Admin */}
       <ChatWidget
         userType="admin"
-        userName={admin?.full_name || admin?.email}
-        userEmail={admin?.email}
+        userName={adminProfile?.name || "Administrator"}
+        userEmail={adminProfile?.email}
         primaryColor="#6366f1"
       />
     </div>
