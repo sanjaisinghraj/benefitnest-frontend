@@ -70,51 +70,58 @@ export default function EmployeeEnrollClient() {
   };
 
   if (sessionState.status === "loading")
-    return <div style={{ padding: 32 }}>Loading session...</div>;
+    return <div className="p-4 sm:p-6 md:p-8">Loading session...</div>;
   if (sessionState.status === "unauthenticated")
-    return <div style={{ padding: 32 }}>Please sign in.</div>;
+    return <div className="p-4 sm:p-6 md:p-8">Please sign in.</div>;
 
   // Use a key derived from effectiveConfig so the component remounts when config changes
   return (
     <div
       key={JSON.stringify(effectiveConfig)}
+      className="p-4 sm:p-6 md:p-8 max-w-4xl mx-auto"
       style={{
-        padding: 32,
-        maxWidth: 900,
-        margin: "0 auto",
         fontFamily: branding?.font || "inherit",
         background: branding?.background || "#fff",
         color: branding?.color || "#222",
       }}
     >
-      <h1>Employee Benefit Enrollment</h1>
-      <div style={{ marginBottom: 24 }}>
-        <label>Select Plan: </label>
-        <select value={planType} onChange={(e) => setPlanType(e.target.value)}>
-          <option value="GMC">GMC</option>
-          <option value="GPA">GPA</option>
-          <option value="GTL">GTL</option>
-          <option value="Flex">Flex</option>
-          <option value="Wallet">Wallet</option>
-          <option value="Custom">Custom</option>
-        </select>
-        <select
-          value={countryCode}
-          onChange={(e) => setCountryCode(e.target.value)}
-          style={{ marginLeft: 16 }}
-        >
-          <option value="IN">India</option>
-          <option value="SG">Singapore</option>
-          <option value="AE">UAE</option>
-          <option value="US">USA</option>
-          <option value="GLOBAL">Global</option>
-        </select>
+      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6">Employee Benefit Enrollment</h1>
+      <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row gap-2 sm:gap-4">
+        <div className="flex items-center gap-2">
+          <label className="text-sm sm:text-base">Select Plan: </label>
+          <select 
+            value={planType} 
+            onChange={(e) => setPlanType(e.target.value)}
+            className="px-2 py-1.5 sm:px-3 sm:py-2 border rounded-lg text-sm sm:text-base"
+          >
+            <option value="GMC">GMC</option>
+            <option value="GPA">GPA</option>
+            <option value="GTL">GTL</option>
+            <option value="Flex">Flex</option>
+            <option value="Wallet">Wallet</option>
+            <option value="Custom">Custom</option>
+          </select>
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-sm sm:text-base">Country: </label>
+          <select
+            value={countryCode}
+            onChange={(e) => setCountryCode(e.target.value)}
+            className="px-2 py-1.5 sm:px-3 sm:py-2 border rounded-lg text-sm sm:text-base"
+          >
+            <option value="IN">India</option>
+            <option value="SG">Singapore</option>
+            <option value="AE">UAE</option>
+            <option value="US">USA</option>
+            <option value="GLOBAL">Global</option>
+          </select>
+        </div>
       </div>
       {configLoading || enrollLoading ? (
-        <div>Loading...</div>
+        <div className="py-8 text-center">Loading...</div>
       ) : effectiveConfig ? (
-        <div style={{ display: "flex", gap: 32, alignItems: "flex-start" }}>
-          <div style={{ flex: 2 }}>
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 md:gap-8 items-start">
+          <div className="flex-1 lg:flex-[2] w-full">
             <FamilyDefinitionForm
               value={form.family}
               onChange={(v: any) => handleField("family", v)}
@@ -158,17 +165,17 @@ export default function EmployeeEnrollClient() {
             <button
               onClick={handleSubmit}
               disabled={enrollLoading || !!enrollResult}
-              style={{ marginTop: 24 }}
+              className="mt-4 sm:mt-6 w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white rounded-lg font-semibold text-sm sm:text-base hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Submit Enrollment
             </button>
             {enrollResult && (
-              <div style={{ marginTop: 24, color: "green" }}>
+              <div className="mt-4 sm:mt-6 text-green-600 text-sm sm:text-base">
                 {enrollResult}
               </div>
             )}
           </div>
-          <div style={{ flex: 1, minWidth: 320 }}>
+          <div className="w-full lg:flex-1 lg:min-w-[280px]">
             <ProductSummaryCard
               config={effectiveConfig as any}
               selection={form as any}
@@ -177,7 +184,7 @@ export default function EmployeeEnrollClient() {
           </div>
         </div>
       ) : (
-        <div>No plan configuration found.</div>
+        <div className="py-8 text-center text-gray-500">No plan configuration found.</div>
       )}
     </div>
   );

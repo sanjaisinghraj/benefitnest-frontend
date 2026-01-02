@@ -98,50 +98,20 @@ export default function PortalDashboard() {
 
   if (loading) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: `linear-gradient(135deg, #2563eb 0%, #10b981 100%)`,
-        }}
-      >
-        <div
-          style={{
-            backgroundColor: "white",
-            padding: "40px 60px",
-            borderRadius: "20px",
-            textAlign: "center",
-            boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
-          }}
-        >
-          <div
-            style={{
-              width: "50px",
-              height: "50px",
-              border: "4px solid #e5e7eb",
-              borderTopColor: "#2563eb",
-              borderRadius: "50%",
-              animation: "spin 1s linear infinite",
-              margin: "0 auto 20px",
-            }}
-          />
-          <p style={{ color: "#374151", margin: 0, fontSize: "16px" }}>
-            Loading dashboard...
-          </p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 to-emerald-500 p-4">
+        <div className="bg-white p-8 sm:p-12 md:p-16 rounded-2xl sm:rounded-3xl text-center shadow-2xl max-w-sm w-full">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4 sm:mb-5" />
+          <p className="text-gray-700 text-sm sm:text-base">Loading dashboard...</p>
         </div>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
   return (
     <div
+      className="min-h-screen p-3 sm:p-4 md:p-6"
       style={{
-        minHeight: "100vh",
         background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`,
-        padding: "25px",
         fontFamily: theme.bodyFont,
       }}
     >
@@ -152,60 +122,40 @@ export default function PortalDashboard() {
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
 
-      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+      <div className="max-w-6xl mx-auto w-full">
         <div
+          className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-10 shadow-2xl"
           style={{
             backgroundColor: theme.background,
-            borderRadius: "24px",
-            padding: "40px",
-            boxShadow: "0 25px 60px rgba(0,0,0,0.15)",
             color: theme.text,
           }}
         >
           {/* Header */}
           <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: "40px",
-              paddingBottom: "30px",
-              borderBottom: `1px solid ${theme.border}`,
-            }}
+            className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 sm:mb-8 md:mb-10 pb-4 sm:pb-6 md:pb-8"
+            style={{ borderBottom: `1px solid ${theme.border}` }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "22px" }}>
+            <div className="flex items-center gap-3 sm:gap-4 md:gap-5">
               <div
+                className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-[75px] lg:h-[75px] rounded-xl sm:rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0"
                 style={{
-                  width: "75px",
-                  height: "75px",
-                  borderRadius: "18px",
                   background: `linear-gradient(135deg, ${theme.primary}15 0%, ${theme.secondary}15 100%)`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  overflow: "hidden",
                 }}
               >
                 {theme.logoUrl ? (
                   <img
                     src={theme.logoUrl}
                     alt={portalConfig?.company_name}
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: "100%",
-                      objectFit: "contain",
-                    }}
+                    className="max-w-full max-h-full object-contain"
                   />
                 ) : (
-                  <span style={{ fontSize: "36px" }}>🏢</span>
+                  <span className="text-2xl sm:text-3xl md:text-4xl">🏢</span>
                 )}
               </div>
               <div>
                 <h1
+                  className="text-lg sm:text-xl md:text-2xl font-bold mb-1"
                   style={{
-                    fontSize: "26px",
-                    fontWeight: theme.headingWeight,
-                    margin: "0 0 6px 0",
                     background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`,
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
@@ -213,14 +163,7 @@ export default function PortalDashboard() {
                 >
                   {theme.portalTitle}
                 </h1>
-                <p
-                  style={{
-                    fontSize: "14px",
-                    color: theme.text,
-                    margin: 0,
-                    opacity: 0.55,
-                  }}
-                >
+                <p className="text-xs sm:text-sm opacity-55">
                   Welcome,{" "}
                   {user?.full_name || user?.name || user?.email?.split("@")[0]}!
                 </p>
@@ -228,17 +171,7 @@ export default function PortalDashboard() {
             </div>
             <button
               onClick={handleLogout}
-              style={{
-                padding: "14px 28px",
-                backgroundColor: "#fef2f2",
-                color: "#991b1b",
-                border: "none",
-                borderRadius: "12px",
-                fontSize: "14px",
-                fontWeight: 600,
-                cursor: "pointer",
-                transition: "all 0.3s",
-              }}
+              className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-red-50 text-red-800 rounded-lg sm:rounded-xl text-sm font-semibold hover:bg-red-100 transition-all"
             >
               Logout
             </button>
@@ -246,15 +179,10 @@ export default function PortalDashboard() {
 
           {/* Status Badge */}
           <div
+            className="inline-block px-4 sm:px-6 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold mb-4 sm:mb-6"
             style={{
-              display: "inline-block",
-              padding: "12px 24px",
               background: "linear-gradient(135deg, #dcfce7 0%, #d1fae5 100%)",
               color: "#166534",
-              borderRadius: "10px",
-              fontSize: "14px",
-              fontWeight: 600,
-              marginBottom: "28px",
             }}
           >
             ✓ Portal Active
@@ -262,31 +190,23 @@ export default function PortalDashboard() {
 
           {/* Tab Navigation */}
           <div
-            style={{
-              display: "flex",
-              gap: "12px",
-              borderBottom: `1px solid ${theme.border}`,
-              marginBottom: "40px",
-            }}
+            className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8 md:mb-10 pb-4"
+            style={{ borderBottom: `1px solid ${theme.border}` }}
           >
             {(["overview", "features", "contact"] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
+                className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-xs sm:text-sm font-semibold rounded-lg sm:rounded-t-xl transition-all flex-1 sm:flex-none min-w-0"
                 style={{
-                  padding: "16px 28px",
-                  border: "none",
                   background:
                     activeTab === tab
                       ? `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`
                       : "transparent",
                   color: activeTab === tab ? "white" : theme.text,
+                  border: "none",
                   cursor: "pointer",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  borderRadius: "10px 10px 0 0",
                   fontFamily: theme.headingFont,
-                  transition: "all 0.3s",
                 }}
               >
                 {tab === "overview" && "📋 Overview"}
@@ -300,10 +220,8 @@ export default function PortalDashboard() {
           {activeTab === "overview" && (
             <div>
               <h3
+                className="text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4"
                 style={{
-                  fontSize: "24px",
-                  fontWeight: theme.headingWeight,
-                  marginBottom: "18px",
                   background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary} 100%)`,
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
@@ -311,109 +229,47 @@ export default function PortalDashboard() {
               >
                 Welcome to Your Benefits Portal
               </h3>
-              <p
-                style={{
-                  fontSize: `${theme.bodySize}px`,
-                  lineHeight: 1.8,
-                  color: theme.text,
-                  opacity: 0.75,
-                }}
-              >
+              <p className="text-sm sm:text-base leading-relaxed opacity-75">
                 This is your dedicated employee benefits portal for{" "}
                 {portalConfig?.company_name}. Here you can manage your benefits,
                 view policy details, and access important documents.
               </p>
 
               {/* Quick Stats */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                  gap: "20px",
-                  marginTop: "30px",
-                }}
-              >
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5 mt-5 sm:mt-6 md:mt-8">
                 <div
-                  style={{
-                    padding: "24px",
-                    background: `${theme.primary}10`,
-                    borderRadius: "16px",
-                    textAlign: "center",
-                  }}
+                  className="p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl text-center"
+                  style={{ background: `${theme.primary}10` }}
                 >
                   <div
-                    style={{
-                      fontSize: "32px",
-                      fontWeight: 700,
-                      color: theme.primary,
-                    }}
+                    className="text-2xl sm:text-3xl font-bold"
+                    style={{ color: theme.primary }}
                   >
                     5
                   </div>
-                  <div
-                    style={{
-                      fontSize: "14px",
-                      color: theme.text,
-                      opacity: 0.6,
-                      marginTop: "8px",
-                    }}
-                  >
+                  <div className="text-xs sm:text-sm opacity-60 mt-1 sm:mt-2">
                     Active Benefits
                   </div>
                 </div>
                 <div
-                  style={{
-                    padding: "24px",
-                    background: `${theme.secondary}10`,
-                    borderRadius: "16px",
-                    textAlign: "center",
-                  }}
+                  className="p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl text-center"
+                  style={{ background: `${theme.secondary}10` }}
                 >
                   <div
-                    style={{
-                      fontSize: "32px",
-                      fontWeight: 700,
-                      color: theme.secondary,
-                    }}
+                    className="text-2xl sm:text-3xl font-bold"
+                    style={{ color: theme.secondary }}
                   >
                     12
                   </div>
-                  <div
-                    style={{
-                      fontSize: "14px",
-                      color: theme.text,
-                      opacity: 0.6,
-                      marginTop: "8px",
-                    }}
-                  >
+                  <div className="text-xs sm:text-sm opacity-60 mt-1 sm:mt-2">
                     Documents
                   </div>
                 </div>
-                <div
-                  style={{
-                    padding: "24px",
-                    background: "#fef3c710",
-                    borderRadius: "16px",
-                    textAlign: "center",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: "32px",
-                      fontWeight: 700,
-                      color: "#f59e0b",
-                    }}
-                  >
+                <div className="p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl text-center bg-amber-50/40 sm:col-span-2 lg:col-span-1">
+                  <div className="text-2xl sm:text-3xl font-bold text-amber-500">
                     2
                   </div>
-                  <div
-                    style={{
-                      fontSize: "14px",
-                      color: theme.text,
-                      opacity: 0.6,
-                      marginTop: "8px",
-                    }}
-                  >
+                  <div className="text-xs sm:text-sm opacity-60 mt-1 sm:mt-2">
                     Pending Actions
                   </div>
                 </div>
@@ -422,13 +278,7 @@ export default function PortalDashboard() {
           )}
 
           {activeTab === "features" && (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                gap: "22px",
-              }}
-            >
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 md:gap-5">
               {[
                 {
                   icon: "📋",
@@ -443,37 +293,22 @@ export default function PortalDashboard() {
               ].map((f, i) => (
                 <div
                   key={i}
-                  className="feature-card"
+                  className="feature-card p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl text-center cursor-pointer transition-all"
                   style={{
-                    padding: "28px",
                     border: `1px solid ${theme.border}`,
-                    borderRadius: "18px",
-                    textAlign: "center",
-                    cursor: "pointer",
-                    transition: "all 0.3s",
                     backgroundColor: theme.background,
                   }}
                 >
-                  <div style={{ fontSize: "40px", marginBottom: "14px" }}>
+                  <div className="text-2xl sm:text-3xl md:text-4xl mb-2 sm:mb-3">
                     {f.icon}
                   </div>
                   <div
-                    style={{
-                      fontSize: "15px",
-                      fontWeight: 600,
-                      marginBottom: "6px",
-                      color: theme.primary,
-                    }}
+                    className="text-xs sm:text-sm font-semibold mb-1"
+                    style={{ color: theme.primary }}
                   >
                     {f.title}
                   </div>
-                  <div
-                    style={{
-                      fontSize: "13px",
-                      color: theme.text,
-                      opacity: 0.55,
-                    }}
-                  >
+                  <div className="text-xs opacity-55 hidden sm:block">
                     {f.desc}
                   </div>
                 </div>
@@ -482,42 +317,21 @@ export default function PortalDashboard() {
           )}
 
           {activeTab === "contact" && (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-                gap: "22px",
-              }}
-            >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
               {portalConfig?.contact_email && (
                 <div
+                  className="p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl"
                   style={{
-                    padding: "28px",
                     background: `linear-gradient(135deg, ${theme.primary}08 0%, ${theme.secondary}08 100%)`,
-                    borderRadius: "18px",
                   }}
                 >
-                  <div
-                    style={{
-                      fontSize: "12px",
-                      color: theme.text,
-                      marginBottom: "10px",
-                      opacity: 0.5,
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                      letterSpacing: "1px",
-                    }}
-                  >
+                  <div className="text-xs uppercase tracking-wide font-semibold opacity-50 mb-2">
                     EMAIL
                   </div>
                   <a
                     href={`mailto:${portalConfig.contact_email}`}
-                    style={{
-                      fontSize: "17px",
-                      fontWeight: 600,
-                      color: theme.primary,
-                      textDecoration: "none",
-                    }}
+                    className="text-sm sm:text-base font-semibold no-underline break-all"
+                    style={{ color: theme.primary }}
                   >
                     {portalConfig.contact_email}
                   </a>
@@ -525,66 +339,30 @@ export default function PortalDashboard() {
               )}
               {portalConfig?.contact_phone && (
                 <div
+                  className="p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl"
                   style={{
-                    padding: "28px",
                     background: `linear-gradient(135deg, ${theme.secondary}08 0%, ${theme.primary}08 100%)`,
-                    borderRadius: "18px",
                   }}
                 >
-                  <div
-                    style={{
-                      fontSize: "12px",
-                      color: theme.text,
-                      marginBottom: "10px",
-                      opacity: 0.5,
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                      letterSpacing: "1px",
-                    }}
-                  >
+                  <div className="text-xs uppercase tracking-wide font-semibold opacity-50 mb-2">
                     PHONE
                   </div>
                   <a
                     href={`tel:${portalConfig.contact_phone}`}
-                    style={{
-                      fontSize: "17px",
-                      fontWeight: 600,
-                      color: theme.secondary,
-                      textDecoration: "none",
-                    }}
+                    className="text-sm sm:text-base font-semibold no-underline"
+                    style={{ color: theme.secondary }}
                   >
                     {portalConfig.contact_phone}
                   </a>
                 </div>
               )}
-              <div
-                style={{
-                  padding: "28px",
-                  background: `linear-gradient(135deg, #f59e0b08 0%, #f59e0b15 100%)`,
-                  borderRadius: "18px",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "12px",
-                    color: theme.text,
-                    marginBottom: "10px",
-                    opacity: 0.5,
-                    fontWeight: 600,
-                    textTransform: "uppercase",
-                    letterSpacing: "1px",
-                  }}
-                >
+              <div className="p-4 sm:p-5 md:p-6 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-500/5 to-amber-500/10">
+                <div className="text-xs uppercase tracking-wide font-semibold opacity-50 mb-2">
                   SUPPORT
                 </div>
                 <a
                   href="mailto:support@benefitnest.space"
-                  style={{
-                    fontSize: "17px",
-                    fontWeight: 600,
-                    color: "#f59e0b",
-                    textDecoration: "none",
-                  }}
+                  className="text-sm sm:text-base font-semibold no-underline text-amber-500 break-all"
                 >
                   support@benefitnest.space
                 </a>
@@ -594,15 +372,8 @@ export default function PortalDashboard() {
 
           {/* Footer */}
           <div
-            style={{
-              marginTop: "50px",
-              paddingTop: "28px",
-              borderTop: `1px solid ${theme.border}`,
-              textAlign: "center",
-              fontSize: "13px",
-              color: theme.text,
-              opacity: 0.4,
-            }}
+            className="mt-8 sm:mt-10 md:mt-12 pt-4 sm:pt-6 text-center text-xs sm:text-sm opacity-40"
+            style={{ borderTop: `1px solid ${theme.border}` }}
           >
             <p>Powered by BenefitNest © {new Date().getFullYear()}</p>
           </div>

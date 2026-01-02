@@ -207,36 +207,18 @@ function PortalLoginContent() {
   if (loading) {
     return (
       <div
+        className="min-h-screen flex items-center justify-center p-4"
         style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
           background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
           fontFamily: bodyFont,
         }}
       >
-        <div
-          style={{
-            backgroundColor: "white",
-            padding: "40px",
-            borderRadius: "16px",
-            textAlign: "center",
-            boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
-          }}
-        >
+        <div className="bg-white p-8 sm:p-10 rounded-xl sm:rounded-2xl text-center shadow-2xl max-w-sm w-full">
           <div
-            style={{
-              width: "48px",
-              height: "48px",
-              border: `4px solid ${borderColor}`,
-              borderTopColor: primaryColor,
-              borderRadius: "50%",
-              animation: "spin 1s linear infinite",
-              margin: "0 auto 16px",
-            }}
+            className="w-10 h-10 sm:w-12 sm:h-12 border-4 rounded-full animate-spin mx-auto mb-4"
+            style={{ borderColor: borderColor, borderTopColor: primaryColor }}
           />
-          <p style={{ color: textColor, margin: 0, opacity: 0.7 }}>
+          <p className="opacity-70 text-sm sm:text-base" style={{ color: textColor }}>
             Loading portal...
           </p>
         </div>
@@ -248,51 +230,27 @@ function PortalLoginContent() {
   if (error) {
     return (
       <div
+        className="min-h-screen flex items-center justify-center p-4"
         style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
           background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
           fontFamily: bodyFont,
         }}
       >
-        <div
-          style={{
-            backgroundColor: "white",
-            padding: "48px",
-            borderRadius: "16px",
-            textAlign: "center",
-            boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
-            maxWidth: "400px",
-          }}
-        >
-          <div style={{ fontSize: "64px", marginBottom: "16px" }}>🏢</div>
+        <div className="bg-white p-6 sm:p-10 md:p-12 rounded-xl sm:rounded-2xl text-center shadow-2xl max-w-md w-full">
+          <div className="text-4xl sm:text-5xl md:text-6xl mb-4">🏢</div>
           <h1
-            style={{
-              fontSize: "24px",
-              fontWeight: headingWeight,
-              color: textColor,
-              marginBottom: "8px",
-              fontFamily: headingFont,
-            }}
+            className="text-xl sm:text-2xl font-bold mb-2"
+            style={{ color: textColor, fontFamily: headingFont, fontWeight: headingWeight }}
           >
             Portal Not Found
           </h1>
-          <p style={{ color: textColor, opacity: 0.7, marginBottom: "24px" }}>
+          <p className="opacity-70 mb-6 text-sm sm:text-base" style={{ color: textColor }}>
             {error}
           </p>
           <a
             href="https://benefitnest.space"
-            style={{
-              display: "inline-block",
-              padding: "12px 24px",
-              backgroundColor: primaryColor,
-              color: "white",
-              borderRadius: "8px",
-              textDecoration: "none",
-              fontWeight: "600",
-            }}
+            className="inline-block px-5 py-2.5 sm:px-6 sm:py-3 rounded-lg text-white font-semibold text-sm sm:text-base"
+            style={{ backgroundColor: primaryColor }}
           >
             Go to Main Site
           </a>
@@ -303,9 +261,8 @@ function PortalLoginContent() {
 
   return (
     <div
+      className="min-h-screen flex flex-col lg:flex-row"
       style={{
-        minHeight: "100vh",
-        display: "flex",
         background: `linear-gradient(135deg, ${primaryColor}15 0%, ${primaryColor}05 100%)`,
         fontFamily: bodyFont,
         fontSize: `${bodySize}px`,
@@ -315,32 +272,18 @@ function PortalLoginContent() {
     >
       <style>{`
                 @keyframes spin { to { transform: rotate(360deg); } }
-                .hide-mobile { display: flex; }
-                .show-mobile { display: none; }
-                @media (max-width: 768px) {
-                    .hide-mobile { display: none !important; }
-                    .show-mobile { display: block !important; }
-                }
                 input::placeholder { color: ${textColor}; opacity: 0.5; }
                 input:focus { border-color: ${primaryColor} !important; box-shadow: 0 0 0 3px ${primaryColor}20; outline: none; }
                 ${customCss}
             `}</style>
 
-      {/* Left side - Branding */}
+      {/* Left side - Branding (hidden on mobile) */}
       <div
+        className="hidden lg:flex flex-1 flex-col items-center justify-center p-8 lg:p-12 relative overflow-hidden"
         style={{
-          flex: 1,
           background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "48px",
           color: "white",
-          position: "relative",
-          overflow: "hidden",
         }}
-        className="hide-mobile"
       >
         {/* Background pattern */}
         <div
@@ -392,27 +335,20 @@ function PortalLoginContent() {
             {tagline}
           </p>
 
-          <div
-            style={{
-              marginTop: "48px",
-              display: "flex",
-              gap: "24px",
-              justifyContent: "center",
-            }}
-          >
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "32px", marginBottom: "8px" }}>🏥</div>
-              <div style={{ fontSize: "14px", opacity: 0.8 }}>
+          <div className="mt-8 lg:mt-12 flex gap-4 sm:gap-6 justify-center">
+            <div className="text-center">
+              <div className="text-2xl sm:text-3xl mb-2">🏥</div>
+              <div className="text-xs sm:text-sm opacity-80">
                 Health Claims
               </div>
             </div>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "32px", marginBottom: "8px" }}>📋</div>
-              <div style={{ fontSize: "14px", opacity: 0.8 }}>Policies</div>
+            <div className="text-center">
+              <div className="text-2xl sm:text-3xl mb-2">📋</div>
+              <div className="text-xs sm:text-sm opacity-80">Policies</div>
             </div>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "32px", marginBottom: "8px" }}>👨‍👩‍👧‍👦</div>
-              <div style={{ fontSize: "14px", opacity: 0.8 }}>Family</div>
+            <div className="text-center">
+              <div className="text-2xl sm:text-3xl mb-2">👨‍👩‍👧‍👦</div>
+              <div className="text-xs sm:text-sm opacity-80">Family</div>
             </div>
           </div>
         </div>
@@ -420,89 +356,51 @@ function PortalLoginContent() {
 
       {/* Right side - Login Form */}
       <div
-        style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "48px",
-          backgroundColor: backgroundColor,
-        }}
+        className="flex-1 flex items-center justify-center p-4 sm:p-6 md:p-8 lg:p-12"
+        style={{ backgroundColor: backgroundColor }}
       >
-        <div style={{ width: "100%", maxWidth: "420px" }}>
+        <div className="w-full max-w-md">
           {/* Mobile logo */}
-          <div
-            className="show-mobile"
-            style={{ textAlign: "center", marginBottom: "32px" }}
-          >
+          <div className="lg:hidden text-center mb-6 sm:mb-8">
             {logoUrl ? (
               <img
                 src={logoUrl}
                 alt={companyName}
-                style={{
-                  height: "48px",
-                  marginBottom: "16px",
-                  objectFit: "contain",
-                }}
+                className="h-10 sm:h-12 mb-3 sm:mb-4 object-contain mx-auto"
               />
             ) : (
-              <div style={{ fontSize: "48px", marginBottom: "8px" }}>🏢</div>
+              <div className="text-4xl sm:text-5xl mb-2">🏢</div>
             )}
             <h1
-              style={{
-                fontSize: "20px",
-                fontWeight: headingWeight,
-                color: textColor,
-                margin: 0,
-                fontFamily: headingFont,
-              }}
+              className="text-lg sm:text-xl font-bold"
+              style={{ color: textColor, fontFamily: headingFont, fontWeight: headingWeight }}
             >
               {companyName}
             </h1>
           </div>
 
           <div
-            style={{
-              backgroundColor: "white",
-              padding: "40px",
-              borderRadius: "16px",
-              boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
-              border: `1px solid ${borderColor}`,
-            }}
+            className="bg-white p-5 sm:p-6 md:p-8 lg:p-10 rounded-xl sm:rounded-2xl shadow-lg"
+            style={{ border: `1px solid ${borderColor}` }}
           >
             <h2
-              style={{
-                fontSize: "24px",
-                fontWeight: headingWeight,
-                color: textColor,
-                marginBottom: "8px",
-                textAlign: "center",
-                fontFamily: headingFont,
-              }}
+              className="text-xl sm:text-2xl font-bold mb-2 text-center"
+              style={{ color: textColor, fontFamily: headingFont, fontWeight: headingWeight }}
             >
               Welcome Back
             </h2>
             <p
-              style={{
-                color: textColor,
-                opacity: 0.7,
-                textAlign: "center",
-                marginBottom: "32px",
-              }}
+              className="text-center opacity-70 mb-6 sm:mb-8 text-sm sm:text-base"
+              style={{ color: textColor }}
             >
               Sign in to access your benefits portal
             </p>
 
             <form onSubmit={handleLogin}>
-              <div style={{ marginBottom: "20px" }}>
+              <div className="mb-4 sm:mb-5">
                 <label
-                  style={{
-                    display: "block",
-                    fontSize: "14px",
-                    fontWeight: "600",
-                    color: textColor,
-                    marginBottom: "8px",
-                  }}
+                  className="block text-xs sm:text-sm font-semibold mb-2"
+                  style={{ color: textColor }}
                 >
                   Employee ID / Email
                 </label>
@@ -511,28 +409,18 @@ function PortalLoginContent() {
                   value={employeeId}
                   onChange={(e) => setEmployeeId(e.target.value)}
                   placeholder="Enter your employee ID or email"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base transition-all"
                   style={{
-                    width: "100%",
-                    padding: "14px 16px",
                     border: `1px solid ${borderColor}`,
-                    borderRadius: "10px",
-                    fontSize: "15px",
-                    transition: "all 0.2s",
-                    boxSizing: "border-box",
                     backgroundColor: backgroundColor,
                   }}
                 />
               </div>
 
-              <div style={{ marginBottom: "24px" }}>
+              <div className="mb-5 sm:mb-6">
                 <label
-                  style={{
-                    display: "block",
-                    fontSize: "14px",
-                    fontWeight: "600",
-                    color: textColor,
-                    marginBottom: "8px",
-                  }}
+                  className="block text-xs sm:text-sm font-semibold mb-2"
+                  style={{ color: textColor }}
                 >
                   Password
                 </label>
@@ -541,33 +429,16 @@ function PortalLoginContent() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base transition-all"
                   style={{
-                    width: "100%",
-                    padding: "14px 16px",
                     border: `1px solid ${borderColor}`,
-                    borderRadius: "10px",
-                    fontSize: "15px",
-                    transition: "all 0.2s",
-                    boxSizing: "border-box",
                     backgroundColor: backgroundColor,
                   }}
                 />
               </div>
 
               {loginError && (
-                <div
-                  style={{
-                    backgroundColor: "#fee2e2",
-                    color: "#991b1b",
-                    padding: "12px 16px",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    marginBottom: "20px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                  }}
-                >
+                <div className="bg-red-100 text-red-800 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm mb-4 sm:mb-5 flex items-center gap-2">
                   <span>⚠️</span>
                   {loginError}
                 </div>
@@ -576,36 +447,12 @@ function PortalLoginContent() {
               <button
                 type="submit"
                 disabled={loggingIn}
-                style={{
-                  width: "100%",
-                  padding: "14px",
-                  backgroundColor: primaryColor,
-                  color: "white",
-                  border: "none",
-                  borderRadius: "10px",
-                  fontSize: "16px",
-                  fontWeight: "600",
-                  cursor: loggingIn ? "not-allowed" : "pointer",
-                  opacity: loggingIn ? 0.7 : 1,
-                  transition: "all 0.2s",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "8px",
-                }}
+                className="w-full py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                style={{ backgroundColor: primaryColor }}
               >
                 {loggingIn ? (
                   <>
-                    <span
-                      style={{
-                        width: "18px",
-                        height: "18px",
-                        border: "2px solid transparent",
-                        borderTopColor: "white",
-                        borderRadius: "50%",
-                        animation: "spin 0.6s linear infinite",
-                      }}
-                    />
+                    <span className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-transparent border-t-white rounded-full animate-spin" />
                     Signing in...
                   </>
                 ) : (
@@ -614,52 +461,34 @@ function PortalLoginContent() {
               </button>
             </form>
 
-            <div style={{ textAlign: "center", marginTop: "24px" }}>
+            <div className="text-center mt-5 sm:mt-6">
               <a
                 href="#"
-                style={{
-                  color: primaryColor,
-                  fontSize: "14px",
-                  textDecoration: "none",
-                  fontWeight: "500",
-                }}
+                className="text-xs sm:text-sm font-medium no-underline"
+                style={{ color: primaryColor }}
               >
                 Forgot Password?
               </a>
             </div>
           </div>
 
-          <div
-            style={{
-              textAlign: "center",
-              marginTop: "32px",
-              color: textColor,
-              opacity: 0.5,
-              fontSize: "13px",
-            }}
-          >
+          <div className="text-center mt-6 sm:mt-8 opacity-50 text-xs sm:text-sm">
             <p>
-              Powered by <strong style={{ opacity: 0.8 }}>BenefitNest</strong>
+              Powered by <strong className="opacity-80">BenefitNest</strong>
             </p>
-            <p style={{ marginTop: "8px" }}>
+            <p className="mt-2">
               <a
                 href="#"
-                style={{
-                  color: textColor,
-                  opacity: 0.7,
-                  textDecoration: "none",
-                }}
+                className="opacity-70 no-underline"
+                style={{ color: textColor }}
               >
                 Privacy Policy
               </a>
               {" • "}
               <a
                 href="#"
-                style={{
-                  color: textColor,
-                  opacity: 0.7,
-                  textDecoration: "none",
-                }}
+                className="opacity-70 no-underline"
+                style={{ color: textColor }}
               >
                 Terms of Service
               </a>

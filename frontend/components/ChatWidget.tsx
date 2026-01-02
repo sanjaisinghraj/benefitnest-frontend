@@ -249,53 +249,24 @@ export default function ChatWidget({
     }
   };
 
-  // Position styles
-  const positionStyles = position === 'bottom-right' 
-    ? { right: 24, bottom: 24 }
-    : { left: 24, bottom: 24 };
+  // Position styles - responsive positioning
+  const positionClasses = position === 'bottom-right' 
+    ? 'right-3 sm:right-4 md:right-6 bottom-3 sm:bottom-4 md:bottom-6'
+    : 'left-3 sm:left-4 md:left-6 bottom-3 sm:bottom-4 md:bottom-6';
 
   if (!isOpen) {
     // Floating button
     return (
       <button
         onClick={handleOpen}
+        className={`fixed ${positionClasses} w-12 h-12 sm:w-14 sm:h-14 md:w-[60px] md:h-[60px] rounded-full border-none shadow-lg cursor-pointer flex items-center justify-center z-[9999] transition-transform duration-200 hover:scale-110 hover:shadow-xl`}
         style={{
-          position: 'fixed',
-          ...positionStyles,
-          width: 60,
-          height: 60,
-          borderRadius: '50%',
           background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`,
-          border: 'none',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-          transition: 'transform 0.2s, box-shadow 0.2s'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.1)';
-          e.currentTarget.style.boxShadow = '0 6px 25px rgba(0,0,0,0.3)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
-          e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.25)';
         }}
       >
-        <span style={{ fontSize: 28 }}>💬</span>
+        <span className="text-xl sm:text-2xl md:text-3xl">💬</span>
         {hasUnread && (
-          <span style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            width: 16,
-            height: 16,
-            background: '#ef4444',
-            borderRadius: '50%',
-            border: '2px solid white'
-          }} />
+          <span className="absolute top-0 right-0 w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded-full border-2 border-white" />
         )}
       </button>
     );
@@ -304,78 +275,41 @@ export default function ChatWidget({
   // Chat window
   return (
     <div
+      className={`fixed ${positionClasses} bg-white rounded-xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden z-[9999] transition-all duration-300`}
       style={{
-        position: 'fixed',
-        ...positionStyles,
-        width: isMinimized ? 300 : 380,
-        height: isMinimized ? 56 : 520,
-        background: 'white',
-        borderRadius: 16,
-        boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        zIndex: 9999,
-        transition: 'height 0.3s ease'
+        width: isMinimized ? 'min(280px, calc(100vw - 24px))' : 'min(380px, calc(100vw - 24px))',
+        height: isMinimized ? 56 : 'min(520px, calc(100vh - 100px))',
       }}
     >
       {/* Header */}
       <div
-        style={{
-          background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`,
-          padding: '16px 20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          cursor: 'pointer'
-        }}
+        className="px-3 py-3 sm:px-4 sm:py-4 flex items-center justify-between cursor-pointer"
+        style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)` }}
         onClick={() => setIsMinimized(!isMinimized)}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            width: 40,
-            height: 40,
-            background: 'rgba(255,255,255,0.2)',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <span style={{ fontSize: 24 }}>🤖</span>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-full flex items-center justify-center">
+            <span className="text-lg sm:text-2xl">🤖</span>
           </div>
           <div>
-            <div style={{ color: 'white', fontWeight: 600, fontSize: 16 }}>
+            <div className="text-white font-semibold text-sm sm:text-base">
               BenefitNest Assistant
             </div>
-            <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12 }}>
+            <div className="text-white/80 text-xs">
               {isLoading ? 'Typing...' : 'Online'}
             </div>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="flex gap-1 sm:gap-2">
           <button
             onClick={(e) => { e.stopPropagation(); setIsMinimized(!isMinimized); }}
-            style={{
-              background: 'rgba(255,255,255,0.2)',
-              border: 'none',
-              borderRadius: 8,
-              padding: '6px 10px',
-              cursor: 'pointer',
-              color: 'white'
-            }}
+            className="bg-white/20 border-none rounded-lg px-2 py-1 sm:px-3 sm:py-1.5 cursor-pointer text-white text-xs sm:text-sm"
           >
             {isMinimized ? '▲' : '▼'}
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); setShowRating(true); }}
-            style={{
-              background: 'rgba(255,255,255,0.2)',
-              border: 'none',
-              borderRadius: 8,
-              padding: '6px 10px',
-              cursor: 'pointer',
-              color: 'white'
-            }}
+            className="bg-white/20 border-none rounded-lg px-2 py-1 sm:px-3 sm:py-1.5 cursor-pointer text-white text-xs sm:text-sm"
           >
             ✕
           </button>
