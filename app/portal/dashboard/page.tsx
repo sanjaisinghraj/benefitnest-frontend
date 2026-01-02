@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import ChatWidget from "../../../components/ChatWidget";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "https://benefitnest-backend.onrender.com";
@@ -607,6 +608,17 @@ export default function PortalDashboard() {
           </div>
         </div>
       </div>
+      
+      {/* AI Chat Widget */}
+      <ChatWidget
+        userType="employee"
+        userId={user?.id}
+        userEmail={user?.email}
+        userName={user?.full_name || user?.name}
+        tenantId={portalConfig?.tenant_id}
+        tenantCode={portalConfig?.subdomain}
+        primaryColor={theme.primary}
+      />
     </div>
   );
 }

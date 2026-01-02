@@ -19,6 +19,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import ChatWidget from "../../components/ChatWidget";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "https://benefitnest-backend.onrender.com";
@@ -216,6 +217,14 @@ const DEFAULT_CARDS = [
     icon: "🎯",
     link: "/admin/escalation",
     color: "#dc2626",
+  },
+  {
+    id: "chatbot",
+    title: "AI Chatbot",
+    description: "Manage the AI support chatbot - view conversations, monitor analytics, train knowledge base, and track escalations.",
+    icon: "🤖",
+    link: "/admin/chatbot",
+    color: "#8b5cf6",
   },
   {
     id: "system",
@@ -600,6 +609,14 @@ const AdminDashboard = () => {
           animation-delay: 4s;
         }
       `}</style>
+      
+      {/* AI Chat Widget for Admin */}
+      <ChatWidget
+        userType="admin"
+        userName={admin?.full_name || admin?.email}
+        userEmail={admin?.email}
+        primaryColor="#6366f1"
+      />
     </div>
   );
 };
