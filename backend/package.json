@@ -6,9 +6,9 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "npx nest build",
-    "start": "npx nest start",
-    "start:dev": "npx nest start --watch",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main",
+    "start:dev": "tsc -w",
     "start:prod": "node dist/main"
   },
   "dependencies": {
