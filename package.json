@@ -1,4 +1,11 @@
 {
+  "name": "insurance-platform",
+  "private": true,
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "dev": "cd frontend && npm run dev",
+    "start": "cd frontend && npm start"
+  },
   "devDependencies": {
     "@types/uuid": "^10.0.0"
   }
