@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS helpdesk_tickets (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     ticket_number VARCHAR(20) NOT NULL UNIQUE,  -- e.g., TKT-2024-000001
     tenant_id UUID NOT NULL REFERENCES tenants(tenant_id) ON DELETE CASCADE,
-    employee_id UUID REFERENCES employees(id),
+    employee_id UUID,  -- No FK constraint - employees table structure varies
     employee_email VARCHAR(255),
     employee_name VARCHAR(255),
     feature_id UUID REFERENCES helpdesk_features(id),
