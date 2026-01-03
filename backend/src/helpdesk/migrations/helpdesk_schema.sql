@@ -114,15 +114,15 @@ CREATE TABLE IF NOT EXISTS helpdesk_tickets (
 );
 
 -- Indexes for ticket queries
-CREATE INDEX idx_tickets_tenant_status ON helpdesk_tickets(tenant_id, status);
-CREATE INDEX idx_tickets_tenant_priority ON helpdesk_tickets(tenant_id, priority);
-CREATE INDEX idx_tickets_tenant_assignee ON helpdesk_tickets(tenant_id, current_assignee_id);
-CREATE INDEX idx_tickets_tenant_due_at ON helpdesk_tickets(tenant_id, due_at);
-CREATE INDEX idx_tickets_employee ON helpdesk_tickets(employee_id);
-CREATE INDEX idx_tickets_feature ON helpdesk_tickets(feature_id);
-CREATE INDEX idx_tickets_created ON helpdesk_tickets(created_at DESC);
-CREATE INDEX idx_tickets_red_flag ON helpdesk_tickets(tenant_id, red_flag_score DESC) WHERE red_flag_score > 0;
-CREATE INDEX idx_tickets_search ON helpdesk_tickets USING gin(to_tsvector('english', title || ' ' || COALESCE(description, '')));
+CREATE INDEX IF NOT EXISTS idx_tickets_tenant_status ON helpdesk_tickets(tenant_id, status);
+CREATE INDEX IF NOT EXISTS idx_tickets_tenant_priority ON helpdesk_tickets(tenant_id, priority);
+CREATE INDEX IF NOT EXISTS idx_tickets_tenant_assignee ON helpdesk_tickets(tenant_id, current_assignee_id);
+CREATE INDEX IF NOT EXISTS idx_tickets_tenant_due_at ON helpdesk_tickets(tenant_id, due_at);
+CREATE INDEX IF NOT EXISTS idx_tickets_employee ON helpdesk_tickets(employee_id);
+CREATE INDEX IF NOT EXISTS idx_tickets_feature ON helpdesk_tickets(feature_id);
+CREATE INDEX IF NOT EXISTS idx_tickets_created ON helpdesk_tickets(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_tickets_red_flag ON helpdesk_tickets(tenant_id, red_flag_score DESC) WHERE red_flag_score > 0;
+CREATE INDEX IF NOT EXISTS idx_tickets_search ON helpdesk_tickets USING gin(to_tsvector('english', title || ' ' || COALESCE(description, '')));
 
 -- ============================================================================
 -- 4. TICKET COMMENTS (Thread)
@@ -149,8 +149,8 @@ CREATE TABLE IF NOT EXISTS helpdesk_comments (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_comments_ticket ON helpdesk_comments(ticket_id, created_at);
-CREATE INDEX idx_comments_internal ON helpdesk_comments(ticket_id, is_internal_note);
+CREATE INDEX IF NOT EXISTS idx_comments_ticket ON helpdesk_comments(ticket_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_comments_internal ON helpdesk_comments(ticket_id, is_internal_note);
 
 -- ============================================================================
 -- 5. TICKET EVENTS (Audit Trail)
@@ -172,8 +172,8 @@ CREATE TABLE IF NOT EXISTS helpdesk_events (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_events_ticket ON helpdesk_events(ticket_id, created_at DESC);
-CREATE INDEX idx_events_type ON helpdesk_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_events_ticket ON helpdesk_events(ticket_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_events_type ON helpdesk_events(event_type);
 
 -- ============================================================================
 -- 6. ATTACHMENTS
@@ -201,7 +201,7 @@ CREATE TABLE IF NOT EXISTS helpdesk_attachments (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_attachments_ticket ON helpdesk_attachments(ticket_id);
+CREATE INDEX IF NOT EXISTS idx_attachments_ticket ON helpdesk_attachments(ticket_id);
 
 -- ============================================================================
 -- 7. ESCALATION RULES
@@ -260,7 +260,7 @@ CREATE TABLE IF NOT EXISTS helpdesk_queue_assignments (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_queue_tenant_feature ON helpdesk_queue_assignments(tenant_id, feature_id);
+CREATE INDEX IF NOT EXISTS idx_queue_tenant_feature ON helpdesk_queue_assignments(tenant_id, feature_id);
 
 -- ============================================================================
 -- 9. TAGS
@@ -348,7 +348,7 @@ CREATE TABLE IF NOT EXISTS helpdesk_ai_insights (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_ai_insights_ticket ON helpdesk_ai_insights(ticket_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ai_insights_ticket ON helpdesk_ai_insights(ticket_id, created_at DESC);
 
 -- ============================================================================
 -- 13. NOTIFICATIONS
@@ -375,8 +375,8 @@ CREATE TABLE IF NOT EXISTS helpdesk_notifications (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_notifications_recipient ON helpdesk_notifications(recipient_id, created_at DESC);
-CREATE INDEX idx_notifications_status ON helpdesk_notifications(status, created_at);
+CREATE INDEX IF NOT EXISTS idx_notifications_recipient ON helpdesk_notifications(recipient_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_status ON helpdesk_notifications(status, created_at);
 
 -- ============================================================================
 -- 14. HELPDESK AUDIT LOGS
@@ -402,8 +402,8 @@ CREATE TABLE IF NOT EXISTS helpdesk_audit_logs (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_audit_tenant_date ON helpdesk_audit_logs(tenant_id, created_at DESC);
-CREATE INDEX idx_audit_entity ON helpdesk_audit_logs(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_audit_tenant_date ON helpdesk_audit_logs(tenant_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_entity ON helpdesk_audit_logs(entity_type, entity_id);
 
 -- ============================================================================
 -- 15. ANALYTICS MATERIALIZED VIEWS (For Performance)
@@ -425,7 +425,7 @@ SELECT
 FROM helpdesk_tickets
 GROUP BY tenant_id, DATE_TRUNC('day', created_at);
 
-CREATE UNIQUE INDEX idx_daily_stats ON helpdesk_daily_stats(tenant_id, stat_date);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_stats ON helpdesk_daily_stats(tenant_id, stat_date);
 
 -- ============================================================================
 -- HELPER FUNCTIONS
@@ -452,6 +452,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trigger_generate_ticket_number ON helpdesk_tickets;
 CREATE TRIGGER trigger_generate_ticket_number
     BEFORE INSERT ON helpdesk_tickets
     FOR EACH ROW
@@ -473,6 +474,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trigger_update_ticket_activity ON helpdesk_comments;
 CREATE TRIGGER trigger_update_ticket_activity
     AFTER INSERT ON helpdesk_comments
     FOR EACH ROW
@@ -487,11 +489,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trigger_update_tickets_timestamp ON helpdesk_tickets;
 CREATE TRIGGER trigger_update_tickets_timestamp
     BEFORE UPDATE ON helpdesk_tickets
     FOR EACH ROW
     EXECUTE FUNCTION update_helpdesk_timestamp();
 
+DROP TRIGGER IF EXISTS trigger_update_comments_timestamp ON helpdesk_comments;
 CREATE TRIGGER trigger_update_comments_timestamp
     BEFORE UPDATE ON helpdesk_comments
     FOR EACH ROW
@@ -538,14 +542,22 @@ VALUES
      99)
 ON CONFLICT (tenant_id, key) DO NOTHING;
 
--- Default SLA Policies
+-- Default SLA Policies (using WHERE NOT EXISTS for idempotency)
 INSERT INTO helpdesk_sla_policies (tenant_id, feature_id, name, priority, first_response_minutes, resolution_target_minutes)
-VALUES
-    (NULL, NULL, 'Critical Default', 'critical', 15, 120),
-    (NULL, NULL, 'High Default', 'high', 60, 480),
-    (NULL, NULL, 'Medium Default', 'medium', 240, 1440),
-    (NULL, NULL, 'Low Default', 'low', 480, 2880)
-ON CONFLICT DO NOTHING;
+SELECT NULL, NULL, 'Critical Default', 'critical', 15, 120
+WHERE NOT EXISTS (SELECT 1 FROM helpdesk_sla_policies WHERE tenant_id IS NULL AND feature_id IS NULL AND priority = 'critical');
+
+INSERT INTO helpdesk_sla_policies (tenant_id, feature_id, name, priority, first_response_minutes, resolution_target_minutes)
+SELECT NULL, NULL, 'High Default', 'high', 60, 480
+WHERE NOT EXISTS (SELECT 1 FROM helpdesk_sla_policies WHERE tenant_id IS NULL AND feature_id IS NULL AND priority = 'high');
+
+INSERT INTO helpdesk_sla_policies (tenant_id, feature_id, name, priority, first_response_minutes, resolution_target_minutes)
+SELECT NULL, NULL, 'Medium Default', 'medium', 240, 1440
+WHERE NOT EXISTS (SELECT 1 FROM helpdesk_sla_policies WHERE tenant_id IS NULL AND feature_id IS NULL AND priority = 'medium');
+
+INSERT INTO helpdesk_sla_policies (tenant_id, feature_id, name, priority, first_response_minutes, resolution_target_minutes)
+SELECT NULL, NULL, 'Low Default', 'low', 480, 2880
+WHERE NOT EXISTS (SELECT 1 FROM helpdesk_sla_policies WHERE tenant_id IS NULL AND feature_id IS NULL AND priority = 'low');
 
 -- ============================================================================
 -- GRANTS (Adjust as needed for your setup)
