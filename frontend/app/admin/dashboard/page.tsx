@@ -452,6 +452,13 @@ const AdminDashboard = () => {
     );
   };
 
+  const resetToDefault = () => {
+    setCards(DEFAULT_CARDS);
+    setHiddenCardIds([]);
+    localStorage.removeItem("admin_dashboard_order");
+    localStorage.removeItem("admin_dashboard_hidden");
+  };
+
   const visibleCards = cards.filter(c => !hiddenCardIds.includes(c.id));
 
   return (
@@ -557,6 +564,18 @@ const AdminDashboard = () => {
                            <span className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>{card.title}</span>
                         </label>
                       ))}
+                   </div>
+                   <div className={`p-3 border-t ${darkMode ? 'border-gray-700' : 'border-gray-100'}`}>
+                      <button
+                         onClick={resetToDefault}
+                         className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                           darkMode 
+                           ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' 
+                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                         }`}
+                      >
+                         🔄 Reset to Default
+                      </button>
                    </div>
                 </div>
              )}
