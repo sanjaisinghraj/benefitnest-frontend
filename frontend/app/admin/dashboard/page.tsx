@@ -211,6 +211,14 @@ const DEFAULT_CARDS = [
     color: "#dc2626",
   },
   {
+    id: "helpdesk",
+    title: "Helpdesk",
+    description: "Multi-tenant ticketing system with SLA tracking, AI triage, red flags, priority queues, and analytics for employee support.",
+    icon: "🎫",
+    link: "/admin/helpdesk",
+    color: "#6366f1",
+  },
+  {
     id: "chatbot",
     title: "AI Chatbot",
     description: "Manage the AI support chatbot - view conversations, monitor analytics, train knowledge base, and track escalations.",
