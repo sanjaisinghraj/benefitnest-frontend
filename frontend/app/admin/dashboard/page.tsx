@@ -212,7 +212,7 @@ const DEFAULT_CARDS = [
   },
   {
     id: "helpdesk",
-    title: "Helpdesk",
+    title: "My Helpdesk",
     description: "Multi-tenant ticketing system with SLA tracking, AI triage, red flags, priority queues, and analytics for employee support.",
     icon: "🎫",
     link: "/admin/helpdesk",
