@@ -19,6 +19,7 @@ import { EmployeesModule } from './employees/employees.module';
 import { DocumentModule } from './document/document.module';
 import { EmailTemplatesModule } from './email-templates/email-templates.module';
 import { ClaimsAnalyticsModule } from './claims-analytics/claims-analytics.module';
+import { HelpdeskModule } from './helpdesk/helpdesk.module';
 
 // Health Check Controller
 import { AppController } from './app.controller';
@@ -48,6 +49,7 @@ import { AppController } from './app.controller';
     DocumentModule,
     EmailTemplatesModule,
     ClaimsAnalyticsModule,
+    HelpdeskModule,
   ],
   controllers: [AppController],
   providers: [],
